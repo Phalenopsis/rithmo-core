@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>eu.nicosworld</groupId>
+    <artifactId>rithmo-core</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+
+    <name>Rithmo Core</name>
+    <description>Game orchestration layer for Rithmomachia</description>
+
+    <!-- ===================== -->
+    <!-- Properties -->
+    <!-- ===================== -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+
+        <junit.version>5.10.0</junit.version>
+    </properties>
+
+    <!-- ===================== -->
+    <!-- Repositories -->
+    <!-- ===================== -->
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/Phalenopsis/rithmo-engine</url>
+        </repository>
+    </repositories>
+
+    <!-- ===================== -->
+    <!-- Dependencies -->
+    <!-- ===================== -->
+    <dependencies>
+
+        <!-- 🔗 TON ENGINE -->
+        <dependency>
+            <groupId>eu.nicosworld</groupId>
+            <artifactId>rithmo-engine</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+
+        <!-- 🧪 Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ===================== -->
+    <!-- Build -->
+    <!-- ===================== -->
+    <build>
+        <plugins>
+
+            <!-- Compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
