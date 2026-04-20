@@ -1,0 +1,78 @@
+@startuml
+title Rithmo Core – Turn State Machine
+
+[*] --> PRE_CAPTURE
+
+' =========================
+' PRE CAPTURE
+' =========================
+state PRE_CAPTURE {
+    entry : compute available pre-captures (CaptureEngine)
+}
+
+PRE_CAPTURE --> MOVE : no pre-captures available
+PRE_CAPTURE --> PRE_CAPTURE_APPLY : player selects capture(s)
+
+state PRE_CAPTURE_APPLY {
+    entry : apply pre-captures (PreCaptureApplier)
+}
+
+PRE_CAPTURE_APPLY --> MOVE
+
+' =========================
+' MOVE
+' =========================
+state MOVE {
+    entry : compute available moves (MovementEngine)
+}
+
+MOVE --> MOVE_APPLY : player selects move
+
+state MOVE_APPLY {
+    entry : apply move (MoveApplier)
+}
+
+MOVE_APPLY --> POST_CAPTURE_CHECK
+
+' =========================
+' POST CAPTURE DECISION
+' =========================
+POST_CAPTURE_CHECK --> POST_CAPTURE : move is REGULAR AND captures exist
+POST_CAPTURE_CHECK --> VICTORY_CHECK : otherwise
+
+' =========================
+' POST CAPTURE
+' =========================
+state POST_CAPTURE {
+    entry : compute available post-captures (CaptureEngine)
+}
+
+POST_CAPTURE --> POST_CAPTURE_APPLY : player selects capture(s)
+POST_CAPTURE --> VICTORY_CHECK : skip
+
+state POST_CAPTURE_APPLY {
+    entry : apply post-captures (PostCaptureApplier)
+}
+
+POST_CAPTURE_APPLY --> VICTORY_CHECK
+
+' =========================
+' VICTORY
+' =========================
+state VICTORY_CHECK {
+    entry : evaluate victory (VictoryEngine)
+}
+
+VICTORY_CHECK --> END : victory
+VICTORY_CHECK --> NEXT_TURN : no victory
+
+' =========================
+' NEXT TURN
+' =========================
+state NEXT_TURN {
+    entry : switch player
+}
+
+NEXT_TURN --> PRE_CAPTURE
+
+@enduml

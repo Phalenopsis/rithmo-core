@@ -1,0 +1,78 @@
+@startuml
+title Sequence diagram
+skinparam Style strictuml
+skinparam sequenceMessageAlign center
+
+actor Player
+participant GameService
+participant TurnProcessor
+participant CaptureEngine
+participant MovementEngine
+participant VictoryEngine
+participant MoveApplier
+participant CaptureApplier
+
+== TURN START ==
+
+GameService -> TurnProcessor : nextTurn(gameState, player)
+
+TurnProcessor -> CaptureEngine : findPreCaptures(state)
+
+alt captures exist
+    TurnProcessor --> GameService : TurnState(PRE_CAPTURE)
+else
+    TurnProcessor -> MovementEngine : generateMoves(state)
+    TurnProcessor --> GameService : TurnState(MOVE)
+end
+
+GameService --> Player : TurnState
+
+== PLAYER ACTION ==
+
+Player -> GameService : playAction(action)
+GameService -> TurnProcessor : process(state, action)
+
+TurnProcessor -> VictoryEngine : check(state)
+
+alt victory
+    TurnProcessor --> GameService : GameOver
+    GameService --> Player : Victory
+
+else no victory
+
+    alt PRE_CAPTURE action
+
+        TurnProcessor -> CaptureApplier : applyPreCapture(state, action)
+        TurnProcessor -> VictoryEngine : check(updatedState)
+
+        TurnProcessor -> MovementEngine : generateMoves(updatedState)
+        TurnProcessor --> GameService : TurnState(MOVE)
+
+    else MOVE action
+
+        TurnProcessor -> MoveApplier : applyMove(state, action)
+        TurnProcessor -> VictoryEngine : check(updatedState)
+
+        TurnProcessor -> CaptureEngine : findPostCaptures(updatedState)
+
+        alt captures exist
+            TurnProcessor --> GameService : TurnState(POST_CAPTURE)
+        else
+            TurnProcessor -> TurnProcessor : switchPlayer()
+            TurnProcessor --> GameService : TurnState(PRE_CAPTURE or MOVE)
+        end
+
+    else POST_CAPTURE action
+
+        TurnProcessor -> CaptureApplier : applyPostCapture(state, action)
+        TurnProcessor -> VictoryEngine : check(updatedState)
+
+        TurnProcessor -> TurnProcessor : switchPlayer()
+        TurnProcessor --> GameService : TurnState(PRE_CAPTURE or MOVE)
+
+    end
+end
+
+GameService --> Player : TurnState
+
+@enduml

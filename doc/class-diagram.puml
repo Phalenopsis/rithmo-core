@@ -1,0 +1,176 @@
+@startuml
+title Rithmo Core – Architecture (v2 clean)
+
+' =========================
+' CORE LAYER
+' =========================
+
+package "core.session" {
+
+class GameService {
+    +startGame(): GameSession
+    +playTurn(gameId, TurnAction): GameSession
+    +getTurnState(gameId): TurnState
+}
+
+class GameSession {
+    -GameId id
+    -GameState state
+    -Player currentPlayer
+
+    +withState(GameState): GameSession
+    +withPlayer(Player): GameSession
+}
+
+class GameId
+}
+
+' =========================
+' TURN ORCHESTRATION
+' =========================
+
+package "core.turn" {
+
+class TurnProcessor {
+    -CaptureResolver captureResolver
+    -MoveApplier moveApplier
+    -CaptureApplier captureApplier
+    -VictoryEngine victoryEngine
+
+    +process(state: TurnState, action: TurnAction): TurnState
+}
+
+class TurnState {
+    -GameState gameState
+    -Player currentPlayer
+    -TurnPhase phase
+
+    -List<Move> availableMoves
+    -Optional<Move> selectedMove
+
+    -List<CaptureChoice> availablePreCaptures
+    -List<CaptureChoice> availablePostCaptures
+}
+
+enum TurnPhase {
+    PRE_CAPTURE
+    MOVE
+    POST_CAPTURE
+    END
+}
+}
+
+' =========================
+' ACTIONS (PLAYER INPUT)
+' =========================
+
+package "core.turn.action" {
+
+interface TurnAction
+
+class PreCaptureAction {
+    -List<Position> capturedPositions
+    -Position landingPosition
+}
+
+class MoveAction {
+    -Move move
+}
+
+class PostCaptureAction {
+    -List<Position> capturedPositions
+}
+
+TurnAction <|-- PreCaptureAction
+TurnAction <|-- MoveAction
+TurnAction <|-- PostCaptureAction
+}
+
+' =========================
+' RESOLVERS (OPTIONS ONLY)
+' =========================
+
+package "core.turn.resolver" {
+
+class CaptureResolver {
+    +resolvePreCaptures(GameState, Player): List<CaptureChoice>
+    +resolvePostCaptures(GameState, Player): List<CaptureChoice>
+}
+
+class CaptureChoice {
+    -List<CaptureAction> actions
+}
+
+}
+
+' =========================
+' APPLIERS (STATE MUTATION ONLY)
+' =========================
+
+package "core.turn.applier" {
+
+class MoveApplier {
+    +apply(GameState, Move): GameState
+}
+
+class CaptureApplier {
+    +apply(GameState, List<CaptureAction>): GameState
+}
+
+}
+
+' =========================
+' ENGINE (EXTERNAL PURE DEPENDENCY)
+' =========================
+
+package "engine" {
+
+class GameState
+class Move
+class CaptureAction
+
+class MovementEngine {
+    +generateMoves(GameState, PieceAtPosition): List<Move>
+}
+
+class CaptureEngine {
+    +findCaptures(CaptureContext): List<CaptureAction>
+}
+
+class VictoryEngine {
+    +check(GameState): boolean
+}
+
+class CaptureContext
+}
+
+' =========================
+' RELATIONS
+' =========================
+
+GameService --> GameSession
+GameService --> TurnProcessor
+
+TurnProcessor --> TurnState
+TurnProcessor --> CaptureResolver
+TurnProcessor --> MoveApplier
+TurnProcessor --> CaptureApplier
+TurnProcessor --> VictoryEngine
+
+TurnState --> GameState
+TurnState --> Player
+TurnState --> TurnPhase
+TurnState --> Move
+TurnState --> CaptureChoice
+
+CaptureResolver --> CaptureChoice
+CaptureChoice --> CaptureAction
+
+MoveApplier --> GameState
+CaptureApplier --> GameState
+
+TurnAction <|.. PreCaptureAction
+TurnAction <|.. MoveAction
+TurnAction <|.. PostCaptureAction
+
+@enduml
