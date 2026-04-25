@@ -2,6 +2,6 @@ package eu.nicosworld.rithmo.core.turn.action;
 
 import eu.nicosworld.rithmo.engine.move.Move;
 
-public record MoveAction(
+public record MoveOption(
         Move move
-) implements TurnAction {}
+) implements TurnOption {}

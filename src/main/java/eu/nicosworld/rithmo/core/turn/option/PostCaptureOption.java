@@ -4,6 +4,6 @@ import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 
 import java.util.List;
 
-public record PostCaptureAction(
-        List<CaptureAction> actions
-) implements TurnAction {}
+public record PostCaptureOption(
+        List<CaptureAction> captures
+) implements TurnOption {}
