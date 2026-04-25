@@ -1,4 +1,4 @@
-package eu.nicosworld.rithmo.core.turn.action;
+package eu.nicosworld.rithmo.core.turn.option;
 
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 

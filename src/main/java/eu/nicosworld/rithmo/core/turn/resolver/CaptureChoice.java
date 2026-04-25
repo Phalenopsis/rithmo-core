@@ -1,4 +1,4 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
-public class CaptureChoice {
-}
+public sealed interface CaptureChoice
+        permits PreCaptureChoice, PostCaptureChoice {}
