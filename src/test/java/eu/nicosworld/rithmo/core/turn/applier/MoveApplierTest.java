@@ -1,14 +1,11 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
-import eu.nicosworld.rithmo.engine.model.Board;
-import eu.nicosworld.rithmo.engine.model.Piece;
-import eu.nicosworld.rithmo.engine.model.Position;
+import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
+import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class MoveApplierTest {
 
@@ -25,17 +22,19 @@ class MoveApplierTest {
                 .at(1,1)
                 .build();
 
+
         Piece pieceToMove = board.getPieceAt(from);
 
         // Act
         MoveApplier applier = new MoveApplier();
         Board newBoard = applier.applyMove(board, move);
 
-        Piece emptyCase = newBoard.getPieceAt(from);
-        Piece pieceMoved = newBoard.getPieceAt(to);
+        GameState gameState = GameState.initial(newBoard, Player.BLACK);
 
-        // Assert
-        assertSame(pieceToMove, pieceMoved);
-        assertNull(emptyCase);
+        GameStateAssertion.assertThis(gameState)
+                .isEmpty(from)
+                .player(Player.BLACK)
+                .hasOnBoard(pieceToMove)
+                .at(to);
     }
 }
