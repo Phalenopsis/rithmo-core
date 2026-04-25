@@ -1,18 +1,16 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
-import eu.nicosworld.rithmo.core.turn.BaseTest;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
+import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class CaptureApplierTest extends BaseTest {
+class CaptureApplierTest {
 
     @Test
     void applyCapture_OneCapture() {
@@ -40,13 +38,13 @@ class CaptureApplierTest extends BaseTest {
                 true,
                 CaptureType.ENCOUNTER
                 );
-        printBoardAfterArrange(board);
+        RithmoDebug.printBoardAfterArrange(board);
         // Act
         CaptureApplier applier = new CaptureApplier();
         GameState newState = applier.applyCapture(state, captureAction);
 
         Board newBoard = newState.board();
-        printBoardAfterAct(newBoard);
+        RithmoDebug.printBoardAfterAct(newBoard);
 
         GameStateAssertion.assertThis(newState)
                 .isEmpty(targetPos)
@@ -95,13 +93,13 @@ class CaptureApplierTest extends BaseTest {
         );
 
         List<CaptureAction> captureActions = List.of(captureAction, captureAction2);
-        printBoardAfterArrange(board);
+        RithmoDebug.printBoardAfterArrange(board);
         // Act
         CaptureApplier applier = new CaptureApplier();
         GameState newState = applier.applyCaptures(state, captureActions);
         Board newBoard = newState.board();
 
-        printBoardAfterAct(newBoard);
+        RithmoDebug.printBoardAfterAct(newBoard);
 
         GameStateAssertion.assertThis(newState)
                 .isEmpty(targetPos)
