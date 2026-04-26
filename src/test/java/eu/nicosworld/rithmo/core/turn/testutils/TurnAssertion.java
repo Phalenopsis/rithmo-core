@@ -12,6 +12,7 @@ import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
+import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +24,10 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class TurnAssertion {
     private final TurnState turnState;
+
+    public GameStateAssertion checkState() {
+        return GameStateAssertion.assertThis(this.turnState.state());
+    }
 
     private TurnAssertion(TurnState turnState) {
         this.turnState = turnState;
