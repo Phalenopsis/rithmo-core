@@ -89,7 +89,7 @@ public class TurnAssertion {
                 .map(o -> ((PreCaptureChoice) o.choice()).actions())
                         .toList();
         Set<CaptureAction> uniques = captureActions.stream().flatMap(Collection::stream)
-                .filter(c -> c.type().equals(CaptureType.ASSAULT))
+                .filter(c -> c.type().equals(type))
                         .collect(Collectors.toSet());
 
 
@@ -151,7 +151,7 @@ public class TurnAssertion {
     }
 
     public TurnAssertion hasIrregularMoveOption(int expectedCount) {
-        assertThat(getAllMove().stream().filter(m -> m.nature().equals(MoveNature.REGULAR)))
+        assertThat(getAllMove().stream().filter(m -> m.nature().equals(MoveNature.IRREGULAR)))
                 .hasSize(expectedCount);
         return this;
     }
