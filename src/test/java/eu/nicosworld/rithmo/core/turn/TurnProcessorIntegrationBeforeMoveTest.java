@@ -4,16 +4,8 @@ import eu.nicosworld.rithmo.core.Exception.PatException;
 import eu.nicosworld.rithmo.core.Exception.VictoryException;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.action.SkipPreCaptureAction;
-import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
-import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
-import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
-import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
-import eu.nicosworld.rithmo.core.turn.option.TurnOption;
 import eu.nicosworld.rithmo.core.turn.resolver.*;
 import eu.nicosworld.rithmo.core.turn.testutils.TurnAssertion;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
-import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
-import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AssaultRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.EncounterRule;
@@ -22,22 +14,19 @@ import eu.nicosworld.rithmo.engine.move.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
-import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
-import eu.nicosworld.rithmo.engine.victory.VictoryRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static eu.nicosworld.rithmo.core.turn.testutils.TurnHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class TurnProcessorIntegrationTest {
+class TurnProcessorIntegrationBeforeMoveTest {
 
     private TurnProcessor processor;
-
-    private GameState state;
     private BoardBuilder builder;
 
     @BeforeEach
@@ -47,7 +36,7 @@ class TurnProcessorIntegrationTest {
 
         EncounterRule encounterRule = new EncounterRule(regularMoveGenerator, freePathMovementValidator);
 
-        setupProcessor(List.of(encounterRule));
+        processor = setupProcessor(List.of(encounterRule));
 
         // =========================
         // SIMPLE BOARD SETUP
@@ -62,7 +51,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(2, 2)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -93,7 +82,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(2, 2)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -125,7 +114,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(2, 2)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -154,7 +143,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(2, 2)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -190,7 +179,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(1, 1)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -211,7 +200,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(1, 1)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -234,7 +223,7 @@ class TurnProcessorIntegrationTest {
                 .whiteCircle(5).at(1, 1)
                 .build();
 
-        state = GameState.initial(board, Player.BLACK);
+        GameState state = GameState.initial(board, Player.BLACK);
 
         TurnState startTurn = TurnState.of(
                 state,
@@ -272,7 +261,7 @@ class TurnProcessorIntegrationTest {
 
             BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(2);
 
-            setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+            processor = setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
 
             // =========================
             // SIMPLE BOARD SETUP
@@ -288,7 +277,7 @@ class TurnProcessorIntegrationTest {
                     .whiteTriangle(6).at(3,3)
                     .build();
 
-            state = GameState.initial(board, Player.BLACK);
+            GameState state = GameState.initial(board, Player.BLACK);
 
             TurnState startTurn = TurnState.of(
                     state,
@@ -335,7 +324,7 @@ class TurnProcessorIntegrationTest {
                     .whiteTriangle(25).at(1,3)
                     .build();
 
-            state = GameState.initial(board, Player.BLACK);
+            GameState state = GameState.initial(board, Player.BLACK);
 
             TurnState startTurn = TurnState.of(
                     state,
@@ -380,7 +369,7 @@ class TurnProcessorIntegrationTest {
 
             BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
 
-            setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+            processor = setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
 
             // =========================
             // SIMPLE BOARD SETUP
@@ -397,7 +386,7 @@ class TurnProcessorIntegrationTest {
                     .whiteTriangle(25).at(1,3)
                     .build();
 
-            state = GameState.initial(board, Player.BLACK);
+            GameState state = GameState.initial(board, Player.BLACK);
 
             TurnState startTurn = TurnState.of(
                     state,
@@ -425,8 +414,6 @@ class TurnProcessorIntegrationTest {
                     .isInstanceOf(VictoryException.class)
                     .hasMessage("BLACK is winner");
         }
-
-
     }
 
     @Nested
@@ -442,7 +429,7 @@ class TurnProcessorIntegrationTest {
 
             BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(3);
 
-            setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+            processor = setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
 
             // =========================
             // SIMPLE BOARD SETUP
@@ -459,7 +446,7 @@ class TurnProcessorIntegrationTest {
                     .whiteTriangle(6).at(3,3)
                     .build();
 
-            state = GameState.initial(board, Player.BLACK);
+            GameState state = GameState.initial(board, Player.BLACK);
 
             TurnState startTurn = TurnState.of(
                     state,
@@ -499,63 +486,5 @@ class TurnProcessorIntegrationTest {
                         .hasInReserve(turn1.state().board().getPieceAt(targetPos1))
                         .hasInReserve(turn1.state().board().getPieceAt(targetPos2));
         }
-    }
-
-    private void setupProcessor(List<CaptureRule> captureRules) {
-        BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
-
-        setupProcessor(captureRules, List.of(bodyVictoryRule));
-    }
-
-    private void setupProcessor(List<CaptureRule> captureRules, List<VictoryRule> victoryRules) {
-        CaptureApplier captureApplier = new CaptureApplier();
-        MoveApplier moveApplier = new MoveApplier();
-        ActionApplier actionApplier = new ActionApplier(captureApplier, moveApplier);
-
-        CaptureEngine captureEngine = new CaptureEngine(captureRules);
-        CaptureResolver captureResolver = new CaptureResolver(captureEngine);
-
-        MovementEngine movementEngine = new MovementEngine();
-        MoveResolver moveResolver = new MoveResolver(movementEngine);
-
-        PhaseResolver phaseResolver = new PhaseResolver(captureResolver, moveResolver);
-
-        VictoryEngine victoryEngine = new VictoryEngine(victoryRules);
-
-        processor = new TurnProcessor(actionApplier,
-                phaseResolver,
-                victoryEngine);
-    }
-
-    void showOptions(TurnState turnState) {
-        System.out.println(turnState.options());
-    }
-
-    public PreCaptureChoice findPreCaptureChoice(List<TurnOption> options, Position attackerPos, List<Position> targetPositions) {
-        return options.stream()
-                .filter(PreCaptureOption.class::isInstance)
-                .map(o -> ((PreCaptureOption) o).choice())
-                .map(PreCaptureChoice.class::cast)
-                .filter(c -> {
-                    // On extrait toutes les positions cibles de ce choix
-                    List<Position> targetsInChoice = c.actions().stream()
-                            .map(CaptureAction::targetPosition)
-                            .toList();
-
-                    // On vérifie que l'attaquant est le bon ET que TOUTES les cibles attendues sont là
-                    boolean sameAttacker = c.actions().stream()
-                            .anyMatch(a -> a.attackerPosition().equals(attackerPos));
-
-                    return sameAttacker && targetsInChoice.containsAll(targetPositions)
-                            && targetsInChoice.size() == targetPositions.size();
-                })
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        String.format("Aucun choix trouvé pour l'attaquant en %s vers les cibles %s",
-                                attackerPos, targetPositions)));
-    }
-
-    public PreCaptureChoice findPreCaptureChoice(List<TurnOption> options, Position attackerPos, Position... targetPositions) {
-        return findPreCaptureChoice(options, attackerPos, List.of(targetPositions));
     }
 }
