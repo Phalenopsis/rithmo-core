@@ -5,6 +5,7 @@ import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.Player;
+import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 
 import java.util.ArrayList;
@@ -78,10 +79,10 @@ public class PhaseResolver {
     // =========================
     // POST CAPTURE
     // =========================
-    public List<TurnOption> resolvePostCapture(GameState state, Move lastMove) {
+    public List<TurnOption> resolvePostCapture(GameState state, Position attackerPos) {
 
         List<PostCaptureChoice> choices =
-                captureResolver.resolvePostCaptures(state, lastMove);
+                captureResolver.resolvePostCaptures(state, attackerPos);
 
         List<TurnOption> options = new ArrayList<>();
 

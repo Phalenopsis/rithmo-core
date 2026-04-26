@@ -98,15 +98,12 @@ public class CaptureResolver {
         return true;
     }
 
-    public List<PostCaptureChoice> resolvePostCaptures(GameState state, Move lastMove) {
-        if (lastMove.nature() == IRREGULAR) {
-            return List.of();
-        }
+    public List<PostCaptureChoice> resolvePostCaptures(GameState state, Position AttackerPos) {
 
         List<PostCaptureChoice> results = new ArrayList<>();
         Board board = state.board();
 
-        PieceAtPosition movedPiece = new PieceAtPosition(board.getPieceAt(lastMove.to()), lastMove.to());
+        PieceAtPosition movedPiece = new PieceAtPosition(board.getPieceAt(AttackerPos), AttackerPos);
 
         CaptureContext ctx = new CaptureContext(state, movedPiece);
 
