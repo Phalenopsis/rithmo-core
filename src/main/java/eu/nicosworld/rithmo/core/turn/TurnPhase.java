@@ -1,5 +1,12 @@
 package eu.nicosworld.rithmo.core.turn;
 
 public enum TurnPhase {
-
+    START,
+    PRE_CAPTURE_COMPUTATION,
+    PRE_CAPTURE_APPLICATION,
+    MOVE_COMPUTATION,
+    MOVE_APPLICATION,
+    POST_CAPTURE_COMPUTATION,
+    POST_CAPTURE_APPLICATION,
+    END
 }
