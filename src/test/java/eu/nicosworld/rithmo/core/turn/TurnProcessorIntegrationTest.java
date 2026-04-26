@@ -429,6 +429,78 @@ class TurnProcessorIntegrationTest {
 
     }
 
+    @Nested
+    class WithAssaultRuleAnd3CapturesVictory {
+
+        @BeforeEach
+        void setup() {
+            RegularMoveGenerator regularMoveGenerator = new RegularMoveGenerator();
+            FreePathMovementValidator freePathMovementValidator = new FreePathMovementValidator();
+
+            AssaultRule assaultRule = new AssaultRule(regularMoveGenerator, freePathMovementValidator);
+            EncounterRule encounterRule = new EncounterRule(regularMoveGenerator, freePathMovementValidator);
+
+            BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(3);
+
+            setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+
+            // =========================
+            // SIMPLE BOARD SETUP
+            // =========================
+            builder = new BoardBuilder(4, 4);
+        }
+
+        @Test
+        void shouldPassToMovePhaseAfterPreCaptureAction_With2Captures() throws VictoryException, PatException {
+            Board board = builder
+                    .blackCircle(5).at(1,1)
+                    .whiteCircle(5).at(2, 2)
+                    .whiteSquare(5).at(0,2)
+                    .whiteTriangle(6).at(3,3)
+                    .build();
+
+            state = GameState.initial(board, Player.BLACK);
+
+            TurnState startTurn = TurnState.of(
+                    state,
+                    TurnPhase.START
+            );
+
+            RithmoDebug.printBoardAfterAct(state.board());
+
+            TurnState turn1 = processor.process(startTurn, null);
+
+            showOptions(turn1);
+
+            Position attackerPos = new Position(1,1);
+            Position targetPos1 = new Position(2,2);
+            Position targetPos2 = new Position(0,2);
+
+            PreCaptureChoice choice = findPreCaptureChoice(turn1.options(), attackerPos, targetPos1, targetPos2);
+            PreCaptureAction chosenAction = PreCaptureAction.from(choice, targetPos2);
+
+            TurnState turn2 = processor.process(turn1, chosenAction);
+
+            assertThat(turn1).isNotSameAs(startTurn);
+            assertThat(turn2).isNotSameAs(turn1);
+
+            RithmoDebug.printBoardAfterAct(turn2.state().board());
+
+            TurnAssertion.assertThis(turn2)
+                    .isInMoveApplicationPhase()
+                    .hasCurrentBlackPlayer()
+                    .hasMoveOption()
+                    .hasRegularMoveOption(2)
+                    .hasNoIrregularMoveOption()
+                    .hasRegularMoveTo(1,1)
+                    .hasRegularMoveTo(1,3)
+                    .checkState()
+                        .player(Player.BLACK)
+                        .hasInReserve(turn1.state().board().getPieceAt(targetPos1))
+                        .hasInReserve(turn1.state().board().getPieceAt(targetPos2));
+        }
+    }
+
     private void setupProcessor(List<CaptureRule> captureRules) {
         BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
 
