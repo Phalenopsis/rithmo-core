@@ -19,6 +19,6 @@ public class MoveResolver {
     }
 
     public List<Move> resolveMove(GameState state, PieceAtPosition pap) {
-        return movementEngine.generateMoves(state, pap);
+        return movementEngine.generateFreePathRegularMoves(state, pap);
     }
 }

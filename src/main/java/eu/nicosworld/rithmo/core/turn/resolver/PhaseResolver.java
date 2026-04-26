@@ -3,6 +3,7 @@ package eu.nicosworld.rithmo.core.turn.resolver;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.engine.model.GameState;
+import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.move.Move;
 
@@ -49,6 +50,21 @@ public class PhaseResolver {
     public List<TurnOption> resolveMove(GameState state) {
 
         List<Move> moves = movementResolver.resolveMove(state);
+
+        List<TurnOption> options = new ArrayList<>();
+
+        for (Move move : moves) {
+            options.add(new MoveOption(move));
+        }
+
+        return options;
+    }
+    // =========================
+    // MOVE
+    // =========================
+    public List<TurnOption> resolveMove(GameState state, PieceAtPosition pap) {
+
+        List<Move> moves = movementResolver.resolveMove(state, pap);
 
         List<TurnOption> options = new ArrayList<>();
 
