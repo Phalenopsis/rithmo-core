@@ -341,7 +341,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     .hasSkipPreCaptureOption()
                     .hasOptionsCount(2)
                     .hasPreCaptureOptionsCount(1)
-                    .hasCaptureOptions(CaptureType.ASSAULT);
+                    .hasPreCaptureOptions(CaptureType.ASSAULT);
 
             Position attackerPos = new Position(0,0);
             Position targetPos = new Position(3,3);
@@ -401,7 +401,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     .hasSkipPreCaptureOption()
                     .hasOptionsCount(2)
                     .hasPreCaptureOptionsCount(1)
-                    .hasCaptureOptions(CaptureType.ASSAULT);
+                    .hasPreCaptureOptions(CaptureType.ASSAULT);
 
             Position attackerPos = new Position(0,0);
             Position targetPos = new Position(3,3);

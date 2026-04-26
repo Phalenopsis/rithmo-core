@@ -2,9 +2,8 @@ package eu.nicosworld.rithmo.core.turn.testutils;
 
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
-import eu.nicosworld.rithmo.core.turn.option.MoveOption;
-import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
-import eu.nicosworld.rithmo.core.turn.option.SkipPreCaptureOption;
+import eu.nicosworld.rithmo.core.turn.option.*;
+import eu.nicosworld.rithmo.core.turn.resolver.PostCaptureChoice;
 import eu.nicosworld.rithmo.core.turn.resolver.PreCaptureChoice;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
@@ -57,6 +56,10 @@ public class TurnAssertion {
         return this;
     }
 
+    public TurnAssertion isInPostCaptureApplicationPhase() {
+        return isInPhase(TurnPhase.POST_CAPTURE_APPLICATION);
+    }
+
     public TurnAssertion isInPreCaptureApplicationPhase() {
         return isInPhase(TurnPhase.PRE_CAPTURE_APPLICATION);
     }
@@ -83,7 +86,7 @@ public class TurnAssertion {
         return this;
     }
 
-    public TurnAssertion hasCaptureOptions(CaptureType type) {
+    public TurnAssertion hasPreCaptureOptions(CaptureType type) {
         List<PreCaptureOption> preCaptureOptions = turnState.options().stream()
                 .filter(PreCaptureOption.class::isInstance)
                 .map(o -> (PreCaptureOption) o)
@@ -105,10 +108,37 @@ public class TurnAssertion {
         return this;
     }
 
+    public TurnAssertion hasPostCaptureOptions(CaptureType type) {
+        List<PostCaptureOption> preCaptureOptions = turnState.options().stream()
+                .filter(PostCaptureOption.class::isInstance)
+                .map(o -> (PostCaptureOption) o)
+                .toList();
+
+        List<List<CaptureAction>> captureActions = preCaptureOptions.stream()
+                .map(PostCaptureOption::captures)
+                .toList();
+        Set<CaptureAction> uniques = captureActions.stream().flatMap(Collection::stream)
+                .filter(c -> c.type().equals(type))
+                .collect(Collectors.toSet());
+
+
+        assertThat(uniques)
+                .as("Nombre d'options de capture pré-mouvement de type " + type)
+                .isNotEmpty();
+
+        return this;
+    }
+
     public TurnAssertion hasSkipPreCaptureOption() {
         assertThat(turnState.options())
                 .anyMatch(option -> option instanceof SkipPreCaptureOption);
        return this;
+    }
+
+    public TurnAssertion hasSkipPostCaptureOption() {
+        assertThat(turnState.options())
+                .anyMatch(option -> option instanceof SkipPostCaptureOption);
+        return this;
     }
 
     public TurnAssertion hasMoveOption() {
@@ -229,5 +259,17 @@ public class TurnAssertion {
         return this;
     }
 
+    public TurnAssertion hasPostCaptureOption(Position targetPosition) {
+        boolean found = turnState.options().stream()
+                .filter(PostCaptureOption.class::isInstance)
+                .map(PostCaptureOption.class::cast)
+                .flatMap(option -> option.captures().stream())
+                .anyMatch(capture -> capture.targetPosition().equals(targetPosition));
 
+        assertThat(found)
+                .as("Une option de capture post-mouvement devrait être disponible sur la position %s", targetPosition)
+                .isTrue();
+
+        return this;
+    }
 }

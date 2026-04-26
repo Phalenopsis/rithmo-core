@@ -44,6 +44,7 @@ public class TurnProcessor {
                         ),
                         null);
             }
+
             case PRE_CAPTURE_COMPUTATION -> {
                 // calcule les captures possibles
                 List<TurnOption> options = phaseResolver.resolvePreCapture(turnState.state());
@@ -65,14 +66,10 @@ public class TurnProcessor {
                                 TurnPhase.MOVE_COMPUTATION
                         ), null
                 ) ;
-
-
             }
+
             case PRE_CAPTURE_APPLICATION -> {
-                boolean hasCaptured = false;
-                if(action instanceof PreCaptureAction) {
-                    hasCaptured = true;
-                }
+                boolean hasCaptured = action instanceof PreCaptureAction;
                 AppliedResult result = actionApplier.apply(turnState.state(), action);
                 GameState state = result.gameState();
                 checkVictory(state);
@@ -113,42 +110,81 @@ public class TurnProcessor {
                 );
             }
 
-
-
             case MOVE_APPLICATION -> {
-                return null;
-            }
                 // applique le move
+                AppliedResult result = actionApplier.apply(turnState.state(), action);
                 // check victoire
+                GameState state = result.gameState();
+                checkVictory(state);
+
+                // Si move est IRREGULAR
+                if(result.wasMoveIrregular()) {
+                    return process(TurnState.of(
+                                        state,
+                                        TurnPhase.END),
+                            null);
+                }
                 // si move est REGULAR
-                    // fait avancer à POST_CAPTURE_COMPUTATION
-                // sinon fait avancer à END
-            case POST_CAPTURE_COMPUTATION -> {
-                return null;
+                // fait avancer à POST_CAPTURE_COMPUTATION
+                return process(TurnState.withPosition(
+                                state,
+                                TurnPhase.POST_CAPTURE_COMPUTATION,
+                                null,
+                                result.landingPosition()),
+                        null);
             }
-                // calcule les captures possible
+
+            case POST_CAPTURE_COMPUTATION -> {
+                // calcule les captures possibles
+                List<TurnOption> options = phaseResolver.resolvePostCapture(turnState.state(), turnState.attackerPos());
                 // avance à POST_CAPTURE_APPLICATION
                 // renvoie les options
+                if(!options.isEmpty()) {
+                    return TurnState.of(
+                            turnState.state(),
+                            TurnPhase.POST_CAPTURE_APPLICATION,
+                            options
+                    );
+                }
+                // si pas de capture, avance à END
+                return process(
+                        TurnState.of(
+                                turnState.state(),
+                                TurnPhase.END
+                        ), null
+                );
+            }
+
             case POST_CAPTURE_APPLICATION -> {
-                return null;
+                // applique le move
+                AppliedResult result = actionApplier.apply(turnState.state(), action);
+                // check victoire
+                GameState state = result.gameState();
+                checkVictory(state);
+                return process(
+                        TurnState.of(
+                                state,
+                                TurnPhase.END
+                        ), null
+                );
             }
-                // applique l'action
-                    // si capture
-                        // check Victoire
+
             case END -> {
-                return null;
-            }
                 // switch player
                 // fait avancer à START
-        };
-        return null;
+                return process(
+                        TurnState.of(
+                                turnState.state().switchPlayer(),
+                                TurnPhase.START), null
+                );
+            }
+            default -> throw new IllegalArgumentException("Unrecognized TurnPhase");
+
+        }
     }
 
     public void checkVictory(GameState state) throws VictoryException {
         if(victoryEngine.check(state))
             throw new VictoryException(state.currentPlayer());
-
     }
-
-
 }

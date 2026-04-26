@@ -39,7 +39,7 @@ public record TurnState(
         return new TurnState(state, phase, options, false, true, null);
     }
 
-    public static TurnState withCapture(
+    public static TurnState withPosition(
             GameState state,
             TurnPhase phase,
             List<TurnOption> options,

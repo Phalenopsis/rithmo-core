@@ -5,6 +5,8 @@ import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
 import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
+import eu.nicosworld.rithmo.core.turn.option.MoveOption;
+import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.core.turn.option.TurnOption;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
@@ -15,6 +17,7 @@ import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.model.Position;
+import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MovementEngine;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
@@ -81,4 +84,48 @@ public class TurnHelper {
         return findPreCaptureChoice(options, attackerPos, List.of(targetPositions));
     }
 
+    public static List<Move> getAllMoves(TurnState turnState, Position attackerPos) {
+        return turnState.options().stream()
+                .filter(MoveOption.class::isInstance)
+                .map(o -> ((MoveOption) o).move())
+                .filter(m -> m.from().equals(attackerPos))
+                .toList();
+    }
+
+    public static Move getMove(TurnState turnState, Position attackerPos, Position landing) {
+        return turnState.options().stream()
+                .filter(MoveOption.class::isInstance)
+                .map(o -> ((MoveOption) o).move())
+                .filter(m -> m.from().equals(attackerPos) && m.to().equals(landing))
+                .findFirst().orElseThrow(() -> new AssertionError(
+                        String.format("Aucun choix de Move trouvé pour l'attaquant en %s vers la case %s",
+                                attackerPos, landing)));
+    }
+
+    public static PostCaptureOption findPostCaptureOption(List<TurnOption> options, List<Position> targetPositions) {
+        return options.stream()
+                .filter(PostCaptureOption.class::isInstance)
+                .map(PostCaptureOption.class::cast)
+                .filter(option -> {
+                    // On extrait les positions cibles de cette option post-capture
+                    List<Position> targetsInOption = option.captures().stream()
+                            .map(CaptureAction::targetPosition)
+                            .toList();
+
+                    // On vérifie que toutes les cibles attendues sont là et qu'il n'y en a pas d'autres
+                    return targetsInOption.size() == targetPositions.size()
+                            && targetsInOption.containsAll(targetPositions);
+                })
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        String.format("Aucune option de capture post-mouvement trouvée pour les cibles %s",
+                                targetPositions)));
+    }
+
+    /**
+     * Surcharge pratique pour passer les positions directement (varargs)
+     */
+    public static PostCaptureOption findPostCaptureOption(List<TurnOption> options, Position... targetPositions) {
+        return findPostCaptureOption(options, List.of(targetPositions));
+    }
 }
