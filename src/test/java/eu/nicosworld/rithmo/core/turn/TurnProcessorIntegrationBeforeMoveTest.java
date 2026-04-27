@@ -1,7 +1,7 @@
 package eu.nicosworld.rithmo.core.turn;
 
-import eu.nicosworld.rithmo.core.Exception.PatException;
-import eu.nicosworld.rithmo.core.Exception.VictoryException;
+import eu.nicosworld.rithmo.core.exception.PatException;
+import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.action.SkipPreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.resolver.*;

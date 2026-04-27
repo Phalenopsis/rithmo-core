@@ -1,4 +1,4 @@
-package eu.nicosworld.rithmo.core.Exception;
+package eu.nicosworld.rithmo.core.exception;
 
 import eu.nicosworld.rithmo.engine.model.Player;
 
