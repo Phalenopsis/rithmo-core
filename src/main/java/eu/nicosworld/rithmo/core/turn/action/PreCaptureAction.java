@@ -1,6 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.action;
 
-import eu.nicosworld.rithmo.core.turn.resolver.PreCaptureChoice;
+import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.Position;
 
@@ -10,10 +10,7 @@ public record PreCaptureAction(
         List<CaptureAction> actions,
         Position landingOption
 ) implements TurnAction {
-
-    public static PreCaptureAction from(PreCaptureChoice choice, Position landing) {
-        if (choice.landingOptions().contains(landing))
-            return new PreCaptureAction(List.copyOf(choice.actions()), landing);
-        throw new RuntimeException("Creating PreCaptureAction from PreCaptureChoice : Landing is not in landing choices.");
-    }
+        public static PreCaptureAction from(PreCaptureOption option) {
+            return new PreCaptureAction(option.actions(), option.landing());
+        }
 }

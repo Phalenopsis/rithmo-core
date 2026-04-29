@@ -3,8 +3,6 @@ package eu.nicosworld.rithmo.core.turn.testutils;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.option.*;
-import eu.nicosworld.rithmo.core.turn.resolver.PostCaptureChoice;
-import eu.nicosworld.rithmo.core.turn.resolver.PreCaptureChoice;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
 import eu.nicosworld.rithmo.engine.model.Player;
@@ -93,8 +91,7 @@ public class TurnAssertion {
                 .toList();
 
         List<List<CaptureAction>> captureActions = preCaptureOptions.stream()
-                        .filter(c -> c.choice() instanceof PreCaptureChoice)
-                .map(o -> ((PreCaptureChoice) o.choice()).actions())
+                .map(PreCaptureOption::actions)
                         .toList();
         Set<CaptureAction> uniques = captureActions.stream().flatMap(Collection::stream)
                 .filter(c -> c.type().equals(type))
@@ -226,10 +223,7 @@ public class TurnAssertion {
         List<Position> allPossibleLandings = turnState.options().stream()
                 .filter(PreCaptureOption.class::isInstance)
                 .map(PreCaptureOption.class::cast)
-                .map(PreCaptureOption::choice)
-                .filter(PreCaptureChoice.class::isInstance)
-                .map(PreCaptureChoice.class::cast)
-                .flatMap(choice -> choice.landingOptions().stream())
+                .map(PreCaptureOption::landing)
                 .toList();
 
         assertThat(allPossibleLandings)
@@ -244,12 +238,7 @@ public class TurnAssertion {
                 // On ne garde que les PreCaptureOption
                 .filter(PreCaptureOption.class::isInstance)
                 .map(PreCaptureOption.class::cast)
-                // On extrait le choix, mais seulement si c'est un PreCaptureChoice
-                .map(PreCaptureOption::choice)
-                .filter(PreCaptureChoice.class::isInstance)
-                .map(PreCaptureChoice.class::cast)
-                // On récupère toutes les positions possibles de chaque choix
-                .flatMap(choice -> choice.landingOptions().stream())
+                .map(PreCaptureOption::landing)
                 .toList();
 
         assertThat(allLandings)

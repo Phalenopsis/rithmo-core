@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
-import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
-import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
+import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureContext;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
@@ -11,7 +10,6 @@ import eu.nicosworld.rithmo.engine.model.Board;
 import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.move.FreePathMovementValidator;
-import eu.nicosworld.rithmo.engine.move.MovementEngine;
 import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,19 +30,13 @@ class CaptureResolverTest {
 
     @BeforeEach
     void setup() {
-        Player white = Player.WHITE;
         black = Player.BLACK;
-
-        MovementEngine movementEngine = new MovementEngine();
-        MoveResolver moveResolver = new MoveResolver(movementEngine);
-        MoveApplier moveApplier = new MoveApplier();
 
         regularMoveGenerator = new RegularMoveGenerator();
         freePathMovementValidator = new FreePathMovementValidator();
 
         EncounterRule encounterRule = new EncounterRule(regularMoveGenerator, freePathMovementValidator);
 
-        CaptureApplier captureApplier = new CaptureApplier();
         captureEngine = new CaptureEngine(List.of(encounterRule));
         captureResolver = new CaptureResolver(captureEngine);
     }
@@ -59,14 +51,15 @@ class CaptureResolverTest {
                 .whiteSquare(5).at(0,0)
                 .build();
 
-        List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
+        List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        for(PreCaptureChoice choice : choices) {
-            System.out.println(choice);
+        System.out.println(board.prettyPrint());
+
+        for(PreCaptureOption option: choices) {
+            System.out.println(option);
         }
 
-        assertEquals(7, choices.size());
-
+        assertEquals(12, choices.size());
     }
 
     @Test
@@ -77,13 +70,9 @@ class CaptureResolverTest {
                 .whiteCircle(5).at(2, 0)
                 .build();
 
-        List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
+        List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        for(PreCaptureChoice choice : choices) {
-            System.out.println(choice);
-        }
-
-        assertEquals(3, choices.size());
+        assertEquals(4, choices.size());
     }
 
     @Test
@@ -95,14 +84,9 @@ class CaptureResolverTest {
                 .blackSquare(5).at(3,3)
                 .build();
 
-        List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
+        List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        for(PreCaptureChoice choice : choices) {
-            System.out.println(choice);
-        }
-
-        assertEquals(3, choices.size());
-
+        assertEquals(4, choices.size());
     }
 
     @Test
@@ -114,26 +98,9 @@ class CaptureResolverTest {
                 .blackCircle(5).at(1,3)
                 .build();
 
-        List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
+        List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        for(PreCaptureChoice choice : choices) {
-            System.out.println(choice);
-        }
-
-        System.out.println("RAW CAPTURES:");
-
-        board.getPiecesForPlayer(black).forEach(p -> {
-            System.out.println("Piece: " + p);
-
-            CaptureContext ctx = new CaptureContext(GameState.initial(board, black), p);
-
-            List<CaptureAction> actions = captureEngine.findCaptures(ctx);
-
-            System.out.println("  actions = " + actions);
-        });
-
-        assertEquals(4, choices.size());
-
+        assertEquals(5, choices.size());
     }
 
     @Test
@@ -145,14 +112,9 @@ class CaptureResolverTest {
                 .blackSquare(5).at(1,3)
                 .build();
 
-        List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-
-        for(PreCaptureChoice choice : choices) {
-            System.out.println(choice);
-        }
+        List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
         assertEquals(0, choices.size());
-
     }
 
     @Nested
@@ -162,7 +124,6 @@ class CaptureResolverTest {
             EncounterRule encounterRule = new EncounterRule(regularMoveGenerator, freePathMovementValidator);
             AmbushRule ambushRule = new AmbushRule(regularMoveGenerator, freePathMovementValidator);
 
-            CaptureApplier captureApplier = new CaptureApplier();
             captureEngine = new CaptureEngine(List.of(encounterRule, ambushRule));
             captureResolver = new CaptureResolver(captureEngine);
         }
@@ -175,23 +136,7 @@ class CaptureResolverTest {
                     .blackCircle(4).at(0,2)
                     .build();
 
-            List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-
-            for(PreCaptureChoice choice : choices) {
-                System.out.println(choice);
-            }
-
-            System.out.println("RAW CAPTURES:");
-
-            board.getPiecesForPlayer(black).forEach(p -> {
-                System.out.println("Piece: " + p);
-
-                CaptureContext ctx = new CaptureContext(GameState.initial(board, black), p);
-
-                List<CaptureAction> actions = captureEngine.findCaptures(ctx);
-
-                System.out.println("  actions = " + actions);
-            });
+            List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
             assertEquals(2, choices.size());
         }
@@ -204,23 +149,9 @@ class CaptureResolverTest {
                     .blackCircle(4).at(0,2)
                     .build();
 
-            List<PreCaptureChoice> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-
-            for(PreCaptureChoice choice : choices) {
-                System.out.println(choice);
-            }
+            List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
             System.out.println("RAW CAPTURES:");
-
-            board.getPiecesForPlayer(black).forEach(p -> {
-                System.out.println("Piece: " + p);
-
-                CaptureContext ctx = new CaptureContext(GameState.initial(board, black), p);
-
-                List<CaptureAction> actions = captureEngine.findCaptures(ctx);
-
-                System.out.println("  actions = " + actions);
-            });
 
             assertEquals(3, choices.size());
         }

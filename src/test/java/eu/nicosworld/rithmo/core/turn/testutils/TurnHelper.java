@@ -12,7 +12,6 @@ import eu.nicosworld.rithmo.core.turn.option.TurnOption;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
-import eu.nicosworld.rithmo.core.turn.resolver.PreCaptureChoice;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
@@ -56,32 +55,51 @@ public class TurnHelper {
         System.out.println(turnState.options());
     }
 
-    public static PreCaptureChoice findPreCaptureChoice(List<TurnOption> options, Position attackerPos, List<Position> targetPositions) {
+    public static PreCaptureOption findPreCaptureOption(
+            List<TurnOption> options,
+            Position attackerPos,
+            Position landingPos,
+            List<Position> targetPositions
+    ) {
         return options.stream()
                 .filter(PreCaptureOption.class::isInstance)
-                .map(o -> ((PreCaptureOption) o).choice())
-                .map(PreCaptureChoice.class::cast)
-                .filter(c -> {
-                    // On extrait toutes les positions cibles de ce choix
-                    List<Position> targetsInChoice = c.actions().stream()
+                .map(PreCaptureOption.class::cast)
+                .filter(opt -> {
+
+                    System.out.println(opt);
+                    // 1. Check Landing
+                    if (!opt.landing().equals(landingPos)) return false;
+
+                    // 2. Extract targets from actions
+                    List<Position> targetsInOption = opt.actions().stream()
                             .map(CaptureAction::targetPosition)
                             .toList();
 
-                    // On vérifie que l'attaquant est le bon ET que TOUTES les cibles attendues sont là
-                    boolean sameAttacker = c.actions().stream()
+                    // 3. Check Attacker (on the first action, they are all the same attacker)
+                    boolean sameAttacker = opt.actions().stream()
                             .anyMatch(a -> a.attackerPosition().equals(attackerPos));
 
-                    return sameAttacker && targetsInChoice.containsAll(targetPositions)
-                            && targetsInChoice.size() == targetPositions.size();
+                    // 4. Compare target lists
+                    return sameAttacker
+                            && targetsInOption.size() == targetPositions.size()
+                            && targetsInOption.containsAll(targetPositions);
                 })
                 .findFirst()
                 .orElseThrow(() -> new AssertionError(
-                        String.format("Aucun choix trouvé pour l'attaquant en %s vers les cibles %s",
-                                attackerPos, targetPositions)));
+                        String.format("No PreCaptureOption found for attacker at %s, landing at %s, targeting %s",
+                                attackerPos, landingPos, targetPositions)));
     }
 
-    public static PreCaptureChoice findPreCaptureChoice(List<TurnOption> options, Position attackerPos, Position... targetPositions) {
-        return findPreCaptureChoice(options, attackerPos, List.of(targetPositions));
+    /**
+     * Convenience overload using varargs for targets.
+     */
+    public static PreCaptureOption findPreCaptureOption(
+            List<TurnOption> options,
+            Position attackerPos,
+            Position landingPos,
+            Position... targetPositions
+    ) {
+        return findPreCaptureOption(options, attackerPos, landingPos, List.of(targetPositions));
     }
 
     public static List<Move> getAllMoves(TurnState turnState, Position attackerPos) {

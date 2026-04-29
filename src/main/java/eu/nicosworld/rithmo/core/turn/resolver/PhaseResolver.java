@@ -1,10 +1,8 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
-import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
-import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 
@@ -29,14 +27,10 @@ public class PhaseResolver {
     // =========================
     public List<TurnOption> resolvePreCapture(GameState state) {
 
-        List<PreCaptureChoice> choices =
+        List<PreCaptureOption> choices =
                 captureResolver.resolvePreCaptures(state);
 
-        List<TurnOption> options = new ArrayList<>();
-
-        for (PreCaptureChoice choice : choices) {
-            options.add(new PreCaptureOption(choice));
-        }
+        List<TurnOption> options = new ArrayList<>(choices);
 
         if (!options.isEmpty()) {
             options.add(new SkipPreCaptureOption());
@@ -81,14 +75,10 @@ public class PhaseResolver {
     // =========================
     public List<TurnOption> resolvePostCapture(GameState state, Position attackerPos) {
 
-        List<PostCaptureChoice> choices =
+        List<PostCaptureOption> choices =
                 captureResolver.resolvePostCaptures(state, attackerPos);
 
-        List<TurnOption> options = new ArrayList<>();
-
-        for (PostCaptureChoice choice : choices) {
-            options.add(new PostCaptureOption(choice.actions()));
-        }
+        List<TurnOption> options = new ArrayList<>(choices);
 
         if (!options.isEmpty()) {
             options.add(new SkipPostCaptureOption());
@@ -96,6 +86,4 @@ public class PhaseResolver {
 
         return options;
     }
-
-
 }

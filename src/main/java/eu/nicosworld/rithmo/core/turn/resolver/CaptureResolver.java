@@ -1,14 +1,13 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
+import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
+import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureContext;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.model.*;
-import eu.nicosworld.rithmo.engine.move.Move;
 
 import java.util.*;
-
-import static eu.nicosworld.rithmo.engine.move.MoveNature.IRREGULAR;
 
 public class CaptureResolver {
 
@@ -18,16 +17,12 @@ public class CaptureResolver {
         this.captureEngine = captureEngine;
     }
 
-    public List<PreCaptureChoice> resolvePreCaptures(GameState state) {
-
-        List<PreCaptureChoice> results = new ArrayList<>();
+    public List<PreCaptureOption> resolvePreCaptures(GameState state) {
+        List<PreCaptureOption> options = new ArrayList<>();
         Board board = state.board();
-
-        List<PieceAtPosition> pieces =
-                board.getPiecesForPlayer(state.currentPlayer());
+        List<PieceAtPosition> pieces = board.getPiecesForPlayer(state.currentPlayer());
 
         for (PieceAtPosition piece : pieces) {
-
             CaptureContext ctx = new CaptureContext(state, piece);
             List<CaptureAction> actions = captureEngine.findCaptures(ctx);
 
@@ -36,22 +31,17 @@ public class CaptureResolver {
             List<List<CaptureAction>> subsets = generateSubsets(actions);
 
             for (List<CaptureAction> subset : subsets) {
+                if (subset.isEmpty() || !isValidSubset(subset)) continue;
 
-                if (subset.isEmpty()) continue;
-
-                if (!isValidSubset(subset)) continue;
-
-                List<Position> landingOptions = subset.stream()
+                subset.stream()
                         .map(CaptureAction::targetPosition)
                         .distinct()
-                        .toList();
-
-                results.add(new PreCaptureChoice(subset, landingOptions));
+                        .forEach(landing -> options.add(new PreCaptureOption(List.copyOf(subset), landing)));
             }
         }
-
-        return results;
+        return options;
     }
+
 
     // =========================
     // SUBSETS (powerset)
@@ -98,34 +88,20 @@ public class CaptureResolver {
         return true;
     }
 
-    public List<PostCaptureChoice> resolvePostCaptures(GameState state, Position AttackerPos) {
-
-        List<PostCaptureChoice> results = new ArrayList<>();
+    public List<PostCaptureOption> resolvePostCaptures(GameState state, Position attackerPos) {
         Board board = state.board();
+        Piece piece = board.getPieceAt(attackerPos);
+        if (piece == null) return List.of();
 
-        PieceAtPosition movedPiece = new PieceAtPosition(board.getPieceAt(AttackerPos), AttackerPos);
-
+        PieceAtPosition movedPiece = new PieceAtPosition(piece, attackerPos);
         CaptureContext ctx = new CaptureContext(state, movedPiece);
+        List<CaptureAction> actions = captureEngine.findCaptures(ctx);
 
-        List<CaptureAction> actions =
-                captureEngine.findCaptures(ctx);
+        if (actions.isEmpty()) return List.of();
 
-        if (actions.isEmpty()) {
-            return List.of();
-        }
-
-        List<List<CaptureAction>> subsets =
-                generateSubsets(actions);
-
-        for (List<CaptureAction> subset : subsets) {
-
-            if (subset.isEmpty()) continue;
-
-            if (!isValidSubset(subset)) continue;
-
-            results.add(new PostCaptureChoice(subset));
-        }
-
-        return results;
+        return generateSubsets(actions).stream()
+                .filter(subset -> !subset.isEmpty() && isValidSubset(subset))
+                .map(subset -> new PostCaptureOption(List.copyOf(subset)))
+                .toList();
     }
 }

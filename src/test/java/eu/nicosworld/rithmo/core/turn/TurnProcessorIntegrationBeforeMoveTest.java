@@ -4,6 +4,7 @@ import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.action.SkipPreCaptureAction;
+import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.core.turn.resolver.*;
 import eu.nicosworld.rithmo.core.turn.testutils.TurnAssertion;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
@@ -239,8 +240,8 @@ class TurnProcessorIntegrationBeforeMoveTest {
         Position attackerPos = new Position(0,0);
         Position targetPos = new Position(1,1);
 
-        PreCaptureChoice choice = findPreCaptureChoice(turn1.options(), attackerPos, targetPos);
-        PreCaptureAction chosenAction = PreCaptureAction.from(choice, targetPos);
+        PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
+        PreCaptureAction chosenAction = PreCaptureAction.from(choice);
 
         assertThatThrownBy(() -> processor.process(turn1, chosenAction))
                 .isInstanceOf(VictoryException.class)
@@ -293,8 +294,8 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position attackerPos = new Position(0,0);
             Position targetPos = new Position(1,1);
 
-            PreCaptureChoice choice = findPreCaptureChoice(turn1.options(), attackerPos, targetPos);
-            PreCaptureAction chosenAction = PreCaptureAction.from(choice, targetPos);
+            PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
+            PreCaptureAction chosenAction = PreCaptureAction.from(choice);
 
             TurnState turn2 = processor.process(turn1, chosenAction);
 
@@ -346,8 +347,8 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position attackerPos = new Position(0,0);
             Position targetPos = new Position(3,3);
 
-            PreCaptureChoice choice = findPreCaptureChoice(turn1.options(), attackerPos, targetPos);
-            PreCaptureAction action = PreCaptureAction.from(choice, targetPos);
+            PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
+            PreCaptureAction action = PreCaptureAction.from(choice);
 
             assertThatThrownBy(() -> processor.process(turn1, action))
                     .isInstanceOf(PatException.class)
@@ -406,8 +407,8 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position attackerPos = new Position(0,0);
             Position targetPos = new Position(3,3);
 
-            PreCaptureChoice choice = findPreCaptureChoice(turn1.options(), attackerPos, targetPos);
-            PreCaptureAction chosenAction = PreCaptureAction.from(choice, targetPos);
+            PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
+            PreCaptureAction chosenAction = PreCaptureAction.from(choice);
 
 
             assertThatThrownBy(() -> processor.process(turn1, chosenAction))
@@ -463,8 +464,8 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position targetPos1 = new Position(2,2);
             Position targetPos2 = new Position(0,2);
 
-            PreCaptureChoice choice = findPreCaptureChoice(turn1.options(), attackerPos, targetPos1, targetPos2);
-            PreCaptureAction chosenAction = PreCaptureAction.from(choice, targetPos2);
+            PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos2, targetPos1, targetPos2);
+            PreCaptureAction chosenAction = PreCaptureAction.from(choice);
 
             TurnState turn2 = processor.process(turn1, chosenAction);
 
