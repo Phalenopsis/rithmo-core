@@ -55,7 +55,7 @@ public class TurnProcessor {
      * @throws PatException      If a stalemate is detected.
      * @throws NoActionException If an application phase is reached without a valid player action.
      */
-    public TurnState process(TurnState turnState, TurnAction action) throws VictoryException, PatException, NoActionException {
+    public TurnState process(TurnState turnState, TurnAction action) throws VictoryException, PatException{
         TurnPhase actualPhase = turnState.phase();
 
         // Technical guard: ensure we don't try to apply "nothing" in a player-action phase.
