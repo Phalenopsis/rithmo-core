@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @param state       The current underlying game state from the engine.
  * @param phase       The current active {@link TurnPhase}.
- * @param options     The list of legal actions available to the player in this state.
+ * @param options     The list of legal captures available to the player in this state.
  * @param hasCaptured A flag indicating if a capture has already been performed during this turn.
  * @param isIrregular A flag indicating if the last move followed "irregular" movement rules.
  * @param actorPos The position of the piece currently being moved or used for capture.

@@ -210,18 +210,18 @@ public class GameFacade {
         Map<List<Position>, List<PreCaptureOption>> groupedPreCaptures = options.stream()
                 .filter(PreCaptureOption.class::isInstance)
                 .map(PreCaptureOption.class::cast)
-                .collect(Collectors.groupingBy(opt -> opt.actions().stream()
+                .collect(Collectors.groupingBy(opt -> opt.captures().stream()
                         .map(CaptureAction::targetPosition)
                         .toList()));
 
         groupedPreCaptures.forEach((targets, opts) -> {
-            Position attackerPos = opts.getFirst().actions().getFirst().attackerPosition();
+            Position attackerPos = opts.getFirst().captures().getFirst().attackerPosition();
 
             List<LandingChoiceDTO> landingChoices = opts.stream()
                     .map(opt -> {
                         UUID actionId = UUID.randomUUID();
                         // On sauve l'action atomique (sans DTO car c'est un sous-choix)
-                        savePending(gameId, actionId, new PreCaptureAction(opt.actions(), opt.landing()), null);
+                        savePending(gameId, actionId, new PreCaptureAction(opt.captures(), opt.landing()), null);
                         return new LandingChoiceDTO(actionId, opt.landing());
                     })
                     .toList();

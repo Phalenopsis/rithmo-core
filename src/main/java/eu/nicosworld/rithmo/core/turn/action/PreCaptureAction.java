@@ -17,6 +17,6 @@ public record PreCaptureAction(
         Position landing
 ) implements TurnAction {
     public static PreCaptureAction from(PreCaptureOption option) {
-        return new PreCaptureAction(List.copyOf(option.actions()), option.landing());
+        return new PreCaptureAction(List.copyOf(option.captures()), option.landing());
     }
 }
