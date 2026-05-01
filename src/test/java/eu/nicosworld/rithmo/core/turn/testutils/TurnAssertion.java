@@ -91,7 +91,7 @@ public class TurnAssertion {
                 .toList();
 
         List<List<CaptureAction>> captureActions = preCaptureOptions.stream()
-                .map(PreCaptureOption::actions)
+                .map(PreCaptureOption::captures)
                         .toList();
         Set<CaptureAction> uniques = captureActions.stream().flatMap(Collection::stream)
                 .filter(c -> c.type().equals(type))

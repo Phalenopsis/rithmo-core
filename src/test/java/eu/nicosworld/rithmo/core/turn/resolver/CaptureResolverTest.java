@@ -176,7 +176,7 @@ class CaptureResolverTest {
 
             List<CaptureAction> actions = captureEngine.findCaptures(ctx);
 
-            System.out.println("  actions = " + actions);
+            System.out.println("  captures = " + actions);
         });
     }
 }

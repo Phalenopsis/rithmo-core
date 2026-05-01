@@ -70,13 +70,13 @@ public class TurnHelper {
                     // 1. Check Landing
                     if (!opt.landing().equals(landingPos)) return false;
 
-                    // 2. Extract targets from actions
-                    List<Position> targetsInOption = opt.actions().stream()
+                    // 2. Extract targets from captures
+                    List<Position> targetsInOption = opt.captures().stream()
                             .map(CaptureAction::targetPosition)
                             .toList();
 
                     // 3. Check Attacker (on the first action, they are all the same attacker)
-                    boolean sameAttacker = opt.actions().stream()
+                    boolean sameAttacker = opt.captures().stream()
                             .anyMatch(a -> a.attackerPosition().equals(attackerPos));
 
                     // 4. Compare target lists
