@@ -73,14 +73,14 @@ public class GameFacade {
     }
 
 
-    public GameStatusDTO startGame(GameOptions gameOptions, Board board) throws VictoryException, PatException, NoPhaseException {
+    public GameStatusDTO startGame(GameOptions gameOptions, Board board) throws VictoryException, PatException {
         GameState gameState = GameState.initial(board, Player.BLACK);
         TurnState turnState = TurnState.of(gameState, TurnPhase.START);
 
         return play(new Game(gameOptions, turnState));
     }
 
-    public GameStatusDTO startGame(Game game) throws VictoryException, PatException, NoPhaseException {
+    public GameStatusDTO startGame(Game game) throws VictoryException, PatException {
         return play(game);
     }
 
