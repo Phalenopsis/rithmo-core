@@ -5,6 +5,11 @@ import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 
 import java.util.List;
 
+/**
+ * Represents a capture performed AFTER the main movement phase.
+ *
+ * @param actions The list of engine-level capture primitives to execute.
+ */
 public record PostCaptureAction(
         List<CaptureAction> actions
 ) implements TurnAction {

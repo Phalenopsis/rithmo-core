@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
+import eu.nicosworld.rithmo.core.exception.logical.NoActionException;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.engine.capture.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.GameState;
@@ -7,6 +8,13 @@ import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
 
+/**
+ * Component responsible for executing {@link TurnAction}s and calculating
+ * their impact on the {@link GameState}.
+ * <p>
+ * It acts as the bridge between the high-level turn logic and the
+ * low-level engine rules (movement and captures).
+ */
 public class ActionApplier {
 
     private final CaptureApplier captureApplier;
@@ -18,6 +26,14 @@ public class ActionApplier {
         this.moveApplier = moveApplier;
     }
 
+    /**
+     * Applies the given action to the state.
+     *
+     * @param state  The current game state.
+     * @param action The action to perform.
+     * @return An {@link AppliedResult} containing the new state and move metadata.
+     * @throws NoActionException If a {@link NoAction} is passed, indicating a logic error in the flow.
+     */
     public AppliedResult apply(GameState state, TurnAction action) {
 
         return switch (action) {
@@ -36,6 +52,9 @@ public class ActionApplier {
 
             case SkipPostCaptureAction a ->
                     AppliedResult.of(state);
+
+            case NoAction a ->
+                throw new NoActionException();
         };
     }
 
@@ -53,7 +72,7 @@ public class ActionApplier {
 
         Move move = new Move(
                 initialPos,
-                action.landingOption(),
+                action.landing(),
                 MoveNature.REGULAR
         );
 
