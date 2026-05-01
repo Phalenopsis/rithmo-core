@@ -108,4 +108,30 @@ public class PreDefinedTestGame {
 
         return new Game(options, turnState);
     }
+
+    /**
+     * This should return 3 options :
+     * <ul>
+     *     <li>white circle in 3,1 captures black circle</li>
+     *     <li>white circle in 3,3 captures black circle</li>
+     *     <li>skip</li>
+     * </ul>
+     * @return A game instance
+     */
+    public static Game encounterPreCaptureTestCase_WhitePlayer() {
+        Board board = new BoardBuilder(4,4)
+                .blackCircle(4).at(2,2)
+                .whiteCircle(4).at(3,1)
+                .whiteCircle(4).at(3,3)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.ENCOUNTER),
+                Map.of(VictoryRuleOption.BODY, 2)
+        );
+
+        GameState gameState = GameState.initial(board, Player.WHITE);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+
+        return new Game(options, turnState);
+    }
 }

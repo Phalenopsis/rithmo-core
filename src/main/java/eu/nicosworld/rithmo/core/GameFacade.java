@@ -249,18 +249,22 @@ public class GameFacade {
     List<PlayerOptionDTO> processPreCaptureOptions(UUID gameId, List<TurnOption> options) {
         List<PlayerOptionDTO> displayOptions = new ArrayList<>();
 
-        // Group options by the set of target positions
-        Map<List<Position>, List<PreCaptureOption>> groupedPreCaptures = options.stream()
+        // Correction : Groupement par (Attaquant + Cibles)
+        Map<Object, List<PreCaptureOption>> groupedPreCaptures = options.stream()
                 .filter(PreCaptureOption.class::isInstance)
                 .map(PreCaptureOption.class::cast)
-                .collect(Collectors.groupingBy(opt -> opt.captures().stream()
-                        .map(CaptureAction::targetPosition)
-                        .toList()));
+                .collect(Collectors.groupingBy(opt -> List.of(
+                        opt.captures().getFirst().attackerPosition(), // On inclut l'attaquant dans la clé
+                        opt.captures().stream().map(CaptureAction::targetPosition).toList() // Et les cibles
+                )));
 
-        groupedPreCaptures.forEach((targets, opts) -> {
+        groupedPreCaptures.forEach((key, opts) -> {
+            // Maintenant attackerPos sera correct pour chaque groupe
             Position attackerPos = opts.getFirst().captures().getFirst().attackerPosition();
+            List<Position> targets = opts.getFirst().captures().stream()
+                    .map(CaptureAction::targetPosition)
+                    .toList();
 
-            // Each landing spot becomes a sub-choice with its own unique ID
             List<LandingChoiceDTO> landingChoices = opts.stream()
                     .map(opt -> {
                         UUID actionId = UUID.randomUUID();
@@ -272,7 +276,6 @@ public class GameFacade {
             PreCaptureOptionDTO groupDto = new PreCaptureOptionDTO(attackerPos, targets, landingChoices);
             displayOptions.add(groupDto);
 
-            // Store the grouped DTO for persistence/UI recovery
             savePending(gameId, UUID.randomUUID(), null, groupDto);
         });
         return displayOptions;

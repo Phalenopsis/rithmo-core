@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,5 +86,23 @@ class EncounterTutorialTest {
 
         assertThatThrownBy(() -> gameFacade.play(game.getId(), landingId))
                 .isInstanceOf(VictoryException.class);
+    }
+
+    @Test
+    @DisplayName("4. Il doit y avoir 3 options")
+    void shouldPropose3Options_2CapturesFrom2DifferentPieceWhoTargetSameTarget() throws Exception {
+        Game game = PreDefinedTestGame.encounterPreCaptureTestCase_WhitePlayer();
+        GameStatusDTO status = gameFacade.startGame(game);
+        System.out.println(game.getCurrentState().state().board().prettyPrint());
+
+        List<PreCaptureOptionDTO> options = status.possibleOptions().stream()
+                .filter(PreCaptureOptionDTO.class::isInstance)
+                .map(PreCaptureOptionDTO.class::cast)
+                .toList();
+        System.out.println("IN TEST");
+        System.out.println(options);
+
+        assertThat(status.possibleOptions().size()).isEqualTo(3);
+        assertThat(options.size()).isEqualTo(2);
     }
 }
