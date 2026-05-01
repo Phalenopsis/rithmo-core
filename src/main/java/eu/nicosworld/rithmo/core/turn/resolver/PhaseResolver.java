@@ -9,6 +9,13 @@ import eu.nicosworld.rithmo.engine.move.Move;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * High-level coordinator responsible for determining the available {@link TurnOption}s
+ * based on the current {@link eu.nicosworld.rithmo.core.turn.TurnPhase}.
+ * <p>
+ * It leverages specialized resolvers for movement and capture logic to build
+ * the list of choices presented to the player.
+ */
 public class PhaseResolver {
 
     private final CaptureResolver captureResolver;
@@ -22,11 +29,14 @@ public class PhaseResolver {
         this.movementResolver = movementResolver;
     }
 
-    // =========================
-    // PRE CAPTURE
-    // =========================
+    /**
+     * Resolves options for the pre-movement capture phase.
+     * If captures are available, a {@link SkipPreCaptureOption} is automatically added.
+     *
+     * @param state The current game state.
+     * @return A list of available {@link TurnOption}s (PreCapture or Skip).
+     */
     public List<TurnOption> resolvePreCapture(GameState state) {
-
         List<PreCaptureOption> choices =
                 captureResolver.resolvePreCaptures(state);
 
@@ -39,30 +49,35 @@ public class PhaseResolver {
         return options;
     }
 
-    // =========================
-    // MOVE
-    // =========================
+    /**
+     * Resolves all possible movement options for the current player.
+     *
+     * @param state The current game state.
+     * @return A list of {@link MoveOption}s.
+     */
     public List<TurnOption> resolveMove(GameState state) {
-
         List<Move> moves = movementResolver.resolveMove(state);
 
         List<TurnOption> options = new ArrayList<>();
-
         for (Move move : moves) {
             options.add(new MoveOption(move));
         }
 
         return options;
     }
-    // =========================
-    // MOVE
-    // =========================
-    public List<TurnOption> resolveMove(GameState state, PieceAtPosition pap) {
 
+    /**
+     * Resolves movement options restricted to a specific piece.
+     * Useful for multi-step movements or forced actions.
+     *
+     * @param state The current game state.
+     * @param pap   The specific piece (Piece At Position) allowed to move.
+     * @return A list of {@link MoveOption}s for the specified piece.
+     */
+    public List<TurnOption> resolveMove(GameState state, PieceAtPosition pap) {
         List<Move> moves = movementResolver.resolveMove(state, pap);
 
         List<TurnOption> options = new ArrayList<>();
-
         for (Move move : moves) {
             options.add(new MoveOption(move));
         }
@@ -70,13 +85,17 @@ public class PhaseResolver {
         return options;
     }
 
-    // =========================
-    // POST CAPTURE
-    // =========================
-    public List<TurnOption> resolvePostCapture(GameState state, Position attackerPos) {
-
+    /**
+     * Resolves options for the capture phase occurring after a move.
+     * The capture logic is restricted to the piece that just moved.
+     *
+     * @param state    The current game state.
+     * @param actorPos The position of the piece that performed the movement.
+     * @return A list of available {@link TurnOption}s (PostCapture or Skip).
+     */
+    public List<TurnOption> resolvePostCapture(GameState state, Position actorPos) {
         List<PostCaptureOption> choices =
-                captureResolver.resolvePostCaptures(state, attackerPos);
+                captureResolver.resolvePostCaptures(state, actorPos);
 
         List<TurnOption> options = new ArrayList<>(choices);
 
