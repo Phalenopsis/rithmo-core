@@ -5,5 +5,7 @@ public sealed interface TurnAction
         SkipPreCaptureAction,
         MoveAction,
         PostCaptureAction,
-        SkipPostCaptureAction {
+        SkipPostCaptureAction,
+        NoAction
+{
 }
