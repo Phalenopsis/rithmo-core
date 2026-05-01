@@ -1,0 +1,64 @@
+@startuml
+title Rithmomachia Turn Phase Transitions
+
+skinparam state {
+  BackgroundColor<<Automatic>> #E1F5FE
+  BorderColor<<Automatic>> #01579B
+}
+
+[*] --> START
+
+state START <<Automatic>>
+note right of START
+    Initial entry point.
+    Automatically transitions
+    to the first decision point.
+end note
+
+START --> PRE_CAPTURE : Resolve options
+
+state PRE_CAPTURE {
+    state "User Choice" as PC_Choice <<choice>>
+    [*] --> PC_Choice
+    PC_Choice --> UserDecisionPre : Captures found
+    PC_Choice --> MOVE : No captures
+
+    state UserDecisionPre {
+        state "Execute PreCapture" as ExecPre
+        state "Skip PreCapture" as SkipPre
+    }
+}
+
+PRE_CAPTURE --> MOVE : Action: PreCaptureAction OR Skip
+
+state MOVE {
+    state "User Choice" as M_Choice <<choice>>
+    [*] --> M_Choice
+    M_Choice --> UserDecisionMove : Moves found
+    M_Choice --> PAT : No legal moves
+}
+
+MOVE --> POST_CAPTURE : Action: MoveAction
+
+state POST_CAPTURE {
+    state "User Choice" as PoC_Choice <<choice>>
+    [*] --> PoC_Choice
+    PoC_Choice --> UserDecisionPost : Captures found
+    PoC_Choice --> VICTORY_CHECK : No captures
+
+    state UserDecisionPost {
+        state "Execute PostCapture" as ExecPost
+        state "Skip PostCapture" as SkipPost
+    }
+}
+
+POST_CAPTURE --> VICTORY_CHECK : Action: PostCaptureAction OR Skip
+
+state VICTORY_CHECK <<Automatic>>
+
+VICTORY_CHECK --> START : No winner (Next Player)
+VICTORY_CHECK --> WIN : Victory condition met
+
+WIN --> [*]
+PAT --> [*]
+@enduml

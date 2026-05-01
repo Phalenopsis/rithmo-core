@@ -1,0 +1,47 @@
+@startuml
+skinparam Style strictuml
+skinparam SequenceMessageAlignment center
+title Rithmo-Core: Sequence Diagram: Processing a Player Move
+
+actor "Player (UI)" as User
+participant "GameFacade" as Facade
+database "OptionRepository" as OptRepo
+database "GameRepository" as GameRepo
+participant "TurnProcessor" as Processor
+participant "PhaseResolver" as Resolver
+participant "ActionApplier" as Applier
+participant "Engine" as Engine
+
+User -> Facade : play(gameId, optionId)
+activate Facade
+
+Facade -> OptRepo : findById(optionId)
+OptRepo --> Facade : PendingAction (Action + DTO)
+
+Facade -> GameRepo : findById(gameId)
+GameRepo --> Facade : Game (Current TurnState)
+
+Facade -> Processor : process(currentState, action)
+activate Processor
+
+Processor -> Applier : apply(gameState, action)
+Applier -> Engine : (Internal rules check)
+Applier --> Processor : AppliedResult (New GameState)
+
+Processor -> Resolver : resolveNextPhase(newState)
+Resolver -> Engine : What are the legal options now?
+Engine --> Resolver : List<TurnOption>
+Resolver --> Processor : Next TurnState (Phase + Options)
+
+Processor --> Facade : nextTurnState
+deactivate Processor
+
+Facade -> GameRepo : save(updatedGame)
+Facade -> OptRepo : clearOptionsForGame(gameId)
+Facade -> Facade : generateAndStorePendingActions(nextOptions)
+Facade -> OptRepo : save(newPendingActions)
+
+Facade --> User : GameStatusDTO (State + New Options)
+deactivate Facade
+
+@enduml

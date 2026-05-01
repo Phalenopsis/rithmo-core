@@ -5,253 +5,87 @@
 `rithmo-core` is the orchestration layer of the Rithmomachia project.
 
 It manages the full lifecycle of a game, including:
+- Turn sequencing & Multi-phase flow (Pre-capture → Move → Post-capture)
+- Player decision mapping (from UUIDs to technical Actions)
+- Interaction between the Engine and Game State
+- Immutable state management
 
-- turn sequencing
-- player decisions
-- interaction between engine and game state
-- multi-phase turn flow (pre-capture → move → post-capture)
-
-It is **UI-agnostic**, **framework-independent**, and strictly separated from game rules.
+It is **UI-agnostic**, **framework-independent**, and strictly follows a "Clean Architecture" pattern.
 
 ---
 
 # 🧠 Architecture Overview
 
-This project is part of a modular system:
-
-- `rithmo-engine` → pure game rules (stateless computations)
-- `rithmo-core` → game orchestration (this module)
-- `rithmo-spring-app` → REST API (optional)
-- `rithmo-javafx-app` → desktop UI (optional)
-
+```text
+UI (DTOs) ↔ GameFacade ↔ Core (Domain) ↔ Engine (Rules)
 ```
 
-UI → App → Core → Engine
-
-```
-
----
-
-# 🧩 Responsibilities
-
-## rithmo-core handles
-
-- Game session lifecycle
-- Turn state machine
-- Player action processing
-- Orchestration of engine + appliers
-- Game flow transitions
-
-## rithmo-core does NOT handle
-
-- Game rules (engine responsibility)
-- Move/capture computation logic
-- UI rendering
-- Persistence or networking
-
----
-
-# 🔁 Core Flow Model
-
-A turn is a **state machine**:
-
-1. Pre-capture phase
-2. Move phase
-3. Post-capture phase
-4. Victory check
-5. Next player
-
-All transitions are controlled by the `TurnProcessor`.
+- `rithmo-engine` → Pure game rules (stateless computations).
+- `rithmo-core` → Game orchestration (this module).
+- `rithmo-persistence` → (SPI) Interfaces for saving games and pending actions.
 
 ---
 
 # ⚙️ Key Components
 
-## GameService
-
-Main entry point of the module.
-
-Responsible for:
-
-- starting games
-- processing player actions
-- exposing current game state
-
----
+## GameFacade (formerly GameService)
+Main entry point. It acts as a **Boundary** between the UI and the Domain.
+- Converts internal `TurnOption` into `PlayerOptionDTO`.
+- Manages the interaction with `Repositories`.
+- Handles the dynamic configuration of the `TurnProcessor` (variants/rules).
 
 ## TurnProcessor
+Central orchestrator. It is a **pure function** that transforms a `TurnState` into the next one based on a `TurnAction`.
+- It ensures the player cannot skip mandatory phases.
+- It automatically transitions through "hidden" phases (like START).
 
-Central orchestrator of a turn.
+## TurnState & TurnPhase
+Immutable snapshots.
+- **TurnPhase**: Defines where we are (`PRE_CAPTURE`, `MOVE`, `POST_CAPTURE`, `VICTORY`).
+- **TurnState**: Holds the `GameState`, the current `Player`, and the list of **available choices**.
 
-It coordinates:
-
-- Engine queries (moves, captures)
-- Appliers (state mutations)
-- VictoryEngine evaluation
-- TurnState transitions
-
----
-
-## TurnState
-
-Immutable snapshot of a turn containing:
-
-- current GameState
-- current player
-- current phase
-- available actions (moves / captures)
-- selected move (if any)
-
-👉 It does NOT contain business logic.
+## ActionApplier
+The bridge to mutations. It uses specialized appliers (`MoveApplier`, `CaptureApplier`) to transform the board based on the selected `TurnAction`.
 
 ---
 
-## Appliers
+# 🧩 Type Safety: Sealed Hierarchies
 
-- MoveApplier → applies moves to GameState
-- CaptureApplier → applies captures to GameState
+The project leverages Java 21 **Sealed Interfaces** to ensure total safety during turn processing:
 
-👉 They are the ONLY components allowed to mutate GameState.
+- **TurnOption**: Legal choices presented to the UI (e.g., `MoveOption`, `SkipPreCaptureOption`).
+- **TurnAction**: Explicit decisions returned to the Core (e.g., `MoveAction`, `PreCaptureAction`).
 
----
-
-## Engine (external dependency)
-
-- MovementEngine → computes legal moves
-- CaptureEngine → computes possible captures
-- VictoryEngine → evaluates victory conditions
-
-👉 Engine is **pure and stateless**.
+*Benefit: The compiler guarantees that every possible player action is handled in the `ActionApplier` switch.*
 
 ---
 
 # 🧠 Architecture Rules (CRITICAL)
 
-These rules prevent architectural drift.
+### 1. Engine = PURE QUERY ONLY
+- Engine answers: *“What is legal?”* (Moves, Captures, Victory).
+- **Forbidden**: Modifying state or knowing about turn phases.
+
+### 2. Core = ORCHESTRATION ONLY
+- Core answers: *“What happens next?”*
+- **Forbidden**: Re-implementing movement or capture logic.
+
+### 3. Persistence = SPI BASED
+- The Core defines `GameRepository` and `OptionRepository`.
+- **Implementation** is left to the infrastructure layer (SQL, Redis, In-Memory).
 
 ---
 
-## 1. Engine = PURE QUERY ONLY
+# 🚀 Getting Started
 
-✔ Allowed:
-- compute moves
-- compute captures
-- evaluate victory conditions
+To use the core, instantiate the `GameFacade` with your repository implementations:
 
-❌ Forbidden:
-- modifying GameState
-- storing state
-- knowing turn phases or players
-
-👉 Engine answers: *“what is possible?”*
-
----
-
-## 2. Core = ORCHESTRATION ONLY
-
-✔ Allowed:
-- manage TurnState
-- call engine
-- call appliers
-- control turn flow
-
-❌ Forbidden:
-- implementing game rules
-- duplicating engine logic
-
-👉 Core answers: *“what happens next?”*
-
----
-
-## 3. Appliers = STATE MUTATION ONLY
-
-✔ Allowed:
-- apply move to GameState
-- apply capture to GameState
-
-❌ Forbidden:
-- computing moves/captures
-- decision logic
-
-👉 Appliers answer: *“how does state change?”*
-
----
-
-## 4. TurnState = FLOW SNAPSHOT ONLY
-
-✔ Allowed:
-- GameState
-- Player
-- Phase
-- available options
-- selected move
-
-❌ Forbidden:
-- business logic
-- computed flags
-- persistent selection state like `selectedPreCaptures`
-
-👉 TurnState is NOT a decision model.
-
----
-
-## 5. Actions = USER INTENT ONLY
-
-✔ Allowed:
-- represent player choices
-- minimal data (Move, positions, etc.)
-
-❌ Forbidden:
-- computed engine results
-- validation logic
-
-👉 Actions represent: *“what the player wants”*
-
----
-
-## 6. Resolver = OPTIONS ONLY
-
-✔ Allowed:
-- transform GameState → options (CaptureChoice, Move list)
-
-❌ Forbidden:
-- applying changes
-- modifying state
-
----
-
-## 🚫 Anti-Patterns (DO NOT REINTRODUCE)
-
-- `selected` inside domain models
-- engine logic inside core
-- move/capture computation in appliers
-- duplicated rules across layers
-
----
-
-# 🧭 Mental Model
-
+```java
+GameFacade rithmo = new GameFacade(gameRepo, optionRepo);
+GameStatusDTO status = rithmo.startGame(options, board);
 ```
-
-Engine   → what is possible
-Core     → what happens next
-Applier  → how state changes
-Action   → player decision
-
-```
-
----
-
-# 🚀 Future Extensions
-
-- AI player integration
-- replay system
-- persistence adapters
-- multiplayer synchronization
 
 ---
 
 # 📄 License
-
 TBD
-
