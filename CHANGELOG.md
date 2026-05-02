@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1-SNAPSHOT] - In work
+
+### Added
+- **BoardDTO**: Add width and height.
+- **PreDefinedGame**: add a method to generate a game for a 8*4 board'
+
+### Test
+- **PreDefinedGameTest**: add some predefined test cases
+- **FindOptionHelper**: add a helper to easily find options in tests
+- **Existing E2E Tests**: refactor to use FindOptionHelper
+
+### Fixed
+- **Core**: Corrected `PreCaptureOptionDTO` mapping logic to prevent merging different attackers targeting the same position.
+
 ## [0.1.0] - 2026-05-01
 
 ### Added
