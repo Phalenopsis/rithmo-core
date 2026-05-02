@@ -36,43 +36,19 @@ public class PreDefinedGame {
 
     public static Game FourEigthBoardGame() {
         Board board = new BoardBuilder(8, 4)
-                // --- CAMP NOIR (Colonnes 0, 1, 2) ---
-                // Colonne 0 : Pyramide et Carrés
+                // --- CAMP NOIR (Colonne 0 et un peu de 1) ---
                 .fullBlackPyramidAt(new Position(0, 0))
                 .blackSquare(16).at(0, 1)
-                .blackSquare(36).at(0, 2)
-                .blackSquare(64).at(0, 3)
+                .blackTriangle(12).at(0, 2)
+                .blackCircle(2).at(0, 3)
+                .blackCircle(4).at(1, 3)
 
-                // Colonne 1 : Cercles
-                .blackCircle(2).at(1, 0)
-                .blackCircle(4).at(1, 1)
-                .blackCircle(6).at(1, 2)
-                .blackCircle(8).at(1, 3)
-
-                // Colonne 2 : Triangles
-                .blackTriangle(12).at(2, 0)
-                .blackTriangle(20).at(2, 1)
-                .blackTriangle(30).at(2, 2)
-                .blackTriangle(42).at(2, 3)
-
-                // --- CAMP BLANC (Colonnes 5, 6, 7) ---
-                // Colonne 5 : Triangles
-                .whiteTriangle(9).at(5, 0)
-                .whiteTriangle(25).at(5, 1)
-                .whiteTriangle(49).at(5, 2)
-                .whiteTriangle(81).at(5, 3)
-
-                // Colonne 6 : Cercles
-                .whiteCircle(3).at(6, 0)
-                .whiteCircle(5).at(6, 1)
-                .whiteCircle(7).at(6, 2)
-                .whiteCircle(9).at(6, 3)
-
-                // Colonne 7 : Carrés et Pyramide
-                .whiteSquare(25).at(7, 0)
-                .whiteSquare(45).at(7, 1)
-                .whiteSquare(81).at(7, 2)
-                .fullWhitePyramidAt(new Position(7, 3))
+                // --- CAMP BLANC (Colonne 7 et un peu de 6) ---
+                .fullWhitePyramidAt(new Position(7, 0))
+                .whiteSquare(25).at(7, 1)
+                .whiteTriangle(9).at(7, 2)
+                .whiteCircle(5).at(7, 3)
+                .whiteCircle(3).at(6, 3)
 
                 .build();
 
@@ -83,8 +59,8 @@ public class PreDefinedGame {
                         CaptureRuleOption.POWER,
                         CaptureRuleOption.AMBUSH),
                 Map.of(
-                        VictoryRuleOption.BODY, 1,
-                        VictoryRuleOption.GOODS, 5)
+                        VictoryRuleOption.BODY, 3,
+                        VictoryRuleOption.GOODS, 30)
         );
 
         GameState gameState = GameState.initial(board, Player.BLACK);
