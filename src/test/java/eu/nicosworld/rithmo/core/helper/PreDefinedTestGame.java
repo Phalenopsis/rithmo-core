@@ -134,4 +134,38 @@ public class PreDefinedTestGame {
 
         return new Game(options, turnState);
     }
+
+    public static Game ambushPostCaptureTest_Case() {
+        Board board = new BoardBuilder(4,4)
+                .blackCircle(8).at(1,0)
+                .whiteTriangle(12).at(2,1)
+                .blackCircle(4).at(0,3)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.AMBUSH),
+                Map.of(VictoryRuleOption.BODY, 1)
+        );
+
+        GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+
+        return new Game(options, turnState);
+    }
+
+    public static Game ambushPreCaptureTest_Case() {
+        Board board = new BoardBuilder(4,4)
+                .blackCircle(8).at(1,0)
+                .whiteTriangle(12).at(2,1)
+                .blackCircle(4).at(1,2)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.AMBUSH),
+                Map.of(VictoryRuleOption.BODY, 1)
+        );
+
+        GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+
+        return new Game(options, turnState);
+    }
 }
