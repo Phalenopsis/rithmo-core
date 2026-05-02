@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -45,7 +46,7 @@ class FullGameFlowE2ETest {
         assertThat(status1.currentPlayer()).isEqualTo(PlayerColorDTO.BLACK);
 
         // Comme pas de PreCapture possible au début, on devrait être en MOVE
-        UUID moveBlackId = findMoveIdByDestination(status1, new Position(1, 1));
+        UUID moveBlackId = FindOptionHelper.findMoveIdByDestination(status1, new Position(1, 1));
         GameStatusDTO statusAfterBlackMove = gameFacade.play(gameId, moveBlackId);
 
         // 2. WHITE prend la main (Switch automatique car BLACK a fini son tour)
@@ -53,13 +54,13 @@ class FullGameFlowE2ETest {
         assertThat(statusAfterBlackMove.currentPlayer()).isEqualTo(PlayerColorDTO.WHITE);
 
         // WHITE se déplace en (2,2)
-        UUID moveWhiteId = findMoveIdByDestination(statusAfterBlackMove, new Position(2, 2));
+        UUID moveWhiteId = FindOptionHelper.findMoveIdByDestination(statusAfterBlackMove, new Position(2, 2));
         GameStatusDTO statusAfterWhiteMove = gameFacade.play(gameId, moveWhiteId);
 
         // 3. WHITE est en phase POST_CAPTURE (ou l'UI propose le choix après le move)
         // On vérifie que WHITE peut choisir de skipper la post-capture
         assertThat(statusAfterWhiteMove.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
-        UUID skipPostId = findOptionIdByType(statusAfterWhiteMove, SkipOptionDTO.class);
+        UUID skipPostId = FindOptionHelper.findOptionIdByType(statusAfterWhiteMove, SkipOptionDTO.class);
 
         // WHITE skip la post-capture -> Main repasse à BLACK
         GameStatusDTO statusAfterWhiteSkip = gameFacade.play(gameId, skipPostId);
@@ -78,29 +79,5 @@ class FullGameFlowE2ETest {
         // 5. BLACK exécute la capture -> VictoryException (VictoryRule BODY = 1)
         assertThatThrownBy(() -> gameFacade.play(gameId, landingId))
                 .isInstanceOf(VictoryException.class);
-    }
-
-    // --- Helpers ---
-
-    private UUID findMoveIdByDestination(GameStatusDTO status, Position to) {
-        return status.possibleOptions().stream()
-                .filter(MoveOptionDTO.class::isInstance)
-                .map(MoveOptionDTO.class::cast)
-                .filter(m -> m.to().equals(to))
-                .map(MoveOptionDTO::id)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Move vers " + to + " non trouvé"));
-    }
-
-    private <T extends PlayerOptionDTO> UUID findOptionIdByType(GameStatusDTO status, Class<T> clazz) {
-        return status.possibleOptions().stream()
-                .filter(clazz::isInstance)
-                .map(opt -> switch (opt) {
-                    case MoveOptionDTO m -> m.id();
-                    case SkipOptionDTO s -> s.id();
-                    case PostCaptureOptionDTO p -> p.id();
-                    default -> throw new UnsupportedOperationException("Type non géré");
-                })
-                .findFirst().orElseThrow();
     }
 }

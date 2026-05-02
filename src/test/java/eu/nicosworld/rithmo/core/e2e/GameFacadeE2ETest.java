@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -49,7 +50,7 @@ class GameFacadeE2ETest {
         // 3. ACTION : Sélection et exécution de la première option jouable
         // On simule l'UI qui doit extraire un ID valide pour le moteur
         PlayerOptionDTO firstOptionDto = statusAfterStart.possibleOptions().get(0);
-        UUID actionIdToPlay = extractPlayableId(firstOptionDto);
+        UUID actionIdToPlay = FindOptionHelper.extractPlayableId(firstOptionDto);
 
         GameStatusDTO statusAfterPlay = gameFacade.play(gameId, actionIdToPlay);
 
@@ -70,23 +71,5 @@ class GameFacadeE2ETest {
         assertThat(statusAfterPlay.possibleOptions())
                 .as("De nouvelles options doivent être générées pour le nouveau tour/phase")
                 .isNotNull();
-    }
-
-    /**
-     * Helper pour simuler le choix de l'UI.
-     * Pour une PreCapture, l'ID jouable est dans LandingChoiceDTO.
-     * Pour les autres, il est à la racine du record.
-     */
-    private UUID extractPlayableId(PlayerOptionDTO dto) {
-        if (dto instanceof PreCaptureOptionDTO pre) {
-            return pre.choices().getFirst().actionId(); // On prend le premier atterrissage possible
-        } else if (dto instanceof MoveOptionDTO move) {
-            return move.id();
-        } else if (dto instanceof PostCaptureOptionDTO post) {
-            return post.id();
-        } else if (dto instanceof SkipOptionDTO skip) {
-            return skip.id();
-        }
-        throw new IllegalArgumentException("Type d'option inconnu : " + dto.getClass());
     }
 }

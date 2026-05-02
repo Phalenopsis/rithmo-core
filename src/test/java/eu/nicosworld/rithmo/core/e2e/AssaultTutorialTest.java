@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -38,7 +39,7 @@ class AssaultTutorialTest {
         Game game = PreDefinedTestGame.assaultPreCaptureTutorialTestCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID skipId = findOptionIdByType(status, SkipOptionDTO.class);
+        UUID skipId = FindOptionHelper.findOptionIdByType(status, SkipOptionDTO.class);
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
         assertThat(nextStatus.phase()).isEqualTo(PhaseDTO.MOVE);
@@ -92,21 +93,5 @@ class AssaultTutorialTest {
 
         assertThatThrownBy(() -> gameFacade.play(gameId, postOpt.id()))
                 .isInstanceOf(VictoryException.class);
-    }
-
-    // Helper pour simplifier la lecture
-    private <T extends PlayerOptionDTO> UUID findOptionIdByType(GameStatusDTO status, Class<T> clazz) {
-        return status.possibleOptions().stream()
-                .filter(clazz::isInstance)
-                .map(opt -> {
-                    return switch (opt) {
-                        case MoveOptionDTO m -> m.id();
-                        case SkipOptionDTO s -> s.id();
-                        case PostCaptureOptionDTO p -> p.id();
-                        default ->
-                                throw new UnsupportedOperationException("L'ID doit être extrait manuellement pour ce type");
-                    };
-                })
-                .findFirst().orElseThrow();
     }
 }
