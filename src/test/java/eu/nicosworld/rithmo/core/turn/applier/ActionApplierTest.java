@@ -1,8 +1,9 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
 import eu.nicosworld.rithmo.core.turn.action.*;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
+import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
@@ -56,27 +57,12 @@ class ActionApplierTest {
         whiteCircle = board.getPieceAt(whiteCirclePosition);
         whiteTriangle = board.getPieceAt(whiteTrianglePosition);
 
+        InvolvedPiece actor = InvolvedPiece.whole(blackCircle, blackCirclePosition);
+        InvolvedPiece target22 = InvolvedPiece.whole(whiteCircle, whiteCirclePosition);
+        InvolvedPiece target00 = InvolvedPiece.whole(whiteTriangle, whiteTrianglePosition);
 
-        blackCircleCaptureWhiteAt22 = new CaptureAction(
-                blackCircle,
-                blackCirclePosition,
-                whiteCircle,
-                whiteCirclePosition,
-                whiteCircle,
-                true,
-                CaptureType.ENCOUNTER
-        );
-
-        blackCircleCaptureWhiteAt00 = new CaptureAction(
-                blackCircle,
-                blackCirclePosition,
-                whiteTriangle,
-                whiteTrianglePosition,
-                whiteTriangle,
-                true,
-                CaptureType.ENCOUNTER
-        );
-
+        blackCircleCaptureWhiteAt22 = CaptureAction.encounter(actor, target22);
+        blackCircleCaptureWhiteAt00 = CaptureAction.encounter(actor, target00);
     }
 
     @Test

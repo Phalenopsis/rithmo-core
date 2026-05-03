@@ -1,7 +1,7 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
-import eu.nicosworld.rithmo.engine.capture.CaptureType;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
@@ -16,29 +16,26 @@ class CaptureApplierTest {
     void applyCapture_OneCapture() {
         // Arrange
         Position attackerPos = new Position(1, 1);
-        Position targetPos = new Position(2,2);
+        Position targetPos = new Position(2, 2);
 
-        BoardBuilder builder = new BoardBuilder(4,4);
-
-        Board board = builder.blackCircle(4)
-                .at(1,1)
-                .whiteCircle(4).at(2,2)
+        BoardBuilder builder = new BoardBuilder(4, 4);
+        Board board = builder.blackCircle(4).at(1, 1)
+                .whiteCircle(4).at(2, 2)
                 .build();
 
         GameState state = GameState.initial(board, Player.BLACK);
 
-        Piece attacker = board.getPieceAt(attackerPos);
-        Piece captured = board.getPieceAt(targetPos);
+        Piece attackerPiece = board.getPieceAt(attackerPos);
+        Piece targetPiece = board.getPieceAt(targetPos);
 
-        CaptureAction captureAction = new CaptureAction(attacker,
-                attackerPos,
-                captured,
-                targetPos,
-                captured,
-                true,
-                CaptureType.ENCOUNTER
-                );
+        // Utilisation des factories InvolvedPiece et CaptureAction
+        InvolvedPiece actor = InvolvedPiece.whole(attackerPiece, attackerPos);
+        InvolvedPiece target = InvolvedPiece.whole(targetPiece, targetPos);
+
+        CaptureAction captureAction = CaptureAction.encounter(actor, target);
+
         RithmoDebug.printBoardAfterArrange(board);
+
         // Act
         CaptureApplier applier = new CaptureApplier();
         GameState newState = applier.applyCapture(state, captureAction);
@@ -46,11 +43,12 @@ class CaptureApplierTest {
         Board newBoard = newState.board();
         RithmoDebug.printBoardAfterAct(newBoard);
 
+        // Assert
         GameStateAssertion.assertThis(newState)
                 .isEmpty(targetPos)
                 .player(Player.BLACK)
-                .hasInReserve(captured)
-                .hasOnBoard(attacker)
+                .hasInReserve(targetPiece)
+                .hasOnBoard(attackerPiece)
                 .at(attackerPos);
     }
 
@@ -58,56 +56,45 @@ class CaptureApplierTest {
     void applyCapture_TwoCaptures() {
         // Arrange
         Position attackerPos = new Position(1, 1);
-        Position targetPos = new Position(2,2);
-        Position targetPos2 = new Position(0,0);
+        Position targetPos1 = new Position(2, 2);
+        Position targetPos2 = new Position(0, 0);
 
-        BoardBuilder builder = new BoardBuilder(4,4);
-
-        Board board = builder.blackCircle(4)
-                .at(1,1)
-                .whiteCircle(4).at(2,2)
-                .whiteSquare(4).at(0,0)
+        BoardBuilder builder = new BoardBuilder(4, 4);
+        Board board = builder.blackCircle(4).at(1, 1)
+                .whiteCircle(4).at(2, 2)
+                .whiteSquare(16).at(0, 0)
                 .build();
 
         GameState state = GameState.initial(board, Player.BLACK);
 
-        Piece attacker = board.getPieceAt(attackerPos);
-        Piece captured = board.getPieceAt(targetPos);
-        Piece captured2 = board.getPieceAt(targetPos2);
+        Piece attackerPiece = board.getPieceAt(attackerPos);
+        Piece targetPiece1 = board.getPieceAt(targetPos1);
+        Piece targetPiece2 = board.getPieceAt(targetPos2);
 
-        CaptureAction captureAction = new CaptureAction(attacker,
-                attackerPos,
-                captured,
-                targetPos,
-                captured,
-                true,
-                CaptureType.ENCOUNTER
-        );
-        CaptureAction captureAction2 = new CaptureAction(attacker,
-                attackerPos,
-                captured2,
-                targetPos2,
-                captured2,
-                true,
-                CaptureType.ENCOUNTER
-        );
+        // Préparation des actions via les factories
+        InvolvedPiece actor = InvolvedPiece.whole(attackerPiece, attackerPos);
 
-        List<CaptureAction> captureActions = List.of(captureAction, captureAction2);
+        CaptureAction action1 = CaptureAction.encounter(actor, InvolvedPiece.whole(targetPiece1, targetPos1));
+        CaptureAction action2 = CaptureAction.encounter(actor, InvolvedPiece.whole(targetPiece2, targetPos2));
+
+        List<CaptureAction> captureActions = List.of(action1, action2);
+
         RithmoDebug.printBoardAfterArrange(board);
+
         // Act
         CaptureApplier applier = new CaptureApplier();
         GameState newState = applier.applyCaptures(state, captureActions);
-        Board newBoard = newState.board();
 
-        RithmoDebug.printBoardAfterAct(newBoard);
+        RithmoDebug.printBoardAfterAct(newState.board());
 
+        // Assert
         GameStateAssertion.assertThis(newState)
-                .isEmpty(targetPos)
+                .isEmpty(targetPos1)
                 .isEmpty(targetPos2)
                 .player(Player.BLACK)
-                .hasInReserve(captured)
-                .hasInReserve(captured2)
-                .hasOnBoard(attacker)
+                .hasInReserve(targetPiece1)
+                .hasInReserve(targetPiece2)
+                .hasOnBoard(attackerPiece)
                 .at(attackerPos);
     }
 }

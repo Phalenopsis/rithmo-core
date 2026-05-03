@@ -1,6 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.*;
 
 import java.util.List;
@@ -8,60 +8,36 @@ import java.util.List;
 public class CaptureApplier {
 
     public GameState applyCapture(GameState state, CaptureAction action) {
-
         Board board = state.board();
+        Piece capturedPiece = action.capturedPiece();
 
-        // =========================
-        // 1. REMOVE FROM BOARD
-        // =========================
-
+        // 1. Calcul du nouveau Board
         if (action.isWholeCapture()) {
             board = board.removePiece(action.targetPosition());
-        } else {
-            // partial capture (pyramid)
-            Piece target = action.target();
-
-            if (target instanceof Pyramid pyramid) {
-                Pyramid updated = pyramid.removeComponent(action.capturedPiece());
-
-                board = board.removePiece(action.targetPosition());
-
-                // if pyramid still has components → re-add it
-                if (!updated.getComponents().isEmpty()) {
-                    board = board.addPiece(updated, action.targetPosition());
-                }
+        } else if (action.target().parentPiece() instanceof Pyramid pyramid) {
+            Pyramid updated = pyramid.removeComponent(capturedPiece);
+            board = board.removePiece(action.targetPosition());
+            if (!updated.getComponents().isEmpty()) {
+                board = board.addPiece(updated, action.targetPosition());
             }
         }
 
-        // =========================
-        // 2. UPDATE PLAYER ASSETS
-        // =========================
+        // 2. Calcul des nouveaux Assets
+        PlayerAssets assets = state.assetsOfCurrentPlayer();
+        PlayerAssets updatedAssets = (action.isWholeCapture() && !capturedPiece.isPyramid())
+                ? assets.captureAndStore(capturedPiece)
+                : assets.addCaptured(capturedPiece);
 
-        Player currentPlayer = state.currentPlayer();
-
-        PlayerAssets assets = state.assetsOf(currentPlayer);
-        PlayerAssets updatedAssets;
-        if(action.isWholeCapture()) {
-            updatedAssets =
-                    assets.captureAndStore(action.capturedPiece());
-        } else {
-            updatedAssets = assets.addCaptured(action.capturedPiece());
-        }
-
-
-        state = state.withAssets(currentPlayer.getColor(), updatedAssets);
-
-        // =========================
-        // 3. UPDATE BOARD
-        // =========================
-
-        return state.withBoard(board);
+        // 3. Retour du nouvel état via ton API fluide
+        return state.withBoard(board)
+                .withAssets(state.currentPlayer().getColor(), updatedAssets);
     }
 
     public GameState applyCaptures(GameState state, List<CaptureAction> actions) {
+        GameState result = state;
         for (CaptureAction action : actions) {
-            state = applyCapture(state, action);
+            result = applyCapture(result, action);
         }
-        return state;
+        return result;
     }
 }

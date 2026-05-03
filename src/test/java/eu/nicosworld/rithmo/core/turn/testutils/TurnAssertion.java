@@ -3,7 +3,7 @@ package eu.nicosworld.rithmo.core.turn.testutils;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.option.*;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
 import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.model.Position;

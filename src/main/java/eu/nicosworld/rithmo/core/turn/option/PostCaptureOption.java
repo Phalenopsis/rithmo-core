@@ -1,6 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.option;
 
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 
 import java.util.List;
 

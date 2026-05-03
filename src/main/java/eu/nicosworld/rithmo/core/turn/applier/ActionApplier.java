@@ -2,7 +2,7 @@ package eu.nicosworld.rithmo.core.turn.applier;
 
 import eu.nicosworld.rithmo.core.exception.logical.NoActionException;
 import eu.nicosworld.rithmo.core.turn.action.*;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
@@ -68,7 +68,7 @@ public class ActionApplier {
             state = captureApplier.applyCapture(state, capture);
         }
 
-        Position initialPos = action.actions().getFirst().attackerPosition();
+        Position initialPos = action.actions().getFirst().actor().position();
 
         Move move = new Move(
                 initialPos,

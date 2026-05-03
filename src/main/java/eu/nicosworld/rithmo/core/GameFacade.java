@@ -18,7 +18,7 @@ import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
@@ -221,7 +221,7 @@ public class GameFacade {
             case MoveOption mo -> new MoveOptionDTO(id, mo.move().from(), mo.move().to(), mo.move().nature());
             case PostCaptureOption po -> new PostCaptureOptionDTO(
                     id,
-                    po.captures().getFirst().attackerPosition(),
+                    po.captures().getFirst().actor().position(),
                     po.captures().stream().map(CaptureAction::targetPosition).toList()
             );
             case SkipPreCaptureOption ignored -> new SkipOptionDTO(id);
@@ -254,13 +254,13 @@ public class GameFacade {
                 .filter(PreCaptureOption.class::isInstance)
                 .map(PreCaptureOption.class::cast)
                 .collect(Collectors.groupingBy(opt -> List.of(
-                        opt.captures().getFirst().attackerPosition(), // On inclut l'attaquant dans la clé
+                        opt.captures().getFirst().actor().position(), // On inclut l'attaquant dans la clé
                         opt.captures().stream().map(CaptureAction::targetPosition).toList() // Et les cibles
                 )));
 
         groupedPreCaptures.forEach((key, opts) -> {
             // Maintenant attackerPos sera correct pour chaque groupe
-            Position attackerPos = opts.getFirst().captures().getFirst().attackerPosition();
+            Position attackerPos = opts.getFirst().captures().getFirst().actor().position();
             List<Position> targets = opts.getFirst().captures().stream()
                     .map(CaptureAction::targetPosition)
                     .toList();

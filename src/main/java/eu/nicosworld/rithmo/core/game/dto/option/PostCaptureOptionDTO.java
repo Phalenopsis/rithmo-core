@@ -1,7 +1,7 @@
 package eu.nicosworld.rithmo.core.game.dto.option;
 
 import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public record PostCaptureOptionDTO(
     public static PostCaptureOptionDTO from(PostCaptureOption option, UUID id) {
         return new PostCaptureOptionDTO(
                 id,
-                option.captures().getFirst().attackerPosition(),
+                option.captures().getFirst().actor().position(),
                 option.captures().stream().map(CaptureAction::targetPosition).toList()
         );
     }

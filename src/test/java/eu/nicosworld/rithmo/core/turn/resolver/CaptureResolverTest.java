@@ -1,8 +1,8 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
-import eu.nicosworld.rithmo.engine.capture.CaptureContext;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureContext;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.EncounterRule;

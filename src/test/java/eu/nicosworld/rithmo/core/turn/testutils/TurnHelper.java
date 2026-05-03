@@ -12,7 +12,7 @@ import eu.nicosworld.rithmo.core.turn.option.TurnOption;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
-import eu.nicosworld.rithmo.engine.capture.CaptureAction;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.model.Position;
@@ -77,7 +77,7 @@ public class TurnHelper {
 
                     // 3. Check Attacker (on the first action, they are all the same attacker)
                     boolean sameAttacker = opt.captures().stream()
-                            .anyMatch(a -> a.attackerPosition().equals(attackerPos));
+                            .anyMatch(a -> a.actor().position().equals(attackerPos));
 
                     // 4. Compare target lists
                     return sameAttacker
