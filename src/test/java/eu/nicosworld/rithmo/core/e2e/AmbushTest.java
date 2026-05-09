@@ -3,10 +3,10 @@ package eu.nicosworld.rithmo.core.e2e;
 import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PostCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
+import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.engine.model.Position;
@@ -43,13 +43,32 @@ public class AmbushTest {
     }
 
     @Test
-    @DisplayName("1. on doit avoir une option de pre capture en ambush")
+    @DisplayName("2. on doit avoir une option de pre capture en ambush")
     void shouldProposeAPreCaptureOption() throws Exception {
         Game game = PreDefinedTestGame.ambushPreCaptureTest_Case();
         GameStatusDTO status = gameFacade.startGame(game);
 
+        TestDebugger.render(status);
+
+        TestDebugger.print(status.possibleOptions());
+
         assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
 
+    }
+
+    @Test
+    @DisplayName("3. on doit avoir une option de pre capture en ambush")
+    void shouldProposeAPreCaptureOption_With2fullPyramid() throws Exception {
+        Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
+        GameStatusDTO status = gameFacade.startGame(game);
+
+        TestDebugger.render(status);
+
+        TestDebugger.print(status.possibleOptions());
+        TestDebugger.print(status.possibleDecisions().keySet());
+
+        assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
+        assertThat(status.possibleOptions().size() == 7);
 
     }
 }

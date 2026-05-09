@@ -1,13 +1,17 @@
 package eu.nicosworld.rithmo.core.game.dto.option;
 
+import eu.nicosworld.rithmo.core.game.dto.status.MoveTypeDTO;
+import eu.nicosworld.rithmo.core.turn.option.MoveOption;
 import eu.nicosworld.rithmo.engine.model.Position;
-import eu.nicosworld.rithmo.engine.move.MoveNature;
-
-import java.util.UUID;
 
 public record MoveOptionDTO(
-        UUID id,
-        Position from,
         Position to,
-        MoveNature nature
-) implements PlayerOptionDTO {}
+        MoveTypeDTO typeDTO
+) implements PlayerOptionDTO {
+    public static MoveOptionDTO from(MoveOption option) {
+        return new MoveOptionDTO(
+                option.move().to(),
+                MoveTypeDTO.from(option.move().nature())
+        );
+    }
+}

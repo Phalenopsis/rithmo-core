@@ -7,11 +7,6 @@ import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.PreDefinedGame;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.MoveOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PostCaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,8 +44,7 @@ class GameFacadeE2ETest {
 
         // 3. ACTION : Sélection et exécution de la première option jouable
         // On simule l'UI qui doit extraire un ID valide pour le moteur
-        PlayerOptionDTO firstOptionDto = statusAfterStart.possibleOptions().get(0);
-        UUID actionIdToPlay = FindOptionHelper.extractPlayableId(firstOptionDto);
+        UUID actionIdToPlay = FindOptionHelper.findAnyNonSkipOption(statusAfterStart);
 
         GameStatusDTO statusAfterPlay = gameFacade.play(gameId, actionIdToPlay);
 

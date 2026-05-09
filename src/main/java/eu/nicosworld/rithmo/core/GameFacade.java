@@ -4,6 +4,8 @@ import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.exception.logical.NoPhaseException;
 import eu.nicosworld.rithmo.core.game.*;
+import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
+import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.persistence.GameRepository;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
@@ -18,7 +20,6 @@ import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
-import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
@@ -35,7 +36,6 @@ import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import eu.nicosworld.rithmo.engine.victory.VictoryRule;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Main entry point for the Rithmo core logic.
@@ -175,59 +175,94 @@ public class GameFacade {
         gameRepository.save(game);
         optionRepository.clearOptionsForGame(game.getId());
 
-        List<PlayerOptionDTO> displayOptions = generateAndStorePendingActions(game.getId(), game.getCurrentState().options());
+        UiInformation uiInformation = generateActionsDecisionsAndDTOs(game, game.getCurrentState().options());
 
-        return GameStatusDTO.from(game, displayOptions);
+        return GameStatusDTO.from(game, uiInformation.playerOptionPerPiece(), uiInformation.possibleDecisions());
     }
 
     /**
      * Orchestrates the transformation of internal options into DTOs and persistent actions.
      */
-    private List<PlayerOptionDTO> generateAndStorePendingActions(UUID gameId, List<TurnOption> options) {
-        List<PlayerOptionDTO> displayOptions = new ArrayList<>();
+    private UiInformation generateActionsDecisionsAndDTOs(Game game, List<TurnOption> options) {
+        Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece = new HashMap<>();
+        Map<DecisionDTO, UUID> possibleDecisions = new HashMap<>();
+        for(TurnOption option: options) {
+            if(option instanceof MoveOption moveOption) {
+                MoveAction action = (MoveAction) mapToTurnAction(moveOption);
+                Position actorPosition = moveOption.move().from();
+                Piece actor = game.getCurrentState().state().board().getPieceAt(actorPosition);
 
-        // Handle specific grouped capture options
-        displayOptions.addAll(processPreCaptureOptions(gameId, options));
+                PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
+                DecisionDTO decisionDTO = DecisionDTO.from(game.getCurrentState().state().board(), action);
 
-        // Handle standard unitary options (Move, Skip, etc.)
-        displayOptions.addAll(processUnitaryOptions(gameId, options));
+                UUID actionId = UUID.randomUUID();
+                possibleDecisions.put(decisionDTO, actionId);
+                savePending(game.getId(), actionId, action);
+ 
+                MoveOptionDTO playerOptionDTO = MoveOptionDTO.from(moveOption);
+                addOption(playerOptionPerPiece, actorDTO, playerOptionDTO);
+            }
+            else if(option instanceof PostCaptureOption postCaptureOption) {
+                PostCaptureAction action = (PostCaptureAction) mapToTurnAction(postCaptureOption);
+                Position actorPosition = postCaptureOption.captures().getFirst().actor().position();
+                Piece actor = postCaptureOption.captures().getFirst().actor().specificComponent();
 
-        return displayOptions;
+                PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
+                DecisionDTO decisionDTO = DecisionDTO.from(action);
+
+                UUID actionId = UUID.randomUUID();
+                possibleDecisions.put(decisionDTO, actionId);
+                savePending(game.getId(), actionId, action);
+
+                List<CaptureOptionDTO> playerOptionDTOs = CaptureOptionDTO.from(postCaptureOption);
+                addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
+            }
+            else if(option instanceof PreCaptureOption preCaptureOption) {
+                PreCaptureAction action = (PreCaptureAction)  mapToTurnAction(preCaptureOption);
+                System.out.println(action);
+                Position actorPosition = preCaptureOption.captures().getFirst().actor().position();
+                Piece actor = preCaptureOption.captures().getFirst().actor().specificComponent();
+
+                PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
+                DecisionDTO decisionDTO = DecisionDTO.from(action);
+
+                UUID actionId = UUID.randomUUID();
+                possibleDecisions.put(decisionDTO, actionId);
+                savePending(game.getId(), actionId, action);
+
+                List<PreCaptureOptionDTO> playerOptionDTOs = PreCaptureOptionDTO.from(preCaptureOption);
+                addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
+            } else {
+                TurnAction action = mapToTurnAction(option);
+                DecisionDTO decisionDTO = DecisionDTO.skipFrom();
+
+                UUID actionId = UUID.randomUUID();
+                possibleDecisions.put(decisionDTO, actionId);
+                savePending(game.getId(), actionId, action);
+
+                SkipOptionDTO playerOptionDTO = new SkipOptionDTO();
+
+                addOption(playerOptionPerPiece, PieceDTO.GLOBAL_OPTION, playerOptionDTO);
+            }
+        }
+
+        return new UiInformation(playerOptionPerPiece, possibleDecisions);
     }
 
-    /**
-     * Processes options that map one-to-one with player decisions.
-     */
-    List<PlayerOptionDTO> processUnitaryOptions(UUID gameId, List<TurnOption> options) {
-        return options.stream()
-                .filter(opt -> !(opt instanceof PreCaptureOption))
-                .map(option -> {
-                    UUID id = UUID.randomUUID();
-                    PlayerOptionDTO dto = createUnitaryDTO(id, option);
-
-                    // Map internal option back to executable action
-                    savePending(gameId, id, mapToTurnAction(option), dto);
-
-                    return dto;
-                })
-                .toList();
+    private void addOption(Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
+                           PieceDTO pieceDTO,
+                           PlayerOptionDTO playerOptionDTO) {
+        playerOptions
+                .computeIfAbsent(pieceDTO, k -> new HashSet<>())
+                .add(playerOptionDTO);
     }
 
-    /**
-     * Creates specific DTOs based on the option type.
-     */
-    private PlayerOptionDTO createUnitaryDTO(UUID id, TurnOption option) {
-        return switch (option) {
-            case MoveOption mo -> new MoveOptionDTO(id, mo.move().from(), mo.move().to(), mo.move().nature());
-            case PostCaptureOption po -> new PostCaptureOptionDTO(
-                    id,
-                    po.captures().getFirst().actor().position(),
-                    po.captures().stream().map(CaptureAction::targetPosition).toList()
-            );
-            case SkipPreCaptureOption ignored -> new SkipOptionDTO(id);
-            case SkipPostCaptureOption ignored -> new SkipOptionDTO(id);
-            default -> throw new IllegalStateException("Unexpected unitary option: " + option);
-        };
+    private void addOption(Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
+                           PieceDTO pieceDTO,
+                           List<? extends PlayerOptionDTO> playerOptionDTOList) {
+        playerOptions
+                .computeIfAbsent(pieceDTO, k -> new HashSet<>())
+                .addAll(playerOptionDTOList);
     }
 
     /**
@@ -239,52 +274,14 @@ public class GameFacade {
             case PostCaptureOption postCaptureOption -> PostCaptureAction.from(postCaptureOption);
             case SkipPreCaptureOption skipPreCaptureOption -> SkipPreCaptureAction.from(skipPreCaptureOption);
             case SkipPostCaptureOption skipPostCaptureOption -> SkipPostCaptureAction.from(skipPostCaptureOption);
-            default -> throw new IllegalStateException("Unexpected: " + option);
+            case PreCaptureOption preCaptureOption -> PreCaptureAction.from(preCaptureOption);
         };
-    }
-
-    /**
-     * Processes Pre-Capture options by grouping them by target pieces.
-     */
-    List<PlayerOptionDTO> processPreCaptureOptions(UUID gameId, List<TurnOption> options) {
-        List<PlayerOptionDTO> displayOptions = new ArrayList<>();
-
-        // Correction : Groupement par (Attaquant + Cibles)
-        Map<Object, List<PreCaptureOption>> groupedPreCaptures = options.stream()
-                .filter(PreCaptureOption.class::isInstance)
-                .map(PreCaptureOption.class::cast)
-                .collect(Collectors.groupingBy(opt -> List.of(
-                        opt.captures().getFirst().actor().position(), // On inclut l'attaquant dans la clé
-                        opt.captures().stream().map(CaptureAction::targetPosition).toList() // Et les cibles
-                )));
-
-        groupedPreCaptures.forEach((key, opts) -> {
-            // Maintenant attackerPos sera correct pour chaque groupe
-            Position attackerPos = opts.getFirst().captures().getFirst().actor().position();
-            List<Position> targets = opts.getFirst().captures().stream()
-                    .map(CaptureAction::targetPosition)
-                    .toList();
-
-            List<LandingChoiceDTO> landingChoices = opts.stream()
-                    .map(opt -> {
-                        UUID actionId = UUID.randomUUID();
-                        savePending(gameId, actionId, new PreCaptureAction(opt.captures(), opt.landing()), null);
-                        return new LandingChoiceDTO(actionId, opt.landing());
-                    })
-                    .toList();
-
-            PreCaptureOptionDTO groupDto = new PreCaptureOptionDTO(attackerPos, targets, landingChoices);
-            displayOptions.add(groupDto);
-
-            savePending(gameId, UUID.randomUUID(), null, groupDto);
-        });
-        return displayOptions;
     }
 
     /**
      * Persists an available action to the repository.
      */
-    private void savePending(UUID gameId, UUID id, TurnAction action, PlayerOptionDTO dto) {
-        optionRepository.save(new PendingAction(id, gameId, action, dto));
+    private void savePending(UUID gameId, UUID id, TurnAction action) {
+        optionRepository.save(new PendingAction(id, gameId, action));
     }
 }

@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
@@ -13,6 +14,7 @@ import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +62,8 @@ class FullGameFlowE2ETest {
         // 3. WHITE est en phase POST_CAPTURE (ou l'UI propose le choix après le move)
         // On vérifie que WHITE peut choisir de skipper la post-capture
         assertThat(statusAfterWhiteMove.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
-        UUID skipPostId = FindOptionHelper.findOptionIdByType(statusAfterWhiteMove, SkipOptionDTO.class);
+
+        UUID skipPostId = statusAfterWhiteMove.possibleDecisions().get(DecisionDTO.skipFrom());
 
         // WHITE skip la post-capture -> Main repasse à BLACK
         GameStatusDTO statusAfterWhiteSkip = gameFacade.play(gameId, skipPostId);
@@ -70,13 +73,16 @@ class FullGameFlowE2ETest {
         // Le processeur s'arrête en PRE_CAPTURE car une action est requise
         assertThat(statusAfterWhiteSkip.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
 
-        PreCaptureOptionDTO captureOpt = (PreCaptureOptionDTO) statusAfterWhiteSkip.possibleOptions().stream()
-                .filter(opt -> opt instanceof PreCaptureOptionDTO)
-                .findFirst().orElseThrow();
 
-        UUID landingId = captureOpt.choices().getFirst().actionId();
+        DecisionDTO captureDecision = statusAfterWhiteSkip.possibleDecisions().keySet().stream()
+                .filter(d -> !d.capturedIdList().isEmpty())
+                .findFirst()
+                .orElseThrow();
 
-        // 5. BLACK exécute la capture -> VictoryException (VictoryRule BODY = 1)
+        UUID landingId = statusAfterWhiteSkip.possibleDecisions().get(captureDecision);
+
+
+         //5. BLACK exécute la capture -> VictoryException (VictoryRule BODY = 1)
         assertThatThrownBy(() -> gameFacade.play(gameId, landingId))
                 .isInstanceOf(VictoryException.class);
     }

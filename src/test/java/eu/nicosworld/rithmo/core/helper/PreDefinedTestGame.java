@@ -6,9 +6,7 @@ import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.VictoryRuleOption;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
-import eu.nicosworld.rithmo.engine.model.Board;
-import eu.nicosworld.rithmo.engine.model.GameState;
-import eu.nicosworld.rithmo.engine.model.Player;
+import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 
 import java.util.Map;
@@ -164,6 +162,47 @@ public class PreDefinedTestGame {
         );
 
         GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+
+        return new Game(options, turnState);
+    }
+
+    public static Game ambushPreCaptureTest_BlackAndWhitePyramidCase() {
+        Board board = new BoardBuilder(4,4)
+                .fullBlackPyramidAt(1,0)
+                .fullWhitePyramidAt(2,1)
+                .blackCircle(4).at(1,2)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.AMBUSH),
+                Map.of(VictoryRuleOption.BODY, 1)
+        );
+
+        GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+
+        return new Game(options, turnState);
+    }
+
+    public static Game encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget() {
+        Board board = new BoardBuilder(4, 4)
+                .piece(PieceType.PYRAMID, 0, PlayerColor.BLACK)
+                .withComponent(PieceType.CIRCLE, 5)
+                .withComponent(PieceType.CIRCLE, 4)
+                .withComponent(PieceType.CIRCLE, 6)
+                .at(1, 1)
+                .piece(PieceType.PYRAMID, 0, PlayerColor.WHITE)
+                .withComponent(PieceType.CIRCLE, 5)
+                .withComponent(PieceType.CIRCLE, 4)
+                .at(2, 0)
+                .blackCircle(5)
+                .at(3,1)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.ENCOUNTER),
+                Map.of(VictoryRuleOption.BODY, 3)
+        );
+        GameState gameState = GameState.initial(board, Player.WHITE);
         TurnState turnState = TurnState.of(gameState, TurnPhase.START);
 
         return new Game(options, turnState);
