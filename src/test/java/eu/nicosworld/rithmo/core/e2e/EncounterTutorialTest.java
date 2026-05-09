@@ -16,7 +16,6 @@ import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -120,11 +119,6 @@ class EncounterTutorialTest {
         System.out.println("possible options");
         TestDebugger.print(status.possibleOptions());
 
-        System.out.println("keySet : possible décision boucle for");
-        for (Map.Entry<DecisionDTO, UUID> entry : status.possibleDecisions().entrySet()) {
-            System.out.println(entry.getKey() + " -> " + entry.getValue());
-        }
-
         Set<PreCaptureOptionDTO> optionList = status.possibleOptions().get(pieceDTO)
                 .stream()
                 .filter(o -> o instanceof PreCaptureOptionDTO)
@@ -134,13 +128,11 @@ class EncounterTutorialTest {
         assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
         assertThat(status.possibleOptions().size() == 7);
 
-        DecisionDTO decisionDTO = FindOptionHelper.reconstructPreCaptureDecision(pieceDTO, optionList, new Position(3, 1));
-        System.out.println("Decisions reconstruite : " + decisionDTO);
+        UUID id = FindOptionHelper.findPreCaptureDecisionId(status, pieceDTO, optionList, new Position(3, 1));
 
-        UUID id = status.possibleDecisions().get(decisionDTO);
         System.out.println("id = " + id);
 
-        GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), status.possibleDecisions().get(decisionDTO));
+        GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), id);
         assertThat(statusAfterPreCapture.phase()).isEqualTo(PhaseDTO.MOVE);
     }
 }

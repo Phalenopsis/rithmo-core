@@ -74,6 +74,7 @@ public class TestDebugger {
         // 3. Affichage
         System.out.println("\n--- PLATEAU DE RITHMOMACHIE ---");
         System.out.println("Active player : " + status.currentPlayer());
+        System.out.println("Phase :" + status.phase());
 
         // Header des colonnes (bien aligné avec le décalage de l'index ligne)
         System.out.print("     "); // Espace pour l'index Y

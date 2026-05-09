@@ -2,6 +2,7 @@ package eu.nicosworld.rithmo.core.e2e;
 
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
+import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -12,6 +13,7 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
+import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -42,8 +44,12 @@ class AssaultTutorialTest {
         Game game = PreDefinedTestGame.assaultPreCaptureTutorialTestCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        DecisionDTO skipDecision = DecisionDTO.skipFrom();
-        UUID skipId = status.possibleDecisions().get(skipDecision);
+
+        UUID skipId = status.possibleDecisions().stream()
+                .filter(DecisionDTO::skip)
+                .findFirst()
+                .orElseThrow()
+                .id();
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
         assertThat(nextStatus.phase()).isEqualTo(PhaseDTO.MOVE);
@@ -57,20 +63,29 @@ class AssaultTutorialTest {
 
         // --- ÉTAPE 1 : START -> Sélection de la PreCapture ---
         GameStatusDTO statusStart = gameFacade.startGame(game);
+        TestDebugger.render(statusStart);
 
-        UUID id = statusStart.possibleDecisions().values()
-                .stream().findFirst().orElseThrow();
+        UUID id = statusStart.possibleDecisions()
+                .stream()
+                .filter(d -> !d.skip())
+                .findFirst().orElseThrow().id();
 
 
         GameStatusDTO statusAfterPreCapture = gameFacade.play(gameId, id);
+        TestDebugger.render(statusAfterPreCapture);
 
         // Assert : On doit être en phase MOVE pour l'assaut
         assertThat(statusAfterPreCapture.phase()).isEqualTo(PhaseDTO.MOVE);
+
+        for(DecisionDTO d : statusAfterPreCapture.possibleDecisions()) {
+            System.out.println(d);
+        }
 
         // --- ÉTAPE 2 : MOVE -> Vers la position (2,2) ---
         UUID moveId = FindOptionHelper.findMoveIdByDestination(statusAfterPreCapture, new Position(2, 2));
 
         GameStatusDTO statusAfterMove = gameFacade.play(gameId,moveId);
+        TestDebugger.render(statusAfterMove);
 
         // Assert : On doit être en phase POST_CAPTURE
         assertThat(statusAfterMove.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
@@ -82,12 +97,16 @@ class AssaultTutorialTest {
                 .extracting(dto -> dto.getClass().getSimpleName())
                 .containsExactlyInAnyOrder("CaptureOptionDTO", "SkipOptionDTO");
 
-        DecisionDTO captureDecision = statusAfterMove.possibleDecisions().keySet().stream()
-                .filter(d -> !d.capturedIdList().isEmpty())
+        for(DecisionDTO d : statusAfterMove.possibleDecisions()) {
+            System.out.println(d);
+        }
+
+        DecisionDTO captureDecision = statusAfterMove.possibleDecisions().stream()
+                .filter(d -> !d.skip())
                 .findFirst()
                 .orElseThrow();
 
-        UUID captureId = statusAfterMove.possibleDecisions().get(captureDecision);
+        UUID captureId = captureDecision.id();
 
 
         assertThatThrownBy(() -> gameFacade.play(gameId, captureId))

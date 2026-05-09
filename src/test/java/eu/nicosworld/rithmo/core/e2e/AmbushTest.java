@@ -65,7 +65,6 @@ public class AmbushTest {
         TestDebugger.render(status);
 
         TestDebugger.print(status.possibleOptions());
-        TestDebugger.print(status.possibleDecisions().keySet());
 
         assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
         assertThat(status.possibleOptions().size() == 7);

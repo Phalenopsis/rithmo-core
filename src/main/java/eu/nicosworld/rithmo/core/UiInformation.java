@@ -19,5 +19,5 @@ import java.util.UUID;
  * @param possibleDecisions
  */
 public record UiInformation(Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece,
-                            Map<DecisionDTO, UUID> possibleDecisions) {
+                            Set<DecisionDTO> possibleDecisions) {
 }

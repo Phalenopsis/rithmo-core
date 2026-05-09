@@ -8,6 +8,7 @@ import eu.nicosworld.rithmo.engine.capture.model.CaptureContext;
 import eu.nicosworld.rithmo.engine.model.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CaptureResolver {
 
@@ -58,17 +59,16 @@ public class CaptureResolver {
                         continue;
                     }
 
-                    subset.stream()
+                    Set<Position> landings = subset.stream()
                             .map(CaptureAction::targetPosition)
-                            .distinct()
-                            .forEach(landing ->
-                                    options.add(
-                                            new PreCaptureOption(
-                                                    List.copyOf(subset),
-                                                    landing
-                                            )
-                                    )
-                            );
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+                    options.add(
+                            new PreCaptureOption(
+                                    List.copyOf(subset),
+                                    List.copyOf(landings)
+                            )
+                    );
                 }
             }
         }

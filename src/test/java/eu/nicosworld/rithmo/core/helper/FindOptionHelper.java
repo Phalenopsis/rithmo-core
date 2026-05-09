@@ -4,53 +4,65 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.BoardDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.*;
+import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class FindOptionHelper {
 
     public static UUID findAnyNonSkipOption(GameStatusDTO statusDTO) {
-        return statusDTO.possibleDecisions().entrySet()
+        return statusDTO.possibleDecisions()
                 .stream()
-                .filter(entry -> !entry.getKey().skip())
-                .map(Map.Entry::getValue)
+                .filter(decision -> !decision.skip())
+                .map(DecisionDTO::id)
                 .findFirst()
                 .orElse(null);
     }
 
     public static UUID findSkipOption(GameStatusDTO statusDTO) {
-        return statusDTO.possibleDecisions().entrySet()
+        return statusDTO.possibleDecisions()
                 .stream()
-                .filter(entry -> entry.getKey().skip())
-                .map(Map.Entry::getValue)
+                .filter(DecisionDTO::skip)
+                .map(DecisionDTO::id)
                 .findFirst()
                 .orElse(null);
     }
 
-    public static UUID findDecisionWithCaptures(GameStatusDTO statusDTO, int nbCaptures) {
+    public static UUID findDecisionWithCaptures(
+            GameStatusDTO statusDTO,
+            int nbCaptures
+    ) {
         return statusDTO.possibleDecisions()
-                .entrySet()
                 .stream()
-                .filter(entry -> entry.getKey().capturedIdList().size() == nbCaptures)
-                .map(Map.Entry::getValue)
+                .filter(decision ->
+                        decision.capturedIdList() != null
+                                && decision.capturedIdList().size() == nbCaptures
+                )
+                .map(DecisionDTO::id)
                 .findFirst()
                 .orElseThrow();
     }
 
-
-    public static UUID findMoveIdByDestination(GameStatusDTO status, Position targetPosition) {
+    public static UUID findMoveIdByDestination(
+            GameStatusDTO status,
+            Position targetPosition
+    ) {
         return status.possibleDecisions()
-                .entrySet()
                 .stream()
-                .filter(entry -> targetPosition.equals(entry.getKey().landing()))
-                .map(Map.Entry::getValue)
+                .filter(decision ->
+                        targetPosition.equals(decision.landing())
+                )
+                .map(DecisionDTO::id)
                 .findFirst()
                 .orElseThrow();
     }
 
-    public static List<PreCaptureOptionDTO> findPreCaptureOptions(GameStatusDTO statusDTO) {
+    public static List<PreCaptureOptionDTO> findPreCaptureOptions(
+            GameStatusDTO statusDTO
+    ) {
         return statusDTO.possibleOptions()
                 .values()
                 .stream()
@@ -60,43 +72,62 @@ public class FindOptionHelper {
                 .toList();
     }
 
-//    public static <T extends PlayerOptionDTO> List<T> findPreCaptureOptions(GameStatusDTO status, Class<T> clazz) {
-//
-//    }
-
-    public static DecisionDTO reconstructPreCaptureDecision(
+    public static UUID findPreCaptureDecisionId(
+            GameStatusDTO statusDTO,
             PieceDTO pieceDTO,
             Set<PreCaptureOptionDTO> optionList,
-            Position expectedLanding) {
+            Position expectedLanding
+    ) {
+
         String actorId = pieceDTO.id();
-        List<String> capturedIdList = new ArrayList<>();
-        for(PreCaptureOptionDTO option : optionList) {
-            capturedIdList.add(option.target().id());
-        }
 
-        boolean exists = optionList.stream()
-                .anyMatch(o -> o.landing().equals(expectedLanding));
+        Set<String> capturedIds = optionList.stream()
+                .map(option -> option.target().id())
+                .collect(java.util.stream.Collectors.toSet());
 
-        if (!exists) {
-            throw new RuntimeException("expected position is not in option");
-        }
-
-        return DecisionDTO.preCaptureDecision(actorId, capturedIdList, expectedLanding);
+        return statusDTO.possibleDecisions()
+                .stream()
+                .filter(decision -> !decision.skip())
+                .filter(decision -> actorId.equals(decision.actorId()))
+                .filter(decision -> expectedLanding.equals(decision.landing()))
+                .filter(decision ->
+                        decision.capturedIdList() != null
+                                && decision.capturedIdList().equals(capturedIds)
+                )
+                .map(DecisionDTO::id)
+                .findFirst()
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "No matching decision found"
+                        )
+                );
     }
 
-    public static PieceDTO find(BoardDTO boardDTO, Position position) {
+    public static PieceDTO find(
+            BoardDTO boardDTO,
+            Position position
+    ) {
         return boardDTO.pieces()
                 .stream()
                 .filter(p -> p.position().equals(position))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No PieceDTO found"));
+                .orElseThrow(() ->
+                        new RuntimeException("No PieceDTO found")
+                );
     }
 
-    public static PieceDTO findComponent(BoardDTO boardDTO, Position position, int value) {
-        return find(boardDTO, position).components()
+    public static PieceDTO findComponent(
+            BoardDTO boardDTO,
+            Position position,
+            int value
+    ) {
+        return find(boardDTO, position)
+                .components()
                 .stream()
                 .filter(c -> c.value() == value)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No Component found"));
+                .orElseThrow(() ->
+                        new RuntimeException("No Component found")
+                );
     }
 }

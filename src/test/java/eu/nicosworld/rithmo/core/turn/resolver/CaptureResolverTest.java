@@ -59,7 +59,7 @@ class CaptureResolverTest {
             System.out.println(option);
         }
 
-        assertEquals(12, choices.size());
+        assertEquals(7, choices.size());
     }
 
     @Test
@@ -74,7 +74,7 @@ class CaptureResolverTest {
 
         TestDebugger.printTurnOption(choices);
 
-        assertEquals(4, choices.size());
+        assertEquals(3, choices.size());
     }
 
     @Test
@@ -88,7 +88,7 @@ class CaptureResolverTest {
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        assertEquals(4, choices.size());
+        assertEquals(3, choices.size());
     }
 
     @Test
@@ -102,7 +102,7 @@ class CaptureResolverTest {
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        assertEquals(5, choices.size());
+        assertEquals(4, choices.size());
     }
 
     @Test
@@ -133,13 +133,13 @@ class CaptureResolverTest {
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
         TestDebugger.printTurnOption(choices);
 
-        assertEquals(5, choices.size());
+        assertEquals(4, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(1,1)))
                 .toList();
         System.out.println("Options for attacker in 1,1");
         TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
-        assertEquals(4, choicesForAttackerInX1Y1.size());
+        assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
     @Test
@@ -159,13 +159,13 @@ class CaptureResolverTest {
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
         TestDebugger.printTurnOption(choices);
 
-        assertEquals(5, choices.size());
+        assertEquals(4, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(1,1)))
                 .toList();
         System.out.println("Options for attacker in 1,1");
         TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
-        assertEquals(4, choicesForAttackerInX1Y1.size());
+        assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
     @Test
@@ -185,13 +185,13 @@ class CaptureResolverTest {
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, Player.WHITE));
         TestDebugger.printTurnOption(choices);
 
-        assertEquals(5, choices.size());
+        assertEquals(4, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(0,2)))
                 .toList();
         System.out.println("Options for attacker in 0,2");
         TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
-        assertEquals(4, choicesForAttackerInX1Y1.size());
+        assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
     @Test
@@ -255,7 +255,7 @@ class CaptureResolverTest {
         //          composant valeur 5 peut prendre composant noir de valeur 5 et pion noir de valeur 5 landing en 1,1
         //          composant valeur 5 peut prendre composant noir de valeur 5 et pion noir de valeur 5 landing en 3,1
         TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
-        assertEquals(4, choicesForAttackerInX1Y1.size());
+        assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
     @Nested

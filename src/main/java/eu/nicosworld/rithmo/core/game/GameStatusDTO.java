@@ -18,9 +18,9 @@ public record GameStatusDTO(
         PlayerColorDTO currentPlayer,
         PhaseDTO phase,
         Map<PieceDTO, Set<PlayerOptionDTO>> possibleOptions,
-        Map<DecisionDTO, UUID> possibleDecisions
+        Set<DecisionDTO> possibleDecisions
 ) {
-    public static GameStatusDTO from(Game game, Map<PieceDTO, Set<PlayerOptionDTO>> possibleOptions, Map<DecisionDTO, UUID> possibleDecisions) throws NoPhaseException {
+    public static GameStatusDTO from(Game game, Map<PieceDTO, Set<PlayerOptionDTO>> possibleOptions, Set<DecisionDTO> possibleDecisions) throws NoPhaseException {
         return new GameStatusDTO(
                 game.getId(),
                 BoardDTO.mapFrom(game.getCurrentState().state().board()),

@@ -9,12 +9,10 @@ import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -63,7 +61,12 @@ class FullGameFlowE2ETest {
         // On vérifie que WHITE peut choisir de skipper la post-capture
         assertThat(statusAfterWhiteMove.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
 
-        UUID skipPostId = statusAfterWhiteMove.possibleDecisions().get(DecisionDTO.skipFrom());
+        UUID skipPostId = statusAfterWhiteMove.possibleDecisions()
+                .stream()
+                .filter(DecisionDTO::skip)
+                .findFirst()
+                .orElseThrow()
+                .id();
 
         // WHITE skip la post-capture -> Main repasse à BLACK
         GameStatusDTO statusAfterWhiteSkip = gameFacade.play(gameId, skipPostId);
@@ -74,12 +77,12 @@ class FullGameFlowE2ETest {
         assertThat(statusAfterWhiteSkip.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
 
 
-        DecisionDTO captureDecision = statusAfterWhiteSkip.possibleDecisions().keySet().stream()
-                .filter(d -> !d.capturedIdList().isEmpty())
+        DecisionDTO captureDecision = statusAfterWhiteSkip.possibleDecisions().stream()
+                .filter(d -> !d.skip())
                 .findFirst()
                 .orElseThrow();
 
-        UUID landingId = statusAfterWhiteSkip.possibleDecisions().get(captureDecision);
+        UUID landingId = captureDecision.id();
 
 
          //5. BLACK exécute la capture -> VictoryException (VictoryRule BODY = 1)

@@ -9,6 +9,7 @@ import eu.nicosworld.rithmo.engine.model.Position;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -19,14 +20,16 @@ import java.util.stream.Collectors;
  * @param skip représentation d'une action skip
  */
 public record DecisionDTO(
+        UUID id,
         String actorId,
         Set<String> capturedIdList,
         Position landing,
         boolean skip
 ) {
-    public static DecisionDTO from(Board board, MoveAction moveAction) {
+    public static DecisionDTO from(UUID id, Board board, MoveAction moveAction) {
         Piece piece = board.getPieceAt(moveAction.move().from());
         return new DecisionDTO(
+                id,
                 piece.getId(),
                 Set.of(),
                 moveAction.move().to(),
@@ -34,8 +37,9 @@ public record DecisionDTO(
         );
     }
 
-    public static DecisionDTO from(PreCaptureAction action) {
+    public static DecisionDTO from(UUID id, PreCaptureAction action) {
         return new DecisionDTO(
+                id,
                 actorIdFrom(action.actions()),
                 targetsIdFrom(action.actions()),
                 action.landing(),
@@ -43,8 +47,9 @@ public record DecisionDTO(
         );
     }
 
-    public static DecisionDTO from(PostCaptureAction action) {
+    public static DecisionDTO from(UUID id, PostCaptureAction action) {
         return new DecisionDTO(
+                id,
                 actorIdFrom(action.actions()),
                 targetsIdFrom(action.actions()),
                 null,
@@ -52,16 +57,9 @@ public record DecisionDTO(
                 );
     }
 
-    public static DecisionDTO from(SkipPostCaptureAction ignored) {
-        return skipFrom();
-    }
-
-    public static DecisionDTO from(SkipPreCaptureAction ignored) {
-        return skipFrom();
-    }
-
-    public static DecisionDTO skipFrom() {
+    public static DecisionDTO skipFrom(UUID id) {
         return new DecisionDTO(
+                id,
                 null,
                 null,
                 null,
@@ -80,11 +78,13 @@ public record DecisionDTO(
     }
 
     public static DecisionDTO preCaptureDecision(
+            UUID id,
             String actorId,
             List<String> capturedIdList,
             Position landing
     ) {
         return new DecisionDTO(
+                id,
                 actorId,
                 new HashSet<>(capturedIdList),
                 landing,

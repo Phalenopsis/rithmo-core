@@ -185,7 +185,7 @@ public class GameFacade {
      */
     private UiInformation generateActionsDecisionsAndDTOs(Game game, List<TurnOption> options) {
         Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece = new HashMap<>();
-        Map<DecisionDTO, UUID> possibleDecisions = new HashMap<>();
+        Set<DecisionDTO> possibleDecisions = new HashSet<>();
         for(TurnOption option: options) {
             if(option instanceof MoveOption moveOption) {
                 MoveAction action = (MoveAction) mapToTurnAction(moveOption);
@@ -193,10 +193,12 @@ public class GameFacade {
                 Piece actor = game.getCurrentState().state().board().getPieceAt(actorPosition);
 
                 PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
-                DecisionDTO decisionDTO = DecisionDTO.from(game.getCurrentState().state().board(), action);
 
                 UUID actionId = UUID.randomUUID();
-                possibleDecisions.put(decisionDTO, actionId);
+
+                DecisionDTO decisionDTO = DecisionDTO.from(actionId, game.getCurrentState().state().board(), action);
+
+                possibleDecisions.add(decisionDTO);
                 savePending(game.getId(), actionId, action);
  
                 MoveOptionDTO playerOptionDTO = MoveOptionDTO.from(moveOption);
@@ -208,36 +210,50 @@ public class GameFacade {
                 Piece actor = postCaptureOption.captures().getFirst().actor().specificComponent();
 
                 PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
-                DecisionDTO decisionDTO = DecisionDTO.from(action);
-
                 UUID actionId = UUID.randomUUID();
-                possibleDecisions.put(decisionDTO, actionId);
+                DecisionDTO decisionDTO = DecisionDTO.from(actionId, action);
+
+
+                possibleDecisions.add(decisionDTO);
                 savePending(game.getId(), actionId, action);
 
                 List<CaptureOptionDTO> playerOptionDTOs = CaptureOptionDTO.from(postCaptureOption);
                 addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
             }
             else if(option instanceof PreCaptureOption preCaptureOption) {
-                PreCaptureAction action = (PreCaptureAction)  mapToTurnAction(preCaptureOption);
-                System.out.println(action);
-                Position actorPosition = preCaptureOption.captures().getFirst().actor().position();
-                Piece actor = preCaptureOption.captures().getFirst().actor().specificComponent();
 
-                PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
-                DecisionDTO decisionDTO = DecisionDTO.from(action);
+                List<PreCaptureAction> actions =
+                        PreCaptureAction.from(preCaptureOption);
 
-                UUID actionId = UUID.randomUUID();
-                possibleDecisions.put(decisionDTO, actionId);
-                savePending(game.getId(), actionId, action);
+                for (PreCaptureAction action : actions) {
 
-                List<PreCaptureOptionDTO> playerOptionDTOs = PreCaptureOptionDTO.from(preCaptureOption);
-                addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
+                    Position actorPosition =
+                            preCaptureOption.captures().getFirst().actor().position();
+
+                    Piece actor =
+                            preCaptureOption.captures().getFirst().actor().specificComponent();
+
+                    PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
+
+                    UUID actionId = UUID.randomUUID();
+                    DecisionDTO decisionDTO = DecisionDTO.from(actionId, action);
+
+                    possibleDecisions.add(decisionDTO);
+                    savePending(game.getId(), actionId, action);
+
+                    List<PreCaptureOptionDTO> playerOptionDTOs =
+                            PreCaptureOptionDTO.from(preCaptureOption);
+
+                    addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
+                }
             } else {
                 TurnAction action = mapToTurnAction(option);
-                DecisionDTO decisionDTO = DecisionDTO.skipFrom();
-
                 UUID actionId = UUID.randomUUID();
-                possibleDecisions.put(decisionDTO, actionId);
+
+                DecisionDTO decisionDTO = DecisionDTO.skipFrom(actionId);
+
+
+                possibleDecisions.add(decisionDTO);
                 savePending(game.getId(), actionId, action);
 
                 SkipOptionDTO playerOptionDTO = new SkipOptionDTO();
@@ -274,7 +290,7 @@ public class GameFacade {
             case PostCaptureOption postCaptureOption -> PostCaptureAction.from(postCaptureOption);
             case SkipPreCaptureOption skipPreCaptureOption -> SkipPreCaptureAction.from(skipPreCaptureOption);
             case SkipPostCaptureOption skipPostCaptureOption -> SkipPostCaptureAction.from(skipPostCaptureOption);
-            case PreCaptureOption preCaptureOption -> PreCaptureAction.from(preCaptureOption);
+            default -> throw new RuntimeException("Bad Turn Option");
         };
     }
 
