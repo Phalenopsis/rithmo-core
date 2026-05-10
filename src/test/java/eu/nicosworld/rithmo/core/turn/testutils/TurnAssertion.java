@@ -223,7 +223,8 @@ public class TurnAssertion {
         List<Position> allPossibleLandings = turnState.options().stream()
                 .filter(PreCaptureOption.class::isInstance)
                 .map(PreCaptureOption.class::cast)
-                .map(PreCaptureOption::landing)
+                .map(PreCaptureOption::possibleLandings)
+                .flatMap(List::stream)
                 .toList();
 
         assertThat(allPossibleLandings)
@@ -233,20 +234,6 @@ public class TurnAssertion {
         return this;
     }
 
-    public TurnAssertion hasPreCaptureLandingOption(Position expectedPosition) {
-        List<Position> allLandings = turnState.options().stream()
-                // On ne garde que les PreCaptureOption
-                .filter(PreCaptureOption.class::isInstance)
-                .map(PreCaptureOption.class::cast)
-                .map(PreCaptureOption::landing)
-                .toList();
-
-        assertThat(allLandings)
-                .as("Vérification des options de destination après capture (Pre-Move)")
-                .contains(expectedPosition);
-
-        return this;
-    }
 
     public TurnAssertion hasPostCaptureOption(Position targetPosition) {
         boolean found = turnState.options().stream()

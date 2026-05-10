@@ -1,17 +1,18 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.exception.PatException;
+import eu.nicosworld.rithmo.core.exception.VictoryException;
+import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
+import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.PreDefinedGame;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.MoveOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PostCaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,8 +50,7 @@ class GameFacadeE2ETest {
 
         // 3. ACTION : Sélection et exécution de la première option jouable
         // On simule l'UI qui doit extraire un ID valide pour le moteur
-        PlayerOptionDTO firstOptionDto = statusAfterStart.possibleOptions().get(0);
-        UUID actionIdToPlay = FindOptionHelper.extractPlayableId(firstOptionDto);
+        UUID actionIdToPlay = FindOptionHelper.findAnyNonSkipOption(statusAfterStart);
 
         GameStatusDTO statusAfterPlay = gameFacade.play(gameId, actionIdToPlay);
 
@@ -71,5 +71,18 @@ class GameFacadeE2ETest {
         assertThat(statusAfterPlay.possibleOptions())
                 .as("De nouvelles options doivent être générées pour le nouveau tour/phase")
                 .isNotNull();
+    }
+
+    @Test
+    @DisplayName("Pyramid vs Pyramid : Power and Encounter")
+    void testPyramidVsPyramid() throws VictoryException, PatException {
+        Game initialGame = PreDefinedTestGame.pyramidVsPyramid();
+        GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
+
+        assertThat(statusAfterStart.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
+        for(DecisionDTO dto : statusAfterStart.possibleDecisions()) {
+            System.out.println(dto);
+        }
+
     }
 }

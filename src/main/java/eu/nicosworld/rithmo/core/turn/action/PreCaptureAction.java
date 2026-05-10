@@ -16,7 +16,14 @@ public record PreCaptureAction(
         List<CaptureAction> actions,
         Position landing
 ) implements TurnAction {
-    public static PreCaptureAction from(PreCaptureOption option) {
-        return new PreCaptureAction(List.copyOf(option.captures()), option.landing());
+    public static List<PreCaptureAction> from(PreCaptureOption option) {
+        return option.possibleLandings().stream()
+                .map(landing ->
+                        new PreCaptureAction(
+                                List.copyOf(option.captures()),
+                                landing
+                        )
+                )
+                .toList();
     }
 }

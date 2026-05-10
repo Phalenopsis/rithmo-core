@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
@@ -8,7 +9,6 @@ import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
@@ -60,7 +60,13 @@ class FullGameFlowE2ETest {
         // 3. WHITE est en phase POST_CAPTURE (ou l'UI propose le choix après le move)
         // On vérifie que WHITE peut choisir de skipper la post-capture
         assertThat(statusAfterWhiteMove.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
-        UUID skipPostId = FindOptionHelper.findOptionIdByType(statusAfterWhiteMove, SkipOptionDTO.class);
+
+        UUID skipPostId = statusAfterWhiteMove.possibleDecisions()
+                .stream()
+                .filter(DecisionDTO::skip)
+                .findFirst()
+                .orElseThrow()
+                .id();
 
         // WHITE skip la post-capture -> Main repasse à BLACK
         GameStatusDTO statusAfterWhiteSkip = gameFacade.play(gameId, skipPostId);
@@ -70,13 +76,16 @@ class FullGameFlowE2ETest {
         // Le processeur s'arrête en PRE_CAPTURE car une action est requise
         assertThat(statusAfterWhiteSkip.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
 
-        PreCaptureOptionDTO captureOpt = (PreCaptureOptionDTO) statusAfterWhiteSkip.possibleOptions().stream()
-                .filter(opt -> opt instanceof PreCaptureOptionDTO)
-                .findFirst().orElseThrow();
 
-        UUID landingId = captureOpt.choices().getFirst().actionId();
+        DecisionDTO captureDecision = statusAfterWhiteSkip.possibleDecisions().stream()
+                .filter(d -> !d.skip())
+                .findFirst()
+                .orElseThrow();
 
-        // 5. BLACK exécute la capture -> VictoryException (VictoryRule BODY = 1)
+        UUID landingId = captureDecision.id();
+
+
+         //5. BLACK exécute la capture -> VictoryException (VictoryRule BODY = 1)
         assertThatThrownBy(() -> gameFacade.play(gameId, landingId))
                 .isInstanceOf(VictoryException.class);
     }

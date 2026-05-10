@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PreDefinedGame**: add a method to generate a game for a 8*4 board
 
 ### Changed
+- **ALL**: adapt to engine 0.5.0 
 - **Capture Integration**: Updated the core logic to support the refactored `capture.model` from the Engine.
 - **Model Migration**: Migrated internal calls from the old `CaptureAction` class to the new Record-based structure.
 - **Pyramid Handling**: Integrated `InvolvedPiece` within the capture flow, enabling the Core to distinguish between whole pyramid captures and component-specific captures.
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compatibility**: Fixed several breaking changes in the game loop and action appliers caused by the Engine's DTO restructuring.
 - **Test Suite**: Updated all core tests to ensure parity with the new capture data structures.
 - **Core**: Corrected `PreCaptureOptionDTO` mapping logic to prevent merging different attackers targeting the same position.
+- **CaptureResolver**: Correct a bug where captureResolver did not group in subset when a pyramid component was actor.
 
 ## [0.1.0] - 2026-05-01
 

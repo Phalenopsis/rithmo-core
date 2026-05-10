@@ -11,7 +11,7 @@ public record BoardDTO(List<PieceDTO> pieces,
     public static BoardDTO mapFrom(Board board) {
         List<PieceAtPosition> piecesAtPosition = board.getPiecesWithPositions();
         List<PieceDTO> pieces = piecesAtPosition.stream()
-                .map(PieceDTO::mapFrom)
+                .map(PieceDTO::from)
                 .toList();
         return new BoardDTO(pieces, board.getWidth(), board.getHeight());
     }

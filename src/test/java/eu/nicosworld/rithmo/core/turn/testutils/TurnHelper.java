@@ -2,6 +2,7 @@ package eu.nicosworld.rithmo.core.turn.testutils;
 
 import eu.nicosworld.rithmo.core.turn.TurnProcessor;
 import eu.nicosworld.rithmo.core.turn.TurnState;
+import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
 import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
@@ -52,7 +53,11 @@ public class TurnHelper {
     }
 
     public static void showOptions(TurnState turnState) {
-        System.out.println(turnState.options());
+        System.out.println("***SHOW OPTIONS***");
+        for(TurnOption option : turnState.options()) {
+            System.out.println(option);
+        };
+        System.out.println("*** ***");
     }
 
     public static PreCaptureOption findPreCaptureOption(
@@ -67,15 +72,18 @@ public class TurnHelper {
                 .filter(opt -> {
 
                     System.out.println(opt);
+
                     // 1. Check Landing
-                    if (!opt.landing().equals(landingPos)) return false;
+                    if (!opt.possibleLandings().contains(landingPos)) {
+                        return false;
+                    }
 
                     // 2. Extract targets from captures
                     List<Position> targetsInOption = opt.captures().stream()
                             .map(CaptureAction::targetPosition)
                             .toList();
 
-                    // 3. Check Attacker (on the first action, they are all the same attacker)
+                    // 3. Check Attacker
                     boolean sameAttacker = opt.captures().stream()
                             .anyMatch(a -> a.actor().position().equals(attackerPos));
 
@@ -86,8 +94,12 @@ public class TurnHelper {
                 })
                 .findFirst()
                 .orElseThrow(() -> new AssertionError(
-                        String.format("No PreCaptureOption found for attacker at %s, landing at %s, targeting %s",
-                                attackerPos, landingPos, targetPositions)));
+                        String.format(
+                                "No PreCaptureOption found for attacker at %s, landing at %s, targeting %s",
+                                attackerPos,
+                                landingPos,
+                                targetPositions
+                        )));
     }
 
     /**
@@ -145,5 +157,26 @@ public class TurnHelper {
      */
     public static PostCaptureOption findPostCaptureOption(List<TurnOption> options, Position... targetPositions) {
         return findPostCaptureOption(options, List.of(targetPositions));
+    }
+
+    public static PreCaptureAction findPreCaptureAction(
+            List<TurnOption> options,
+            Position attackerPos,
+            Position landingPos,
+            Position... targetPositions
+    ) {
+        PreCaptureOption option = findPreCaptureOption(
+                options,
+                attackerPos,
+                landingPos,
+                List.of(targetPositions)
+        );
+
+        return PreCaptureAction.from(option).stream()
+                .filter(action -> action.landing().equals(landingPos))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "No PreCaptureAction found for landing " + landingPos
+                ));
     }
 }

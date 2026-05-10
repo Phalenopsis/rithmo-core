@@ -71,9 +71,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 .hasOptionsCount(2)
                 .hasSkipPreCaptureOption()
                 .hasPreCaptureOptionsCount(1)
-                .hasCaptureLandingOption(new Position(2, 2))
-                .hasPreCaptureLandingOption(new Position(2, 2));
-
+                .hasCaptureLandingOption(new Position(2, 2));
     }
 
     @Test
@@ -241,7 +239,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
         Position targetPos = new Position(1,1);
 
         PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
-        PreCaptureAction chosenAction = PreCaptureAction.from(choice);
+        PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
         assertThatThrownBy(() -> processor.process(turn1, chosenAction))
                 .isInstanceOf(VictoryException.class)
@@ -295,7 +293,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position targetPos = new Position(1,1);
 
             PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
-            PreCaptureAction chosenAction = PreCaptureAction.from(choice);
+            PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
             TurnState turn2 = processor.process(turn1, chosenAction);
 
@@ -348,7 +346,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position targetPos = new Position(3,3);
 
             PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
-            PreCaptureAction action = PreCaptureAction.from(choice);
+            PreCaptureAction action = PreCaptureAction.from(choice).getFirst();
 
             assertThatThrownBy(() -> processor.process(turn1, action))
                     .isInstanceOf(PatException.class)
@@ -408,7 +406,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position targetPos = new Position(3,3);
 
             PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
-            PreCaptureAction chosenAction = PreCaptureAction.from(choice);
+            PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
 
             assertThatThrownBy(() -> processor.process(turn1, chosenAction))
@@ -464,8 +462,15 @@ class TurnProcessorIntegrationBeforeMoveTest {
             Position targetPos1 = new Position(2,2);
             Position targetPos2 = new Position(0,2);
 
-            PreCaptureOption choice = findPreCaptureOption(turn1.options(), attackerPos, targetPos2, targetPos1, targetPos2);
-            PreCaptureAction chosenAction = PreCaptureAction.from(choice);
+            PreCaptureAction chosenAction = findPreCaptureAction(
+                    turn1.options(),
+                    attackerPos,
+                    targetPos2,
+                    targetPos1,
+                    targetPos2
+            );
+
+            System.out.println("Chosen action = " + chosenAction);
 
             TurnState turn2 = processor.process(turn1, chosenAction);
 
