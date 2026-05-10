@@ -1,6 +1,12 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import eu.nicosworld.rithmo.core.exception.PatException;
+import eu.nicosworld.rithmo.core.exception.VictoryException;
+import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
+import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -65,5 +71,18 @@ class GameFacadeE2ETest {
         assertThat(statusAfterPlay.possibleOptions())
                 .as("De nouvelles options doivent être générées pour le nouveau tour/phase")
                 .isNotNull();
+    }
+
+    @Test
+    @DisplayName("Pyramid vs Pyramid : Power and Encounter")
+    void testPyramidVsPyramid() throws VictoryException, PatException {
+        Game initialGame = PreDefinedTestGame.pyramidVsPyramid();
+        GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
+
+        assertThat(statusAfterStart.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
+        for(DecisionDTO dto : statusAfterStart.possibleDecisions()) {
+            System.out.println(dto);
+        }
+
     }
 }

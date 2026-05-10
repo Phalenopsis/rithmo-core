@@ -73,6 +73,11 @@ public class CaptureResolver {
             }
         }
 
+        for(PreCaptureOption option : options) {
+            System.out.println(option);
+        }
+        System.out.println("*****");
+
         return options;
     }
 
@@ -194,17 +199,15 @@ public class CaptureResolver {
     // =====================================================
 
     private boolean isValidSubset(List<CaptureAction> subset) {
-
-        Set<Position> targets = new HashSet<>();
+        // On vérifie qu'on ne capture pas le même composant spécifique deux fois
+        Set<Piece> targetComponents = new HashSet<>();
 
         for (CaptureAction action : subset) {
-
-            // impossible de capturer deux fois la même case
-            if (!targets.add(action.targetPosition())) {
+            // action.target() est un InvolvedPiece, on veut son composant interne
+            if (!targetComponents.add(action.target().specificComponent())) {
                 return false;
             }
         }
-
         return true;
     }
 

@@ -207,4 +207,22 @@ public class PreDefinedTestGame {
 
         return new Game(options, turnState);
     }
+
+    public static Game pyramidVsPyramid() {
+        Board board = new BoardBuilder(4, 4)
+                .fullBlackPyramidAt(0,0)
+                .fullWhitePyramidAt(0, 3)
+                .build();
+
+        GameOptions options = new GameOptions(
+                Set.of(
+                        CaptureRuleOption.ENCOUNTER,
+                        CaptureRuleOption.POWER),
+                Map.of(VictoryRuleOption.BODY, 3)
+        );
+        GameState gameState = GameState.initial(board, Player.WHITE);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+
+        return new Game(options, turnState);
+    }
 }
