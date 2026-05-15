@@ -3,11 +3,13 @@ package eu.nicosworld.rithmo.core.helper;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.BoardDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
+import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -129,5 +131,32 @@ public class FindOptionHelper {
                 .orElseThrow(() ->
                         new RuntimeException("No Component found")
                 );
+    }
+
+    /**
+     *
+     * @param statusDTO GameStatusDTO
+     * @param decision DecisionDTO
+     * @return decision actor if it's a piece or main piece if it's a pyramid
+     */
+    public static PieceDTO findActor(GameStatusDTO statusDTO, DecisionDTO decision) {
+        String actorId = decision.actorId();
+        try {
+            return statusDTO.board().pieces()
+                    .stream()
+                    .filter(p->p.id().equals(actorId))
+                    .findFirst()
+                    .orElseThrow();
+        } catch (NoSuchElementException e) {
+            //ignored
+        }
+        // in this case, Actor should be a pyramid
+        return statusDTO.board().pieces()
+                .stream()
+                .filter(p->p.shape().equals(PieceShape.PYRAMID))
+                .filter(p -> p.components().stream().anyMatch(c-> c.id().equals(actorId)))
+                .findFirst()
+                .orElseThrow();
+
     }
 }

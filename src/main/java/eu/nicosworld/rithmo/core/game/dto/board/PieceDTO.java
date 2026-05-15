@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.game.dto.board;
 
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
 
@@ -11,7 +12,7 @@ public record PieceDTO(
         Position position,
         PieceShape shape,
         int value,
-        PlayerColor owner,
+        PlayerColorDTO owner,
         List<PieceDTO> components // Vide sauf pour la PYRAMID
 ) {
     public static final PieceDTO GLOBAL_OPTION = PieceDTO.empty();
@@ -34,7 +35,7 @@ public record PieceDTO(
                 pieceAtPosition.position(),
                 PieceShape.mapShape(pieceAtPosition.piece().getType()),
                 pieceAtPosition.piece().getValue(),
-                pieceAtPosition.piece().getPlayer().getColor(),
+                PlayerColorDTO.mapColor(pieceAtPosition.piece().getPlayer().getColor()),
                 components
         );
     }
@@ -48,7 +49,7 @@ public record PieceDTO(
                 position,
                 PieceShape.mapShape(piece.getType()),
                 piece.getValue(),
-                piece.getPlayer().getColor(),
+                PlayerColorDTO.mapColor(piece.getPlayer().getColor()),
                 List.of()
         );
     }

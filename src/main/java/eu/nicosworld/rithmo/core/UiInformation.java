@@ -6,18 +6,22 @@ import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /**
- * Représente,
+ * Represents:
  * <ul>
- *     <li>les options que l'UI peut montrer au joueur, avec toutes les infos nécessaires</li>
- *     <li>une map qui contient en clé les actions simplifiées possibles et l'UUID de l'action sauvée en base associée</li>
+ *     <li>the options that the UI can display to the player, including all required information</li>
+ *     <li>a collection of possible simplified decisions associated with persisted game actions</li>
  * </ul>
  *
  * @param playerOptionPerPiece
+ *         maps each piece to the set of available player options
+ *
  * @param possibleDecisions
+ *         the set of simplified decisions available to the player
  */
-public record UiInformation(Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece,
-                            Set<DecisionDTO> possibleDecisions) {
+public record UiInformation(
+        Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece,
+        Set<DecisionDTO> possibleDecisions
+) {
 }
