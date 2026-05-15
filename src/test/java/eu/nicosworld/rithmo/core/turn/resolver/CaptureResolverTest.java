@@ -1,11 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
-import eu.nicosworld.rithmo.core.GameOptions;
-import eu.nicosworld.rithmo.core.game.CaptureRuleOption;
-import eu.nicosworld.rithmo.core.game.VictoryRuleOption;
 import eu.nicosworld.rithmo.core.helper.TestDebugger;
-import eu.nicosworld.rithmo.core.turn.TurnPhase;
-import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.capturerule.PowerRule;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
@@ -23,8 +18,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -19,120 +19,47 @@ public class CaptureResolver {
     }
 
     public List<PreCaptureOption> resolvePreCaptures(GameState state) {
-
         List<PreCaptureOption> options = new ArrayList<>();
-
         Board board = state.board();
-        List<PieceAtPosition> pieces =
-                board.getPiecesForPlayer(state.currentPlayer());
 
-        for (PieceAtPosition piece : pieces) {
+        for (PieceAtPosition piece : board.getPiecesForPlayer(state.currentPlayer())) {
+            List<CaptureAction> actions = captureEngine.findCaptures(new CaptureContext(state, piece));
 
-            CaptureContext ctx = new CaptureContext(state, piece);
+            List<List<CaptureAction>> subsets = resolveCaptureSubsets(actions);
 
-            List<CaptureAction> actions =
-                    captureEngine.findCaptures(ctx);
+            for (List<CaptureAction> subset : subsets) {
+                List<Position> validLandings = calculateValidLandings(subset);
 
-            if (actions.isEmpty()) {
-                continue;
-            }
-
-            // =====================================================
-            // GROUP CAPTURES BY LOGICAL ACTOR
-            // =====================================================
-
-            Map<ActorKey, List<CaptureAction>> actionsByActor =
-                    groupByActor(actions);
-
-            // =====================================================
-            // GENERATE COMBINATIONS PER ACTOR
-            // =====================================================
-
-            for (List<CaptureAction> actorActions : actionsByActor.values()) {
-
-                List<List<CaptureAction>> subsets =
-                        generateSubsets(actorActions);
-
-                for (List<CaptureAction> subset : subsets) {
-
-                    if (subset.isEmpty() || !isValidSubset(subset)) {
-                        continue;
-                    }
-
-                    Set<Position> landings = subset.stream()
-                            .map(CaptureAction::targetPosition)
-                            .collect(Collectors.toCollection(LinkedHashSet::new));
-
-                    options.add(
-                            new PreCaptureOption(
-                                    List.copyOf(subset),
-                                    List.copyOf(landings)
-                            )
-                    );
-                }
+                options.add(new PreCaptureOption(List.copyOf(subset), validLandings));
             }
         }
-
-        for(PreCaptureOption option : options) {
-            System.out.println(option);
-        }
-        System.out.println("*****");
 
         return options;
     }
 
-    public List<PostCaptureOption> resolvePostCaptures(
-            GameState state,
-            Position attackerPos
-    ) {
+    public List<PostCaptureOption> resolvePostCaptures(GameState state, Position attackerPos) {
+        Piece piece = state.board().getPieceAt(attackerPos);
+        if (piece == null) return List.of();
 
-        Board board = state.board();
+        List<CaptureAction> actions = captureEngine.findCaptures(
+                new CaptureContext(state, new PieceAtPosition(piece, attackerPos))
+        );
 
-        Piece piece = board.getPieceAt(attackerPos);
+        return resolveCaptureSubsets(actions).stream()
+                .map(PostCaptureOption::new)
+                .toList();
+    }
 
-        if (piece == null) {
-            return List.of();
-        }
-
-        PieceAtPosition movedPiece =
-                new PieceAtPosition(piece, attackerPos);
-
-        CaptureContext ctx =
-                new CaptureContext(state, movedPiece);
-
-        List<CaptureAction> actions =
-                captureEngine.findCaptures(ctx);
-
-        if (actions.isEmpty()) {
-            return List.of();
-        }
-
-        // =====================================================
-        // GROUP CAPTURES BY LOGICAL ACTOR
-        // =====================================================
-
-        Map<ActorKey, List<CaptureAction>> actionsByActor =
-                groupByActor(actions);
-
-        List<PostCaptureOption> options = new ArrayList<>();
+    private List<List<CaptureAction>> resolveCaptureSubsets(List<CaptureAction> actions) {
+        Map<ActorKey, List<CaptureAction>> actionsByActor = groupByActor(actions);
+        List<List<CaptureAction>> allValidSubsets = new ArrayList<>();
 
         for (List<CaptureAction> actorActions : actionsByActor.values()) {
-
-            List<List<CaptureAction>> subsets =
-                    generateSubsets(actorActions);
-
-            subsets.stream()
-                    .filter(subset ->
-                            !subset.isEmpty()
-                                    && isValidSubset(subset)
-                    )
-                    .map(subset ->
-                            new PostCaptureOption(List.copyOf(subset))
-                    )
-                    .forEach(options::add);
+            generateSubsets(actorActions).stream()
+                    .filter(subset -> !subset.isEmpty() && isValidSubset(subset))
+                    .forEach(allValidSubsets::add);
         }
-
-        return options;
+        return allValidSubsets;
     }
 
     // =====================================================
@@ -194,16 +121,40 @@ public class CaptureResolver {
         return subsets;
     }
 
+    private List<Position> calculateValidLandings(List<CaptureAction> subset) {
+        Set<Position> validLandings = new LinkedHashSet<>();
+
+        Map<Position, List<CaptureAction>> byPos = subset.stream()
+                .collect(Collectors.groupingBy(CaptureAction::targetPosition));
+
+        for (Map.Entry<Position, List<CaptureAction>> entry : byPos.entrySet()) {
+            Position pos = entry.getKey();
+            List<CaptureAction> actionsAtPos = entry.getValue();
+
+            Piece parentTarget = actionsAtPos.getFirst().target().parentPiece();
+
+            if (parentTarget instanceof Pyramid pyramid) {
+                int totalCurrentComponents = pyramid.getComponents().size();
+                int capturedInSubset = actionsAtPos.size();
+
+                if (capturedInSubset >= totalCurrentComponents) {
+                    validLandings.add(pos);
+                }
+            } else {
+                validLandings.add(pos);
+            }
+        }
+        return List.copyOf(validLandings);
+    }
+
     // =====================================================
     // VALIDATION
     // =====================================================
 
     private boolean isValidSubset(List<CaptureAction> subset) {
-        // On vérifie qu'on ne capture pas le même composant spécifique deux fois
         Set<Piece> targetComponents = new HashSet<>();
 
         for (CaptureAction action : subset) {
-            // action.target() est un InvolvedPiece, on veut son composant interne
             if (!targetComponents.add(action.target().specificComponent())) {
                 return false;
             }
