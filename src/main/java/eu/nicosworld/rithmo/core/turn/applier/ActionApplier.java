@@ -8,6 +8,8 @@ import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
 
+import java.util.Objects;
+
 /**
  * Component responsible for executing {@link TurnAction}s and calculating
  * their impact on the {@link GameState}.
@@ -70,6 +72,9 @@ public class ActionApplier {
 
         Position initialPos = action.actions().getFirst().actor().position();
 
+        if(Objects.isNull(action.landing())) {
+            return AppliedResult.withCapture(state, initialPos);
+        }
         Move move = new Move(
                 initialPos,
                 action.landing(),
