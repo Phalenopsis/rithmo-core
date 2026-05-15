@@ -14,7 +14,8 @@ public class CaptureApplier {
         // 1. Calcul du nouveau Board
         if (action.isWholeCapture()) {
             board = board.removePiece(action.targetPosition());
-        } else if (action.target().parentPiece() instanceof Pyramid pyramid) {
+        } else if (action.target().parentPiece() instanceof Pyramid) {
+            Pyramid pyramid = (Pyramid) board.getPieceAt(action.targetPosition());
             Pyramid updated = pyramid.removeComponent(capturedPiece);
             board = board.removePiece(action.targetPosition());
             if (!updated.getComponents().isEmpty()) {
