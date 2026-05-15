@@ -5,6 +5,7 @@ import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
+import eu.nicosworld.rithmo.engine.reintroduction.Reintroduction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +21,16 @@ public class PhaseResolver {
 
     private final CaptureResolver captureResolver;
     private final MoveResolver movementResolver;
+    private final ReintroductionResolver reintroductionResolver;
 
     public PhaseResolver(
             CaptureResolver captureResolver,
-            MoveResolver movementResolver
+            MoveResolver movementResolver,
+            ReintroductionResolver reintroductionResolver
     ) {
         this.captureResolver = captureResolver;
         this.movementResolver = movementResolver;
+        this.reintroductionResolver = reintroductionResolver;
     }
 
     /**
@@ -61,6 +65,11 @@ public class PhaseResolver {
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
             options.add(new MoveOption(move));
+        }
+
+        List<Reintroduction> reintroductions = reintroductionResolver.resolveReintroductions(state);
+        for (Reintroduction reintroduction: reintroductions) {
+            options.add(new  ReintroductionOption(reintroduction));
         }
 
         return options;

@@ -20,6 +20,7 @@ import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
+import eu.nicosworld.rithmo.core.turn.resolver.ReintroductionResolver;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
@@ -30,6 +31,7 @@ import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.move.FreePathMovementValidator;
 import eu.nicosworld.rithmo.engine.move.MovementEngine;
 import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
+import eu.nicosworld.rithmo.engine.reintroduction.ReintroductionEngine;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.GoodsVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
@@ -47,6 +49,7 @@ public class GameFacade {
     private final OptionRepository optionRepository;
     private final Map<CaptureRuleOption, CaptureRule> captureRegistry;
     private final MoveResolver moveResolver;
+    private final ReintroductionResolver reintroductionResolver;
     private final ActionApplier actionApplier;
 
     /**
@@ -59,6 +62,9 @@ public class GameFacade {
         // Initialize reusable engine mechanics
         MovementEngine movementEngine = new MovementEngine();
         this.moveResolver = new MoveResolver(movementEngine);
+
+        ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
+        reintroductionResolver = new ReintroductionResolver(reintroductionEngine);
 
         MoveApplier moveApplier = new MoveApplier();
         CaptureApplier captureApplier = new CaptureApplier();
@@ -114,7 +120,10 @@ public class GameFacade {
 
         CaptureEngine captureEngine = new CaptureEngine(rules);
         CaptureResolver captureResolver = new CaptureResolver(captureEngine);
-        PhaseResolver phaseResolver = new PhaseResolver(captureResolver, moveResolver);
+        PhaseResolver phaseResolver = new PhaseResolver(
+                captureResolver,
+                moveResolver,
+                reintroductionResolver);
 
         List<VictoryRule> victories = resolveVictoryRules(options.victoryRules());
         VictoryEngine victoryEngine = new VictoryEngine(victories);
