@@ -10,7 +10,6 @@ import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
-import eu.nicosworld.rithmo.engine.victory.VictoryRule;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,14 +35,14 @@ public class PreDefinedGame {
 
     public static Game FourEigthBoardGame() {
         Board board = new BoardBuilder(8, 4)
-                // --- CAMP NOIR (Colonne 0 et un peu de 1) ---
+                // --- Black player (Columns 0 and 1) ---
                 .fullBlackPyramidAt(new Position(0, 0))
                 .blackSquare(16).at(0, 1)
                 .blackTriangle(12).at(0, 2)
                 .blackCircle(2).at(0, 3)
                 .blackCircle(4).at(1, 3)
 
-                // --- CAMP BLANC (Colonne 7 et un peu de 6) ---
+                // --- White player (Columns 6 and 7) ---
                 .fullWhitePyramidAt(new Position(7, 0))
                 .whiteSquare(25).at(7, 1)
                 .whiteTriangle(9).at(7, 2)
