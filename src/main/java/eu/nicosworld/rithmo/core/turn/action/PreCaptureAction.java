@@ -17,6 +17,13 @@ public record PreCaptureAction(
         Position landing
 ) implements TurnAction {
     public static List<PreCaptureAction> from(PreCaptureOption option) {
+        if(option.possibleLandings().isEmpty()) {
+            return List.of(new PreCaptureAction(
+                    option.captures(),
+                    null
+            ));
+        }
+
         return option.possibleLandings().stream()
                 .map(landing ->
                         new PreCaptureAction(
