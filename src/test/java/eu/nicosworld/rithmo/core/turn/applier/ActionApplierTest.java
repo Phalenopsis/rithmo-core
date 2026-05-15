@@ -87,8 +87,8 @@ class ActionApplierTest {
 
         GameStateAssertion.assertThis(newGameState)
                 .player(Player.BLACK)
-                .hasInReserve(whiteCircle)
-                .hasInReserve(whiteTriangle)
+                .hasCapturedEquivalentInReserve(whiteCircle)
+                .hasCapturedEquivalentInReserve(whiteTriangle)
                 .hasOnBoard(blackCircle)
                 .at(whiteTrianglePosition)
                 .isNotAt(blackCirclePosition)
@@ -113,7 +113,7 @@ class ActionApplierTest {
 
         GameStateAssertion.assertThis(newGameState)
                 .player(Player.BLACK)
-                .hasInReserve(whiteCircle)
+                .hasCapturedEquivalentInReserve(whiteCircle)
                 .hasNotInReserve(whiteTriangle)
                 .hasOnBoard(blackCircle)
                 .at(whiteCirclePosition)
@@ -231,8 +231,8 @@ class ActionApplierTest {
 
         GameStateAssertion.assertThis(newGameState)
                 .player(Player.BLACK)
-                .hasInReserve(whiteCircle)
-                .hasInReserve(whiteTriangle)
+                .hasCapturedEquivalentInReserve(whiteCircle)
+                .hasCapturedEquivalentInReserve(whiteTriangle)
                 .hasOnBoard(blackCircle)
                 .at(blackCirclePosition)
                 .isEmpty(whiteTrianglePosition)
@@ -264,7 +264,7 @@ class ActionApplierTest {
 
         GameStateAssertion.assertThis(newGameState)
                 .player(Player.BLACK)
-                .hasInReserve(whiteTriangle)
+                .hasCapturedEquivalentInReserve(whiteTriangle)
                 .hasOnBoard(blackCircle)
                 .at(blackCirclePosition)
                 .isEmpty(whiteTrianglePosition)

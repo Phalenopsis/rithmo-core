@@ -489,8 +489,8 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     .hasRegularMoveTo(1,3)
                     .checkState()
                         .player(Player.BLACK)
-                        .hasInReserve(turn1.state().board().getPieceAt(targetPos1))
-                        .hasInReserve(turn1.state().board().getPieceAt(targetPos2));
+                        .hasCapturedEquivalentInReserve(turn1.state().board().getPieceAt(targetPos1))
+                        .hasCapturedEquivalentInReserve(turn1.state().board().getPieceAt(targetPos2));
         }
     }
 }

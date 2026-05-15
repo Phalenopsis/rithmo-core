@@ -47,7 +47,8 @@ class CaptureApplierTest {
         GameStateAssertion.assertThis(newState)
                 .isEmpty(targetPos)
                 .player(Player.BLACK)
-                .hasInReserve(targetPiece)
+                .hasCapturedEquivalentInReserve(targetPiece)
+                .hasNotInReserve(targetPiece)
                 .hasOnBoard(attackerPiece)
                 .at(attackerPos);
     }
@@ -92,8 +93,10 @@ class CaptureApplierTest {
                 .isEmpty(targetPos1)
                 .isEmpty(targetPos2)
                 .player(Player.BLACK)
-                .hasInReserve(targetPiece1)
-                .hasInReserve(targetPiece2)
+                .hasCapturedEquivalentInReserve(targetPiece1)
+                .hasNotInReserve(targetPiece1)
+                .hasCapturedEquivalentInReserve(targetPiece2)
+                .hasNotInReserve(targetPiece2)
                 .hasOnBoard(attackerPiece)
                 .at(attackerPos);
     }

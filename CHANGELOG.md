@@ -12,7 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PreDefinedGame**: add a method to generate a game for a 8*4 board.
 
 ### Changed
-- **ALL**: adapt to engine 0.5.0.
+- **Engine Integration (v0.5.0)**: Adapted core logic to the Engine 0.5.0 redesign, including:
+  - Migration to the refactored `capture.model` using record-based `CaptureAction` and `InvolvedPiece`
+  - Support for pyramid-aware capture resolution (component vs whole-piece targeting)
+  - Alignment with new duplicate-safe capture generation logic (value-based de-duplication in capture rules)
+  - Compatibility with updated `PlayerAssets` rules (pyramids cannot be stored in reserve)
+  - Preparation for future reintroduction mechanics introduced at engine level
 - **Capture Integration**: Updated the core logic to support the refactored `capture.model` from the Engine.
 - **Model Migration**: Migrated internal calls from the old `CaptureAction` class to the new record-based structure.
 - **Pyramid Handling**: Integrated `InvolvedPiece` within the capture flow, enabling the Core to distinguish between whole pyramid captures and component-specific captures.
@@ -29,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FindOptionHelper**: add a helper to easily find options in tests.
 - **Existing E2E Tests**: refactor to use FindOptionHelper.
 - **Capture Component Tests**: add tests for component-level pyramid captures.
+- **Existing Tests**: adapt with reserve-piece ownership normalization
 
 ### Fixed
 - **CaptureApplier**: fixed a bug where pyramids were incorrectly reset when partially captured.
