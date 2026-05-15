@@ -6,6 +6,7 @@ import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
 import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
+import eu.nicosworld.rithmo.core.turn.applier.ReintroductionApplier;
 import eu.nicosworld.rithmo.core.turn.option.MoveOption;
 import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
@@ -37,7 +38,8 @@ public class TurnHelper {
     public static TurnProcessor setupProcessor(List<CaptureRule> captureRules, List<VictoryRule> victoryRules) {
         CaptureApplier captureApplier = new CaptureApplier();
         MoveApplier moveApplier = new MoveApplier();
-        ActionApplier actionApplier = new ActionApplier(captureApplier, moveApplier);
+        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
+        ActionApplier actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
 
         PhaseResolver phaseResolver = setupPhaseResolver(captureRules);
 

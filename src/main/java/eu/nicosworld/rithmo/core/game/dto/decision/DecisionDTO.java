@@ -57,6 +57,16 @@ public record DecisionDTO(
                 );
     }
 
+    public static DecisionDTO from(UUID id, ReintroductionAction action) {
+        return new DecisionDTO(
+                id,
+                action.reintroduction().piece().getId(),
+                Set.of(),
+                action.reintroduction().position(),
+                false
+        );
+    }
+
     public static DecisionDTO skipFrom(UUID id) {
         return new DecisionDTO(
                 id,

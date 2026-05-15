@@ -16,6 +16,7 @@ import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
 import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
+import eu.nicosworld.rithmo.core.turn.applier.ReintroductionApplier;
 import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
@@ -68,7 +69,8 @@ public class GameFacade {
 
         MoveApplier moveApplier = new MoveApplier();
         CaptureApplier captureApplier = new CaptureApplier();
-        this.actionApplier = new ActionApplier(captureApplier, moveApplier);
+        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
+        this.actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
 
         RegularMoveGenerator regularGenerator = new RegularMoveGenerator();
         FreePathMovementValidator pathValidator = new FreePathMovementValidator();
@@ -255,6 +257,21 @@ public class GameFacade {
 
                     addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
                 }
+            }
+            else if (option instanceof ReintroductionOption reintroductionOption) {
+                ReintroductionAction action = (ReintroductionAction) mapToTurnAction(option);
+                UUID actionId = UUID.randomUUID();
+
+                ReintroductionOptionDTO playerOptionDTO = ReintroductionOptionDTO.from(reintroductionOption);
+                PieceDTO actorDTO = playerOptionDTO.pieceDTO();
+
+                DecisionDTO decisionDTO = DecisionDTO.from(actionId, action);
+
+                possibleDecisions.add(decisionDTO);
+                savePending(game.getId(), actionId, action);
+
+                addOption(playerOptionPerPiece, actorDTO, playerOptionDTO);
+
             } else {
                 TurnAction action = mapToTurnAction(option);
                 UUID actionId = UUID.randomUUID();
@@ -299,6 +316,7 @@ public class GameFacade {
             case PostCaptureOption postCaptureOption -> PostCaptureAction.from(postCaptureOption);
             case SkipPreCaptureOption skipPreCaptureOption -> SkipPreCaptureAction.from(skipPreCaptureOption);
             case SkipPostCaptureOption skipPostCaptureOption -> SkipPostCaptureAction.from(skipPostCaptureOption);
+            case ReintroductionOption reintroductionOption -> ReintroductionAction.from(reintroductionOption);
             default -> throw new RuntimeException("Bad Turn Option");
         };
     }

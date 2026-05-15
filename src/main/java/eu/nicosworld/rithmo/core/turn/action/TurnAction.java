@@ -7,11 +7,6 @@ package eu.nicosworld.rithmo.core.turn.action;
  * a strictly defined set of action types, maintaining the integrity of the state machine.
  */
 public sealed interface TurnAction
-        permits PreCaptureAction,
-        SkipPreCaptureAction,
-        MoveAction,
-        PostCaptureAction,
-        SkipPostCaptureAction,
-        NoAction
+        permits MoveAction, NoAction, PostCaptureAction, PreCaptureAction, ReintroductionAction, SkipPostCaptureAction, SkipPreCaptureAction
 {
 }

@@ -7,6 +7,7 @@ import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
+import eu.nicosworld.rithmo.engine.reintroduction.Reintroduction;
 
 import java.util.Objects;
 
@@ -21,11 +22,14 @@ public class ActionApplier {
 
     private final CaptureApplier captureApplier;
     private final MoveApplier moveApplier;
+    private final ReintroductionApplier reintroductionApplier;
 
     public ActionApplier(CaptureApplier captureApplier,
-                         MoveApplier moveApplier) {
+                         MoveApplier moveApplier,
+                         ReintroductionApplier reintroductionApplier) {
         this.captureApplier = captureApplier;
         this.moveApplier = moveApplier;
+        this.reintroductionApplier = reintroductionApplier;
     }
 
     /**
@@ -55,9 +59,19 @@ public class ActionApplier {
             case SkipPostCaptureAction a ->
                     AppliedResult.of(state);
 
+            case ReintroductionAction a ->
+                applyReintroduction(state ,a);
+
             case NoAction a ->
                 throw new NoActionException();
         };
+    }
+
+    private AppliedResult applyReintroduction(GameState state, ReintroductionAction action) {
+        Reintroduction reintroduction = action.reintroduction();
+
+        GameState updatedState = reintroductionApplier.applyReintroduction(state, reintroduction);
+        return AppliedResult.withReintroduction(updatedState, reintroduction.position());
     }
 
     // =========================

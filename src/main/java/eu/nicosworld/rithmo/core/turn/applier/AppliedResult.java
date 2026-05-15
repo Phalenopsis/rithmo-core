@@ -22,4 +22,8 @@ public record AppliedResult(
     public static AppliedResult withCapture(GameState gameState, Position landingPosition) {
         return new AppliedResult(gameState, false, landingPosition);
     }
+
+    public static AppliedResult withReintroduction(GameState gameState, Position landingPosition) {
+        return new AppliedResult(gameState, false, landingPosition);
+    }
 }
