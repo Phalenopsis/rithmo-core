@@ -9,25 +9,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **BoardDTO**: Add width and height.
-- **PreDefinedGame**: add a method to generate a game for a 8*4 board
+- **PreDefinedGame**: add a method to generate a game for a 8*4 board.
 
 ### Changed
-- **ALL**: adapt to engine 0.5.0 
+- **ALL**: adapt to engine 0.5.0.
 - **Capture Integration**: Updated the core logic to support the refactored `capture.model` from the Engine.
-- **Model Migration**: Migrated internal calls from the old `CaptureAction` class to the new Record-based structure.
+- **Model Migration**: Migrated internal calls from the old `CaptureAction` class to the new record-based structure.
 - **Pyramid Handling**: Integrated `InvolvedPiece` within the capture flow, enabling the Core to distinguish between whole pyramid captures and component-specific captures.
 - **Dependencies**: Refreshed the Engine dependency to v0.5.0 and updated all related import paths.
+- **Piece Model**: Use DTO color in `PieceDTO` rather than engine `Color`.
+
+### Refactor
+- **CaptureResolver**: Centralized subset resolution logic and added landing validation for capture options.
+- **Core Capture Flow**: Simplified pre/post capture resolution by extracting shared subset computation.
+- **Code Cleanup**: Removed unused imports and translated remaining French comments to English.
 
 ### Test
-- **PreDefinedGameTest**: add some predefined test cases
-- **FindOptionHelper**: add a helper to easily find options in tests
-- **Existing E2E Tests**: refactor to use FindOptionHelper
+- **PreDefinedGameTest**: add some predefined test cases.
+- **FindOptionHelper**: add a helper to easily find options in tests.
+- **Existing E2E Tests**: refactor to use FindOptionHelper.
+- **Capture Component Tests**: add tests for component-level pyramid captures.
 
 ### Fixed
+- **CaptureApplier**: fixed a bug where pyramids were incorrectly reset when partially captured.
+- **ActionApplier**: fixed issue allowing proper capture of pyramid components.
 - **Compatibility**: Fixed several breaking changes in the game loop and action appliers caused by the Engine's DTO restructuring.
 - **Test Suite**: Updated all core tests to ensure parity with the new capture data structures.
 - **Core**: Corrected `PreCaptureOptionDTO` mapping logic to prevent merging different attackers targeting the same position.
-- **CaptureResolver**: Correct a bug where captureResolver did not group in subset when a pyramid component was actor.
+- **CaptureResolver**: fixed a bug where captureResolver did not group subsets when a pyramid component was acting as the actor.
+
+### Documentation
+- **UiInformation**: translate documentation to English.
+- **CaptureResolver**: add Javadoc.
+- **PreCaptureOption**: add Javadoc.
+- **CaptureApplier**: add Javadoc.
+
 
 ## [0.1.0] - 2026-05-01
 
