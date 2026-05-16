@@ -61,4 +61,8 @@ public record PieceDTO(
     public static PieceDTO from(InvolvedPiece dto) {
         return from(dto.specificComponent(), dto.position());
     }
+
+    public static PieceDTO from(Piece piece) {
+        return from(piece, null);
+    }
 }
