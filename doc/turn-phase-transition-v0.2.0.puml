@@ -1,0 +1,131 @@
+@startuml
+title Rithmomachia Turn Phase Transitions (v0.2 - with contextual rules)
+
+skinparam state {
+  BackgroundColor<<Automatic>> #E1F5FE
+  BorderColor<<Automatic>> #01579B
+}
+
+[*] --> START
+
+state START <<Automatic>>
+note right of START
+Entry point of a turn.
+Always transitions automatically
+to PRE_CAPTURE_COMPUTATION.
+end note
+
+START --> PRE_CAPTURE_COMPUTATION
+
+state PRE_CAPTURE_COMPUTATION <<Automatic>>
+note right of PRE_CAPTURE_COMPUTATION
+PhaseResolver computes capture opportunities.
+If none exist → skip to MOVE_COMPUTATION.
+If exists → user must choose.
+end note
+
+PRE_CAPTURE_COMPUTATION --> PRE_CAPTURE_APPLICATION : if options exist
+PRE_CAPTURE_COMPUTATION --> MOVE_COMPUTATION : else
+
+
+state PRE_CAPTURE_APPLICATION {
+    state "User Decision" as PCA_Choice <<choice>>
+    [*] --> PCA_Choice
+    PCA_Choice --> MOVE_COMPUTATION : PreCaptureAction applied
+}
+
+note right of PRE_CAPTURE_APPLICATION
+User executes a capture BEFORE movement.
+May modify board state and actor position.
+end note
+
+
+state MOVE_COMPUTATION <<Automatic>>
+
+note right of MOVE_COMPUTATION
+Core movement resolution phase.
+
+Two variants exist:
+
+1. Standard MOVE:
+   - normal movement options
+
+2. Extended MOVE (contextual rule):
+   - activated if a capture occurred earlier in turn
+   - allows reintroduction-related behavior
+   - uses actorPos (PieceAtPosition)
+
+IMPORTANT:
+Reintroduction is NOT a phase.
+It is a consequence of MOVE computation context.
+end note
+
+MOVE_COMPUTATION --> MOVE_APPLICATION
+
+
+state MOVE_APPLICATION {
+    state "User Decision" as MA_Choice <<choice>>
+    [*] --> MA_Choice
+    MA_Choice --> POST_CAPTURE_COMPUTATION : MoveAction applied
+    MA_Choice --> END : irregular move
+}
+
+note right of MOVE_APPLICATION
+Executes movement.
+Produces landing position used by next phase.
+end note
+
+
+state POST_CAPTURE_COMPUTATION <<Automatic>>
+
+note right of POST_CAPTURE_COMPUTATION
+Post-move resolution phase.
+
+Evaluates:
+- capture opportunities
+- follow-up interactions
+- effects of reintroduced pieces
+
+If options exist → player decision required.
+Else → end of turn.
+end note
+
+POST_CAPTURE_COMPUTATION --> POST_CAPTURE_APPLICATION : if options exist
+POST_CAPTURE_COMPUTATION --> END : else
+
+
+state POST_CAPTURE_APPLICATION {
+    state "User Decision" as PCA2_Choice <<choice>>
+    [*] --> PCA2_Choice
+    PCA2_Choice --> END : PostCaptureAction applied
+}
+
+note right of POST_CAPTURE_APPLICATION
+Final interaction phase of the turn.
+May trigger victory or further board changes.
+end note
+
+
+state END <<Automatic>>
+
+note right of END
+Turn cleanup phase.
+Switch player and restart cycle.
+end note
+
+END --> START
+
+
+state VICTORY_CHECK <<Automatic>>
+note right of VICTORY_CHECK
+Victory is checked after every mutation phase.
+If victory condition met → WIN.
+end note
+
+state WIN
+WIN --> [*]
+
+state PAT
+PAT --> [*]
+
+@enduml

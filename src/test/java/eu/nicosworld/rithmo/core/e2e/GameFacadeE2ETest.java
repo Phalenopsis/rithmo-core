@@ -15,6 +15,7 @@ import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.PreDefinedGame;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
+import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GameFacadeE2ETest {
 
@@ -149,6 +151,48 @@ class GameFacadeE2ETest {
                 .haveAllDecisionsWithActor(actor)
                 .havePyramidComposedBy(PlayerColorDTO.BLACK, "BS36")
                 .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
-                .havePyramidValue(PlayerColorDTO.BLACK, 36);
+                .havePyramidValue(PlayerColorDTO.BLACK, 36)
+                .hasNoReintroductionOptions()
+                .reserveDoesNotContain("BT16")
+                .reserveDoesNotContain("BC4")
+                .capturedContains("BT16", "BC4");
+    }
+
+    @Test
+    @DisplayName("Test for capture after reintroduction")
+    void testForCaptureAfterReintroduction() throws VictoryException, PatException {
+        Game initialGame = PreDefinedTestGame.gameTestForCaptureAfterReintroduction();
+        UUID gameId = initialGame.getId();
+        GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
+        TestDebugger.render(statusAfterStart);
+
+        UUID captureId = FindOptionHelper.findDecisionWithCaptures(statusAfterStart,1);
+        GameStatusDTO statusDTO1 = gameFacade.play(gameId, captureId);
+
+        UUID moveTo23Id = FindOptionHelper.findMoveIdByDestination(statusDTO1, new Position(2,3));
+        GameStatusDTO statusDTO2 = gameFacade.play(gameId, moveTo23Id);
+
+        UUID moveTo22Id = FindOptionHelper.findMoveIdByDestination(statusDTO2, new Position(2,2));
+        GameStatusDTO statusDTO3 = gameFacade.play(gameId, moveTo22Id);
+
+        UUID reintroductionId = FindOptionHelper.findReintroductionIdByDestination(
+                statusDTO3,
+                "BT4",
+                new Position(0, 2)
+        );
+        GameStatusDTO statusDTO4 = gameFacade.play(gameId, reintroductionId);
+
+        StatusDTOAssertion.from(statusDTO4)
+                .isInPostCapturePhase()
+                .hasActivePlayer(PlayerColorDTO.BLACK)
+                .reserveDoesNotContain("BT4")
+                .capturedContains("WT4")
+                .canCaptureInOneDecision("WC4");
+
+        UUID captureAfterReintroductionId = FindOptionHelper.findDecisionWithCaptures(statusDTO4, 1);
+        assertThatThrownBy(() -> gameFacade.play(gameId, captureAfterReintroductionId))
+                .isInstanceOf(PatException.class)
+                .hasMessage("WHITE is pat");
+
     }
 }

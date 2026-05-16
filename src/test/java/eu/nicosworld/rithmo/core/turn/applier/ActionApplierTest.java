@@ -35,8 +35,9 @@ class ActionApplierTest {
     void setupApplier() {
         CaptureApplier captureApplier = new CaptureApplier();
         MoveApplier moveApplier = new MoveApplier();
+        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
 
-        actionApplier = new ActionApplier(captureApplier, moveApplier);
+        actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
     }
 
     @BeforeEach

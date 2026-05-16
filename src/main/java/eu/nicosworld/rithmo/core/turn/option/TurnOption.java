@@ -8,9 +8,5 @@ package eu.nicosworld.rithmo.core.turn.option;
  * converted into a {@link eu.nicosworld.rithmo.core.turn.action.TurnAction}.
  */
 public sealed interface TurnOption
-        permits PreCaptureOption,
-        SkipPreCaptureOption,
-        MoveOption,
-        PostCaptureOption,
-        SkipPostCaptureOption {
+        permits MoveOption, PostCaptureOption, PreCaptureOption, ReintroductionOption, SkipPostCaptureOption, SkipPreCaptureOption {
 }

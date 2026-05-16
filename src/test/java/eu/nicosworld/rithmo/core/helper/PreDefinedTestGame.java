@@ -247,4 +247,19 @@ public class PreDefinedTestGame {
 
         return new Game(options, turnState);
     }
+
+    public static Game gameTestForCaptureAfterReintroduction() {
+        Board board = new BoardBuilder(4, 4)
+                .blackCircle(4).at(2, 1)
+                .whiteTriangle(4).at(3, 2)
+                .whiteCircle(4).at(3,3)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.ENCOUNTER),
+                Map.of(VictoryRuleOption.BODY, 5)
+        );
+        GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+        return new Game(options, turnState);
+    }
 }

@@ -6,6 +6,7 @@ import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
 import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
+import eu.nicosworld.rithmo.core.turn.applier.ReintroductionApplier;
 import eu.nicosworld.rithmo.core.turn.option.MoveOption;
 import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
@@ -13,12 +14,14 @@ import eu.nicosworld.rithmo.core.turn.option.TurnOption;
 import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
+import eu.nicosworld.rithmo.core.turn.resolver.ReintroductionResolver;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MovementEngine;
+import eu.nicosworld.rithmo.engine.reintroduction.ReintroductionEngine;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import eu.nicosworld.rithmo.engine.victory.VictoryRule;
@@ -35,21 +38,29 @@ public class TurnHelper {
     public static TurnProcessor setupProcessor(List<CaptureRule> captureRules, List<VictoryRule> victoryRules) {
         CaptureApplier captureApplier = new CaptureApplier();
         MoveApplier moveApplier = new MoveApplier();
-        ActionApplier actionApplier = new ActionApplier(captureApplier, moveApplier);
+        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
+        ActionApplier actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
 
-        CaptureEngine captureEngine = new CaptureEngine(captureRules);
-        CaptureResolver captureResolver = new CaptureResolver(captureEngine);
-
-        MovementEngine movementEngine = new MovementEngine();
-        MoveResolver moveResolver = new MoveResolver(movementEngine);
-
-        PhaseResolver phaseResolver = new PhaseResolver(captureResolver, moveResolver);
+        PhaseResolver phaseResolver = setupPhaseResolver(captureRules);
 
         VictoryEngine victoryEngine = new VictoryEngine(victoryRules);
 
         return new TurnProcessor(actionApplier,
                 phaseResolver,
                 victoryEngine);
+    }
+
+    private static PhaseResolver setupPhaseResolver(List<CaptureRule> captureRules) {
+        CaptureEngine captureEngine = new CaptureEngine(captureRules);
+        CaptureResolver captureResolver = new CaptureResolver(captureEngine);
+
+        MovementEngine movementEngine = new MovementEngine();
+        MoveResolver moveResolver = new MoveResolver(movementEngine);
+
+        ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
+        ReintroductionResolver reintroductionResolver = new ReintroductionResolver(reintroductionEngine);
+
+        return new PhaseResolver(captureResolver, moveResolver, reintroductionResolver);
     }
 
     public static void showOptions(TurnState turnState) {
