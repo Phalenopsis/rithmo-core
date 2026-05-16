@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **BoardDTO**: Add width and height.
 - **PreDefinedGame**: add a method to generate a game for a 8*4 board.
+- **Reintroduction Mechanic**:
+  - Added support for piece reintroduction from reserve after captures.
+  - Added `ReintroductionResolver` to compute valid reintroduction options.
+  - Added `ReintroductionOption`, `ReintroductionAction`, and `ReintroductionOptionDTO`.
+  - Added `ReintroductionApplier` integration into the turn pipeline.
+  - Added support for post-reintroduction capture resolution.
+  - Added reserve and captured-assets exposure in `GameStatusDTO`.
 
 ### Changed
 - **Engine Integration (v0.5.0)**: Adapted core logic to the Engine 0.5.0 redesign, including:
@@ -23,18 +30,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Pyramid Handling**: Integrated `InvolvedPiece` within the capture flow, enabling the Core to distinguish between whole pyramid captures and component-specific captures.
 - **Dependencies**: Refreshed the Engine dependency to v0.5.0 and updated all related import paths.
 - **Piece Model**: Use DTO color in `PieceDTO` rather than engine `Color`.
+- **Reserve Rules**:
+  - Renamed `hasInReserve` to `hasCapturedEquivalentInReserve`.
+  - Added `doesNotHaveCapturedEquivalentInReserve`.
+  - Refined reserve matching rules to compare captured piece type, value, and owner equivalence.
 
 ### Refactor
 - **CaptureResolver**: Centralized subset resolution logic and added landing validation for capture options.
 - **Core Capture Flow**: Simplified pre/post capture resolution by extracting shared subset computation.
 - **Code Cleanup**: Removed unused imports and translated remaining French comments to English.
+- **Turn Options**: Standardized option/action conversion flow using explicit factories where intent mapping is involved.
 
 ### Test
 - **PreDefinedGameTest**: add some predefined test cases.
 - **FindOptionHelper**: add a helper to easily find options in tests.
 - **Existing E2E Tests**: refactor to use FindOptionHelper.
 - **Capture Component Tests**: add tests for component-level pyramid captures.
-- **Existing Tests**: adapt with reserve-piece ownership normalization
+- **Existing Tests**: adapt with reserve-piece ownership normalization.
+- **Reintroduction Tests**:
+  - Added E2E scenarios for reserve reintroduction flow.
+  - Added assertions for reserve consistency and reintroduction availability.
+  - Added tests for capture-after-reintroduction sequences.
+  - Added helpers to locate reintroduction decisions in integration tests.
 
 ### Fixed
 - **CaptureApplier**: fixed a bug where pyramids were incorrectly reset when partially captured.
@@ -49,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CaptureResolver**: add Javadoc.
 - **PreCaptureOption**: add Javadoc.
 - **CaptureApplier**: add Javadoc.
-
+- **Documentation**: added v0.2.0 TurnProcessor UML and UI Integration Guide.
 
 ## [0.1.0] - 2026-05-01
 
