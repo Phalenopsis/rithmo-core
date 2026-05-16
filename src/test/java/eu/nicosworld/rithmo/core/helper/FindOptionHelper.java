@@ -76,6 +76,36 @@ public class FindOptionHelper {
 
     public static UUID findPreCaptureDecisionId(
             GameStatusDTO statusDTO,
+            PieceDTO actor,
+            Position expectedLanding,
+            Position... targetPositions
+    ) {
+
+        Set<PreCaptureOptionDTO> matchingOptions = findPreCaptureOptions(statusDTO)
+                .stream()
+                .filter(option -> {
+                    Position targetPos = option.target().position();
+
+                    for (Position expected : targetPositions) {
+                        if (expected.equals(targetPos)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
+                .collect(java.util.stream.Collectors.toSet());
+
+        return findPreCaptureDecisionId(
+                statusDTO,
+                actor,
+                matchingOptions,
+                expectedLanding
+        );
+    }
+
+    public static UUID findPreCaptureDecisionId(
+            GameStatusDTO statusDTO,
             PieceDTO pieceDTO,
             Set<PreCaptureOptionDTO> optionList,
             Position expectedLanding
@@ -157,6 +187,37 @@ public class FindOptionHelper {
                 .filter(p -> p.components().stream().anyMatch(c-> c.id().equals(actorId)))
                 .findFirst()
                 .orElseThrow();
+    }
 
+    public static UUID findReintroductionIdByDestination(
+            GameStatusDTO statusDTO,
+            String pieceRepresentation,
+            Position expectedLanding
+    ) {
+        return statusDTO.possibleDecisions()
+                .stream()
+                .filter(decision -> !decision.skip())
+                .filter(decision -> expectedLanding.equals(decision.landing()))
+                .filter(decision -> {
+
+                    String actorId = decision.actorId();
+
+                    return statusDTO.possibleOptions().keySet().stream()
+                            .filter(piece -> piece.id().equals(actorId))
+                            .anyMatch(piece ->
+                                    TestDebugger.getStringRepresentation(piece)
+                                            .equals(pieceRepresentation)
+                            );
+                })
+                .map(DecisionDTO::id)
+                .findFirst()
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "No reintroduction decision found for "
+                                        + pieceRepresentation
+                                        + " at "
+                                        + expectedLanding
+                        )
+                );
     }
 }

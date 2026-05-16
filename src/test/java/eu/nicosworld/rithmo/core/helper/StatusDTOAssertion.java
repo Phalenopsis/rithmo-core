@@ -4,9 +4,9 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
-import eu.nicosworld.rithmo.engine.model.PlayerColor;
 import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.*;
@@ -25,8 +25,19 @@ public class StatusDTOAssertion {
         return new StatusDTOAssertion(statusDTO);
     }
 
+    public StatusDTOAssertion hasActivePlayer(PlayerColorDTO colorDTO) {
+        assertThat(statusDTO.currentPlayer())
+                .isEqualTo(colorDTO);
+        return this;
+    }
+
     public StatusDTOAssertion isInPreCapturePhase() {
         assertThat(statusDTO.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
+        return this;
+    }
+
+    public StatusDTOAssertion isInPostCapturePhase() {
+        assertThat(statusDTO.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
         return this;
     }
 
@@ -231,4 +242,147 @@ public class StatusDTOAssertion {
 
         return this;
     }
+
+    public StatusDTOAssertion hasReintroductionOptionsForActivePlayer() {
+        PlayerColorDTO color = statusDTO.currentPlayer();
+        boolean exists = statusDTO.possibleOptions().entrySet().stream()
+                .flatMap(e -> e.getValue().stream())
+                .anyMatch(option ->
+                        option instanceof ReintroductionOptionDTO ro &&
+                                ro.pieceDTO().owner().equals(color)
+                );
+
+        if (!exists) {
+            throw new AssertionError("Aucune option de réintroduction pour " + color);
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion allReintroductionOptionsComeFromReserve() {
+
+        Map<String, Set<String>> reserveByPlayer = statusDTO.assets().entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey().name(),
+                        e -> e.getValue().reserve().stream()
+                                .map(PieceDTO::id)
+                                .collect(Collectors.toSet())
+                ));
+
+        statusDTO.possibleOptions().entrySet().stream()
+                .flatMap(e -> e.getValue().stream())
+                .filter(ReintroductionOptionDTO.class::isInstance)
+                .map(ReintroductionOptionDTO.class::cast)
+                .forEach(option -> {
+
+                    String owner = option.pieceDTO().owner().name();
+                    String pieceId = option.pieceDTO().id();
+
+                    Set<String> reserveIds = reserveByPlayer.get(owner);
+
+                    if (reserveIds == null || !reserveIds.contains(pieceId)) {
+                        throw new AssertionError(
+                                "Réintroduction invalide : pièce non présente en réserve = "
+                                        + option.pieceDTO()
+                        );
+                    }
+                });
+
+        return this;
+    }
+
+    public StatusDTOAssertion hasNoReintroductionOptions() {
+
+        boolean exists = statusDTO.possibleOptions().entrySet().stream()
+                .flatMap(e -> e.getValue().stream())
+                .anyMatch(ReintroductionOptionDTO.class::isInstance);
+
+        if (exists) {
+            throw new AssertionError("""
+                Réintroduction options présentes alors qu'elles ne devraient pas exister.
+                Vérifie les assets du joueur et la phase MOVE_COMPUTATION.
+                """);
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion hasPiece(
+            String expectedRepresentation,
+            String expectedPosition
+    ) {
+
+        String normalizedPosition = expectedPosition.replace(" ", "");
+
+        boolean found = statusDTO.board().pieces().stream()
+                .anyMatch(piece ->
+                        TestDebugger.getStringRepresentation(piece)
+                                .equals(expectedRepresentation)
+                                &&
+                                Objects.nonNull(piece.position())
+                                &&
+                                piece.position().toString()
+                                        .replace(" ", "")
+                                        .equals(normalizedPosition)
+                );
+
+        if (!found) {
+            throw new AssertionError(String.format(
+                    "Aucune pièce '%s' trouvée à la position %s",
+                    expectedRepresentation,
+                    expectedPosition
+            ));
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion reserveDoesNotContain(
+            String pieceRepresentation
+    ) {
+
+        boolean found = statusDTO.assets().values().stream()
+                .flatMap(assets -> assets.reserve().stream())
+                .anyMatch(piece ->
+                        TestDebugger.getStringRepresentation(piece)
+                                .equals(pieceRepresentation)
+                );
+
+        if (found) {
+            throw new AssertionError(String.format(
+                    "La réserve contient encore la pièce : %s",
+                    pieceRepresentation
+            ));
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion capturedContains(String... expectedRepresentations) {
+
+        List<String> actualCaptured = statusDTO.assets().values().stream()
+                .flatMap(assets -> assets.captured().stream())
+                .map(TestDebugger::getStringRepresentation)
+                .toList();
+
+        List<String> missing = Arrays.stream(expectedRepresentations)
+                .filter(expected -> !actualCaptured.contains(expected))
+                .toList();
+
+        if (!missing.isEmpty()) {
+            throw new AssertionError(String.format(
+                    """
+                    Certaines pièces attendues ne sont pas présentes dans les captures.
+                    
+                    Manquantes : %s
+                    Capturées  : %s
+                    """,
+                    missing,
+                    actualCaptured
+            ));
+        }
+
+        return this;
+    }
+
 }
