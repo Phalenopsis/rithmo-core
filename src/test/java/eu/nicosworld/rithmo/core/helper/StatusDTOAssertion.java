@@ -46,7 +46,7 @@ public class StatusDTOAssertion {
         return this;
     }
 
-    public StatusDTOAssertion dontHaveSkipOption() {
+    public StatusDTOAssertion dontHaveSkipDecision() {
         List<DecisionDTO> dtoList = statusDTO.possibleDecisions()
                 .stream()
                 .filter(DecisionDTO::skip)
@@ -56,11 +56,39 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    public StatusDTOAssertion haveSkipDecision() {
+        List<DecisionDTO> dtoList = statusDTO.possibleDecisions()
+                .stream()
+                .filter(DecisionDTO::skip)
+                .toList();
+
+        assertThat(dtoList).isNotEmpty();
+        return this;
+    }
+
     public StatusDTOAssertion haveAllDecisionsWithActor(PieceDTO actor) {
         assertThat(statusDTO.possibleDecisions()
                 .stream()
                 .allMatch(d->d.actorId().equals(actor.id()))
         );
+
+        return this;
+    }
+
+    /**
+     * Count only captureDecision. No Skip, move or reintroduction decision
+     * @param n expected count decision
+     * @return this
+     */
+    public StatusDTOAssertion hasCaptureDecisionCount(int n) {
+        Set<DecisionDTO> captureDecisions = statusDTO.possibleDecisions()
+                        .stream()
+                        .filter(d -> !d.skip())
+                        .filter(d -> !d.capturedIdList().isEmpty())
+                .collect(Collectors.toSet());
+
+        assertThat(captureDecisions.size())
+                .isEqualTo(n);
 
         return this;
     }
