@@ -284,6 +284,20 @@ public class FindDecisionHelper {
                 );
     }
 
+    public static UUID findCaptureDecisionIdWithLanding(
+            GameStatusDTO statusDTO,
+            String actor,
+            String landing,
+            String ...targets
+    ) {
+        return findCaptureDecisionId(
+                statusDTO,
+                actor,
+                parsePosition(landing),
+                targets
+        );
+    }
+
     public static UUID findCaptureDecisionId(
             GameStatusDTO statusDTO,
             String actor,
