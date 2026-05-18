@@ -194,103 +194,225 @@ public class GameFacade {
     /**
      * Orchestrates the transformation of internal options into DTOs and persistent actions.
      */
-    private UiInformation generateActionsDecisionsAndDTOs(Game game, List<TurnOption> options) {
-        Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece = new HashMap<>();
-        Set<DecisionDTO> possibleDecisions = new HashSet<>();
-        for(TurnOption option: options) {
+    private UiInformation generateActionsDecisionsAndDTOs(
+            Game game,
+            List<TurnOption> options
+    ) {
+
+        Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece =
+                new HashMap<>();
+
+        Set<DecisionDTO> possibleDecisions =
+                new HashSet<>();
+
+        /**
+         * Permet de dédupliquer les décisions UI.
+         *
+         * Plusieurs actions moteur peuvent pointer
+         * vers une même décision utilisateur.
+         */
+        Map<DecisionKey, UUID> existingDecisionIds =
+                new HashMap<>();
+
+        for (TurnOption option : options) {
+
             if(option instanceof MoveOption moveOption) {
-                MoveAction action = (MoveAction) mapToTurnAction(moveOption);
-                Position actorPosition = moveOption.move().from();
-                Piece actor = game.getCurrentState().state().board().getPieceAt(actorPosition);
 
-                PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
+                MoveAction action =
+                        (MoveAction) mapToTurnAction(moveOption);
 
-                UUID actionId = UUID.randomUUID();
+                Position actorPosition =
+                        moveOption.move().from();
 
-                DecisionDTO decisionDTO = DecisionDTO.from(actionId, game.getCurrentState().state().board(), action);
+                Piece actor =
+                        game.getCurrentState()
+                                .state()
+                                .board()
+                                .getPieceAt(actorPosition);
 
-                possibleDecisions.add(decisionDTO);
-                savePending(game.getId(), actionId, action);
- 
-                MoveOptionDTO playerOptionDTO = MoveOptionDTO.from(moveOption);
-                addOption(playerOptionPerPiece, actorDTO, playerOptionDTO);
+                PieceDTO actorDTO =
+                        PieceDTO.from(actor, actorPosition);
+
+                DecisionDTO rawDecision =
+                        DecisionDTO.from(
+                                UUID.randomUUID(),
+                                game.getCurrentState().state().board(),
+                                action
+                        );
+
+                registerDecision(
+                        possibleDecisions,
+                        existingDecisionIds,
+                        game.getId(),
+                        action,
+                        rawDecision
+                );
+
+                MoveOptionDTO playerOptionDTO =
+                        MoveOptionDTO.from(moveOption);
+
+                addOption(
+                        playerOptionPerPiece,
+                        actorDTO,
+                        playerOptionDTO
+                );
             }
+
             else if(option instanceof PostCaptureOption postCaptureOption) {
-                PostCaptureAction action = (PostCaptureAction) mapToTurnAction(postCaptureOption);
-                Position actorPosition = postCaptureOption.captures().getFirst().actor().position();
-                Piece actor = postCaptureOption.captures().getFirst().actor().specificComponent();
 
-                PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
-                UUID actionId = UUID.randomUUID();
-                DecisionDTO decisionDTO = DecisionDTO.from(actionId, action);
+                PostCaptureAction action =
+                        (PostCaptureAction) mapToTurnAction(postCaptureOption);
 
+                Position actorPosition =
+                        postCaptureOption.captures()
+                                .getFirst()
+                                .actor()
+                                .position();
 
-                possibleDecisions.add(decisionDTO);
-                savePending(game.getId(), actionId, action);
+                Piece actor =
+                        postCaptureOption.captures()
+                                .getFirst()
+                                .actor()
+                                .specificComponent();
 
-                List<CaptureOptionDTO> playerOptionDTOs = CaptureOptionDTO.from(postCaptureOption);
-                addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
+                PieceDTO actorDTO =
+                        PieceDTO.from(actor, actorPosition);
+
+                DecisionDTO rawDecision =
+                        DecisionDTO.from(
+                                UUID.randomUUID(),
+                                action
+                        );
+
+                registerDecision(
+                        possibleDecisions,
+                        existingDecisionIds,
+                        game.getId(),
+                        action,
+                        rawDecision
+                );
+
+                List<CaptureOptionDTO> playerOptionDTOs =
+                        CaptureOptionDTO.from(postCaptureOption);
+
+                addOption(
+                        playerOptionPerPiece,
+                        actorDTO,
+                        playerOptionDTOs
+                );
             }
+
             else if(option instanceof PreCaptureOption preCaptureOption) {
 
                 List<PreCaptureAction> actions =
                         PreCaptureAction.from(preCaptureOption);
 
+                Position actorPosition =
+                        preCaptureOption.captures()
+                                .getFirst()
+                                .actor()
+                                .position();
+
+                Piece actor =
+                        preCaptureOption.captures()
+                                .getFirst()
+                                .actor()
+                                .specificComponent();
+
+                PieceDTO actorDTO =
+                        PieceDTO.from(actor, actorPosition);
+
+                List<PreCaptureOptionDTO> playerOptionDTOs =
+                        PreCaptureOptionDTO.from(preCaptureOption);
+
+                addOption(
+                        playerOptionPerPiece,
+                        actorDTO,
+                        playerOptionDTOs
+                );
+
                 for (PreCaptureAction action : actions) {
 
-                    Position actorPosition =
-                            preCaptureOption.captures().getFirst().actor().position();
+                    DecisionDTO rawDecision =
+                            DecisionDTO.from(
+                                    UUID.randomUUID(),
+                                    action
+                            );
 
-                    Piece actor =
-                            preCaptureOption.captures().getFirst().actor().specificComponent();
-
-                    PieceDTO actorDTO = PieceDTO.from(actor, actorPosition);
-
-                    UUID actionId = UUID.randomUUID();
-                    DecisionDTO decisionDTO = DecisionDTO.from(actionId, action);
-
-                    possibleDecisions.add(decisionDTO);
-                    savePending(game.getId(), actionId, action);
-
-                    List<PreCaptureOptionDTO> playerOptionDTOs =
-                            PreCaptureOptionDTO.from(preCaptureOption);
-
-                    addOption(playerOptionPerPiece, actorDTO, playerOptionDTOs);
+                    registerDecision(
+                            possibleDecisions,
+                            existingDecisionIds,
+                            game.getId(),
+                            action,
+                            rawDecision
+                    );
                 }
             }
-            else if (option instanceof ReintroductionOption reintroductionOption) {
-                ReintroductionAction action = (ReintroductionAction) mapToTurnAction(option);
-                UUID actionId = UUID.randomUUID();
 
-                ReintroductionOptionDTO playerOptionDTO = ReintroductionOptionDTO.from(reintroductionOption);
-                PieceDTO actorDTO = playerOptionDTO.pieceDTO();
+            else if(option instanceof ReintroductionOption reintroductionOption) {
 
-                DecisionDTO decisionDTO = DecisionDTO.from(actionId, action);
+                ReintroductionAction action =
+                        (ReintroductionAction) mapToTurnAction(option);
 
-                possibleDecisions.add(decisionDTO);
-                savePending(game.getId(), actionId, action);
+                ReintroductionOptionDTO playerOptionDTO =
+                        ReintroductionOptionDTO.from(reintroductionOption);
 
-                addOption(playerOptionPerPiece, actorDTO, playerOptionDTO);
+                PieceDTO actorDTO =
+                        playerOptionDTO.pieceDTO();
 
-            } else {
-                TurnAction action = mapToTurnAction(option);
-                UUID actionId = UUID.randomUUID();
+                DecisionDTO rawDecision =
+                        DecisionDTO.from(
+                                UUID.randomUUID(),
+                                action
+                        );
 
-                DecisionDTO decisionDTO = DecisionDTO.skipFrom(actionId);
+                registerDecision(
+                        possibleDecisions,
+                        existingDecisionIds,
+                        game.getId(),
+                        action,
+                        rawDecision
+                );
 
+                addOption(
+                        playerOptionPerPiece,
+                        actorDTO,
+                        playerOptionDTO
+                );
+            }
 
-                possibleDecisions.add(decisionDTO);
-                savePending(game.getId(), actionId, action);
+            else {
 
-                SkipOptionDTO playerOptionDTO = new SkipOptionDTO();
+                TurnAction action =
+                        mapToTurnAction(option);
 
-                addOption(playerOptionPerPiece, PieceDTO.GLOBAL_OPTION, playerOptionDTO);
+                DecisionDTO rawDecision =
+                        DecisionDTO.skipFrom(UUID.randomUUID());
+
+                registerDecision(
+                        possibleDecisions,
+                        existingDecisionIds,
+                        game.getId(),
+                        action,
+                        rawDecision
+                );
+
+                SkipOptionDTO playerOptionDTO =
+                        new SkipOptionDTO();
+
+                addOption(
+                        playerOptionPerPiece,
+                        PieceDTO.GLOBAL_OPTION,
+                        playerOptionDTO
+                );
             }
         }
 
-        return new UiInformation(playerOptionPerPiece, possibleDecisions);
+        return new UiInformation(
+                playerOptionPerPiece,
+                possibleDecisions
+        );
     }
-
     private void addOption(Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
                            PieceDTO pieceDTO,
                            PlayerOptionDTO playerOptionDTO) {
@@ -326,5 +448,72 @@ public class GameFacade {
      */
     private void savePending(UUID gameId, UUID id, TurnAction action) {
         optionRepository.save(new PendingAction(id, gameId, action));
+    }
+
+    private void registerDecision(
+            Set<DecisionDTO> possibleDecisions,
+            Map<DecisionKey, UUID> existingDecisionIds,
+            UUID gameId,
+            TurnAction action,
+            DecisionDTO rawDecision
+    ) {
+
+        DecisionKey key =
+                buildDecisionKey(rawDecision);
+
+        UUID decisionId =
+                existingDecisionIds.computeIfAbsent(
+                        key,
+                        k -> UUID.randomUUID()
+                );
+
+        boolean alreadyExists =
+                possibleDecisions.stream()
+                        .anyMatch(d ->
+                                d.id().equals(decisionId)
+                        );
+
+        if(!alreadyExists) {
+
+            DecisionDTO finalDecision;
+
+            if(rawDecision.skip()) {
+
+                finalDecision =
+                        DecisionDTO.skipFrom(decisionId);
+
+            } else {
+
+                finalDecision = new DecisionDTO(
+                        decisionId,
+                        rawDecision.actorId(),
+                        rawDecision.capturedIdList(),
+                        rawDecision.landing(),
+                        false
+                );
+            }
+
+            possibleDecisions.add(finalDecision);
+        }
+
+        /**
+         * IMPORTANT :
+         * plusieurs actions moteur
+         * peuvent partager
+         * le même decisionId
+         */
+        savePending(gameId, decisionId, action);
+    }
+
+    private DecisionKey buildDecisionKey(
+            DecisionDTO dto
+    ) {
+
+        return new DecisionKey(
+                dto.actorId(),
+                dto.capturedIdList(),
+                dto.landing(),
+                dto.skip()
+        );
     }
 }
