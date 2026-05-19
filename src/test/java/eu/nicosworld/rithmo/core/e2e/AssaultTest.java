@@ -69,7 +69,7 @@ class AssaultTest {
         StatusDTOAssertion.from(statusAfterMove)
                 .isInPostCapturePhase()
                 .haveSkipDecision()
-                .canCaptureInOneDecision("WC4");
+                .canCaptureInOneDecision("WC4(3,3)");
 
         UUID captureId = FindDecisionHelper.findCaptureDecisionId(
                 statusAfterMove,

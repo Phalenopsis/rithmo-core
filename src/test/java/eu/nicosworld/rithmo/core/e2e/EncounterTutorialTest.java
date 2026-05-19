@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.e2e;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -91,10 +90,6 @@ class EncounterTutorialTest {
 
         Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
         GameStatusDTO status = gameFacade.startGame(game);
-
-        TestDebugger.print(status.possibleOptions());
-        TestDebugger.render(status);
-        TestDebugger.print(status.possibleDecisions());
 
         StatusDTOAssertion.from(status)
                 .isInPreCapturePhase()

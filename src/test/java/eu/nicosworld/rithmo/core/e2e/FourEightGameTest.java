@@ -9,7 +9,6 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,10 +45,6 @@ public class FourEightGameTest {
 
         UUID secondTurnMoveId = FindDecisionHelper.findMoveDecisionId(statusDTO4, "WP174(7,0)", "(4,0)");
         GameStatusDTO statusDTO5 = gameFacade.play(gameId, secondTurnMoveId);
-
-        TestDebugger.render(statusDTO5);
-        TestDebugger.print(statusDTO5.possibleOptions());
-        TestDebugger.print(statusDTO5.possibleDecisions());
 
         StatusDTOAssertion.from(statusDTO5)
                 .hasActivePlayer(PlayerColorDTO.WHITE)

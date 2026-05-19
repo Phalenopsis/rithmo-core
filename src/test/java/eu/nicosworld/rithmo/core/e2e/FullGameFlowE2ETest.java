@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.e2e;
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -41,7 +40,6 @@ class FullGameFlowE2ETest {
 
         // 1. BLACK déplace son cercle (0,0) -> (1,1)
         GameStatusDTO status1 = gameFacade.startGame(game);
-        TestDebugger.render(status1);
         StatusDTOAssertion.from(status1)
                  .hasActivePlayer(PlayerColorDTO.BLACK)
                 .isInMovePhase()
@@ -69,7 +67,7 @@ class FullGameFlowE2ETest {
         StatusDTOAssertion.from(statusAfterWhiteMove)
                 .hasActivePlayer(PlayerColorDTO.WHITE)
                 .haveSkipDecision()
-                .canCaptureInOneDecision("BC4");
+                .canCaptureInOneDecision("BC4(1,1)");
 
         UUID skipPostId = FindDecisionHelper.findSkipDecision(statusAfterWhiteMove);
 
@@ -78,7 +76,7 @@ class FullGameFlowE2ETest {
         StatusDTOAssertion.from(statusAfterWhiteSkip)
                 .hasActivePlayer(PlayerColorDTO.BLACK)
                 .isInPreCapturePhase()
-                .canCaptureInOneDecision("WC4")
+                .canCaptureInOneDecision("WC4(2,2)")
                 .haveSkipDecision()
                 .hasNDecisionsFor("BC4(1,1)", 1);
 
@@ -151,7 +149,6 @@ class FullGameFlowE2ETest {
         StatusDTOAssertion.from(status5)
                 .hasActivePlayer(PlayerColorDTO.WHITE)
                 .isInMovePhase();
-        TestDebugger.render(status5);
 
         UUID moveTo11Id = FindDecisionHelper.findMoveDecisionId(
                 status5, new Position(1, 1));

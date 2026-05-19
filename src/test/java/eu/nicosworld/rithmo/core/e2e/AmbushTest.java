@@ -3,11 +3,9 @@ package eu.nicosworld.rithmo.core.e2e;
 import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AmbushTest {
     private GameFacade gameFacade;
@@ -39,7 +35,9 @@ public class AmbushTest {
 
         StatusDTOAssertion.from(nextStatus)
                 .isInPostCapturePhase()
-                .canCaptureInOneDecision("WT12");
+                .canCaptureInOneDecision("WT12(2,1)")
+                .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
+                .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
     }
 
     @Test
@@ -50,7 +48,8 @@ public class AmbushTest {
 
         StatusDTOAssertion.from(status)
                 .isInPreCapturePhase()
-                .canCaptureInOneDecision("WT12");
+                .canCaptureInOneDecision("WT12(2,1)")
+                .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
     }
 
     @Test
@@ -58,10 +57,6 @@ public class AmbushTest {
     void shouldProposeAPreCaptureOption_With2fullPyramid() throws Exception {
         Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
         GameStatusDTO status = gameFacade.startGame(game);
-
-        TestDebugger.render(status);
-        TestDebugger.print(status.possibleOptions());
-        TestDebugger.print(status.possibleDecisions());
 
         StatusDTOAssertion.from(status)
                         .isInPreCapturePhase()
