@@ -8,11 +8,19 @@ import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class FindDecisionHelper {
 
-    public static UUID findAnyNonSkipDecision(GameStatusDTO statusDTO) {
+    public static UUID findAnyNonSkipDecision(
+            GameStatusDTO statusDTO
+    ) {
+
         return statusDTO.possibleDecisions()
                 .stream()
                 .filter(decision -> !decision.skip())
@@ -21,7 +29,10 @@ public class FindDecisionHelper {
                 .orElse(null);
     }
 
-    public static UUID findSkipDecision(GameStatusDTO statusDTO) {
+    public static UUID findSkipDecision(
+            GameStatusDTO statusDTO
+    ) {
+
         return statusDTO.possibleDecisions()
                 .stream()
                 .filter(DecisionDTO::skip)
@@ -34,6 +45,7 @@ public class FindDecisionHelper {
             GameStatusDTO statusDTO,
             int nbCaptures
     ) {
+
         return statusDTO.possibleDecisions()
                 .stream()
                 .filter(decision ->
@@ -48,20 +60,13 @@ public class FindDecisionHelper {
     /**
      * Find a move decision by actor representation and landing position.
      *
-     * <p>
      * Examples:
      * <pre>
      * findMoveDecisionId(status, "BP91(0,0)", "(2,0)");
      * findMoveDecisionId(status, "WC4(3,1)", "(3,2)");
      * </pre>
      *
-     * <p>
      * Only decisions without captures are considered.
-     *
-     * @param statusDTO current game status
-     * @param actor actor representation
-     * @param landingString landing position formatted like "(x,y)"
-     * @return matching decision UUID
      */
     public static UUID findMoveDecisionId(
             GameStatusDTO statusDTO,
@@ -70,7 +75,7 @@ public class FindDecisionHelper {
     ) {
 
         String actorId =
-                findPieceOrComponentIdByRepresentation(
+                PieceRepresentationHelper.findId(
                         statusDTO,
                         actor
                 );
@@ -81,21 +86,17 @@ public class FindDecisionHelper {
         return statusDTO.possibleDecisions()
                 .stream()
 
-                // not skip
                 .filter(decision -> !decision.skip())
 
-                // same actor
                 .filter(decision ->
                         actorId.equals(decision.actorId())
                 )
 
-                // no capture
                 .filter(decision ->
                         decision.capturedIdList() == null
                                 || decision.capturedIdList().isEmpty()
                 )
 
-                // same landing
                 .filter(decision ->
                         Objects.equals(
                                 decision.landing(),
@@ -151,6 +152,7 @@ public class FindDecisionHelper {
             GameStatusDTO status,
             Position targetPosition
     ) {
+
         return status.possibleDecisions()
                 .stream()
                 .filter(decision ->
@@ -166,12 +168,15 @@ public class FindDecisionHelper {
             Position actorPosition,
             Position targetPosition
     ) {
-        PieceDTO actor = find(status.board(), actorPosition);
+
+        PieceDTO actor =
+                find(status.board(), actorPosition);
 
         return status.possibleDecisions()
                 .stream()
-                .filter(decisionDTO ->
-                        decisionDTO.actorId().equals(actor.id()))
+                .filter(decision ->
+                        decision.actorId().equals(actor.id())
+                )
                 .filter(decision ->
                         targetPosition.equals(decision.landing())
                 )
@@ -183,6 +188,7 @@ public class FindDecisionHelper {
     private static List<PreCaptureOptionDTO> findPreCaptureOptions(
             GameStatusDTO statusDTO
     ) {
+
         return statusDTO.possibleOptions()
                 .values()
                 .stream()
@@ -199,20 +205,24 @@ public class FindDecisionHelper {
             Position... targetPositions
     ) {
 
-        Set<PreCaptureOptionDTO> matchingOptions = findPreCaptureOptions(statusDTO)
-                .stream()
-                .filter(option -> {
-                    Position targetPos = option.target().position();
+        Set<PreCaptureOptionDTO> matchingOptions =
+                findPreCaptureOptions(statusDTO)
+                        .stream()
+                        .filter(option -> {
 
-                    for (Position expected : targetPositions) {
-                        if (expected.equals(targetPos)) {
-                            return true;
-                        }
-                    }
+                            Position targetPos =
+                                    option.target().position();
 
-                    return false;
-                })
-                .collect(java.util.stream.Collectors.toSet());
+                            for (Position expected : targetPositions) {
+
+                                if (expected.equals(targetPos)) {
+                                    return true;
+                                }
+                            }
+
+                            return false;
+                        })
+                        .collect(Collectors.toSet());
 
         return findPreCaptureDecisionId(
                 statusDTO,
@@ -223,43 +233,35 @@ public class FindDecisionHelper {
     }
 
     /**
-     * actor and targets are String formatting like :
+     * Examples:
      * <ul>
-     *     <li>Color Shape Value</li>
-     *     <li>Position</li>
+     *     <li>BC4(0,0)</li>
+     *     <li>WC5(2,1)</li>
+     *     <li>BP91(4,4)</li>
      * </ul>
-     * For example :
-     * <ul>
-     *     <li>a Black Circle with a value of 4, in Position (0,0) should be formatted as "BC4(0,0)"</li>
-     *     <li>a component should have same format than a single piece</li>
-     *     <li>BP91(4,4) represent a full pyramid as a target</li>
-     *     <li>BC16(4,4) could represent a component of the previous pyramid or a single piece </li>
-     * </ul>
-     *
-     *
-     * @param statusDTO current statusDTO
-     * @param actor String representation of actor who will do capture
-     * @param targets String representation of pieces or components who will be captured
-     * @return Decision UUID
      */
     public static UUID findCaptureDecisionId(
             GameStatusDTO statusDTO,
             String actor,
             Position landing,
-            String ...targets
+            String... targets
     ) {
 
-        String actorDTOId = findPieceOrComponentIdByRepresentation(statusDTO, actor);
+        String actorDTOId =
+                PieceRepresentationHelper.findId(
+                        statusDTO,
+                        actor
+                );
 
         Set<String> expectedCapturedIds =
                 java.util.Arrays.stream(targets)
                         .map(target ->
-                                findPieceOrComponentIdByRepresentation(
+                                PieceRepresentationHelper.findId(
                                         statusDTO,
                                         target
                                 )
                         )
-                        .collect(java.util.stream.Collectors.toSet());
+                        .collect(Collectors.toSet());
 
         return statusDTO.possibleDecisions()
                 .stream()
@@ -269,8 +271,12 @@ public class FindDecisionHelper {
                 )
                 .filter(decision ->
                         decision.capturedIdList() != null
-                                && decision.capturedIdList().equals(expectedCapturedIds)
-                                && Objects.equals(decision.landing(), landing)
+                                && decision.capturedIdList()
+                                .equals(expectedCapturedIds)
+                                && Objects.equals(
+                                decision.landing(),
+                                landing
+                        )
                 )
                 .map(DecisionDTO::id)
                 .findFirst()
@@ -288,8 +294,9 @@ public class FindDecisionHelper {
             GameStatusDTO statusDTO,
             String actor,
             String landing,
-            String ...targets
+            String... targets
     ) {
+
         return findCaptureDecisionId(
                 statusDTO,
                 actor,
@@ -301,51 +308,15 @@ public class FindDecisionHelper {
     public static UUID findCaptureDecisionId(
             GameStatusDTO statusDTO,
             String actor,
-            String ...targets
+            String... targets
     ) {
+
         return findCaptureDecisionId(
                 statusDTO,
                 actor,
                 null,
                 targets
-    );
-    }
-
-    private static String findPieceOrComponentIdByRepresentation(
-            GameStatusDTO statusDTO,
-            String representation
-    ) {
-
-        for (PieceDTO piece : statusDTO.board().pieces()) {
-
-            if (PieceRepresentationHelper.toRepresentation(piece)
-                    .equals(representation)) {
-                return piece.id();
-            }
-
-            if (piece.shape().equals(PieceShape.PYRAMID)) {
-                for (PieceDTO component : piece.components()) {
-
-                    if (PieceRepresentationHelper.toRepresentation(component)
-                            .equals(representation)) {
-                        return component.id();
-                    }
-                }
-            }
-        }
-
-        throw new RuntimeException(
-                "No piece or component found for representation: "
-                        + representation
         );
-    }
-
-    private static boolean matchesRepresentation(
-            PieceDTO piece,
-            String representation
-    ) {
-        return PieceRepresentationHelper.toRepresentation(piece)
-                .equals(representation);
     }
 
     public static UUID findPreCaptureDecisionId(
@@ -355,20 +326,27 @@ public class FindDecisionHelper {
             Position expectedLanding
     ) {
 
-        String actorId = pieceDTO.id();
+        String actorId =
+                pieceDTO.id();
 
-        Set<String> capturedIds = optionList.stream()
-                .map(option -> option.target().id())
-                .collect(java.util.stream.Collectors.toSet());
+        Set<String> capturedIds =
+                optionList.stream()
+                        .map(option -> option.target().id())
+                        .collect(Collectors.toSet());
 
         return statusDTO.possibleDecisions()
                 .stream()
                 .filter(decision -> !decision.skip())
-                .filter(decision -> actorId.equals(decision.actorId()))
-                .filter(decision -> expectedLanding.equals(decision.landing()))
+                .filter(decision ->
+                        actorId.equals(decision.actorId())
+                )
+                .filter(decision ->
+                        expectedLanding.equals(decision.landing())
+                )
                 .filter(decision ->
                         decision.capturedIdList() != null
-                                && decision.capturedIdList().equals(capturedIds)
+                                && decision.capturedIdList()
+                                .equals(capturedIds)
                 )
                 .map(DecisionDTO::id)
                 .findFirst()
@@ -383,12 +361,15 @@ public class FindDecisionHelper {
             BoardDTO boardDTO,
             Position position
     ) {
+
         return boardDTO.pieces()
                 .stream()
                 .filter(p -> p.position().equals(position))
                 .findFirst()
                 .orElseThrow(() ->
-                        new RuntimeException("No PieceDTO found")
+                        new RuntimeException(
+                                "No PieceDTO found at " + position
+                        )
                 );
     }
 
@@ -397,40 +378,57 @@ public class FindDecisionHelper {
             Position position,
             int value
     ) {
+
         return find(boardDTO, position)
                 .components()
                 .stream()
                 .filter(c -> c.value() == value)
                 .findFirst()
                 .orElseThrow(() ->
-                        new RuntimeException("No Component found")
+                        new RuntimeException(
+                                "No Component found with value " + value
+                        )
                 );
     }
 
     /**
-     *
-     * @param statusDTO GameStatusDTO
-     * @param decision DecisionDTO
-     * @return decision actor if it's a piece or main piece if it's a pyramid
+     * @return decision actor if it's a piece
+     * or pyramid if actor is a pyramid component
      */
-    public static PieceDTO findActor(GameStatusDTO statusDTO, DecisionDTO decision) {
-        String actorId = decision.actorId();
-        try {
-            return statusDTO.board().pieces()
-                    .stream()
-                    .filter(p->p.id().equals(actorId))
-                    .findFirst()
-                    .orElseThrow();
-        } catch (NoSuchElementException e) {
-            //ignored
+    public static PieceDTO findActor(
+            GameStatusDTO statusDTO,
+            DecisionDTO decision
+    ) {
+
+        String actorId =
+                decision.actorId();
+
+        Optional<PieceDTO> directPiece =
+                statusDTO.board().pieces()
+                        .stream()
+                        .filter(p -> p.id().equals(actorId))
+                        .findFirst();
+
+        if (directPiece.isPresent()) {
+            return directPiece.get();
         }
-        // in this case, Actor should be a pyramid
+
         return statusDTO.board().pieces()
                 .stream()
-                .filter(p->p.shape().equals(PieceShape.PYRAMID))
-                .filter(p -> p.components().stream().anyMatch(c-> c.id().equals(actorId)))
+                .filter(p -> p.shape() == PieceShape.PYRAMID)
+                .filter(p ->
+                        p.components()
+                                .stream()
+                                .anyMatch(c ->
+                                        c.id().equals(actorId)
+                                )
+                )
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "No actor found for id : " + actorId
+                        )
+                );
     }
 
     public static UUID findReintroductionIdByDestination(
@@ -438,23 +436,38 @@ public class FindDecisionHelper {
             String pieceRepresentation,
             Position expectedLanding
     ) {
+
         return statusDTO.possibleDecisions()
                 .stream()
+
                 .filter(decision -> !decision.skip())
-                .filter(decision -> expectedLanding.equals(decision.landing()))
+
+                .filter(decision ->
+                        expectedLanding.equals(decision.landing())
+                )
+
                 .filter(decision -> {
 
-                    String actorId = decision.actorId();
+                    String actorId =
+                            decision.actorId();
 
-                    return statusDTO.possibleOptions().keySet().stream()
-                            .filter(piece -> piece.id().equals(actorId))
+                    return statusDTO.possibleOptions()
+                            .keySet()
+                            .stream()
+                            .filter(piece ->
+                                    piece.id().equals(actorId)
+                            )
                             .anyMatch(piece ->
-                                    TestDebugger.getStringRepresentation(piece)
+                                    PieceRepresentationHelper
+                                            .toShortRepresentation(piece)
                                             .equals(pieceRepresentation)
                             );
                 })
+
                 .map(DecisionDTO::id)
+
                 .findFirst()
+
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "No reintroduction decision found for "

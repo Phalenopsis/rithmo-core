@@ -25,7 +25,7 @@ public final class PieceRepresentationHelper {
             }
 
             // pyramid components
-            if (piece.shape().equals(PieceShape.PYRAMID)) {
+            if (piece.shape() == PieceShape.PYRAMID) {
 
                 for (PieceDTO component : piece.components()) {
 
@@ -46,6 +46,7 @@ public final class PieceRepresentationHelper {
             GameStatusDTO statusDTO,
             String representation
     ) {
+
         return findPieceOrComponent(statusDTO, representation)
                 .id();
     }
@@ -55,22 +56,72 @@ public final class PieceRepresentationHelper {
             String representation
     ) {
 
-        if (Objects.isNull(piece)) {
+        if (piece == null) {
             return false;
         }
 
-        if (Objects.isNull(piece.position())) {
-            return false;
+        return toRepresentation(piece)
+                .equals(representation);
+    }
+
+    /**
+     * Representation without position.
+     *
+     * Examples:
+     * WC5
+     * BP91
+     * BT6
+     */
+    public static String toShortRepresentation(PieceDTO piece) {
+
+        if (piece == null) {
+            return "null";
         }
 
-        String expected =
-                TestDebugger.getStringRepresentation(piece)
-                        + formatPosition(piece.position());
+        String owner =
+                piece.owner() == null
+                        ? "?"
+                        : piece.owner()
+                        .name()
+                        .substring(0, 1);
 
-        return expected.equals(representation);
+        String shape =
+                shapeCode(piece);
+
+        String value =
+                String.valueOf(piece.value());
+
+        return owner
+                + shape
+                + value;
+    }
+
+    /**
+     * Representation with position.
+     *
+     * Examples:
+     * WC5(2,0)
+     * BP91(4,4)
+     */
+    public static String toRepresentation(PieceDTO piece) {
+
+        if (piece == null) {
+            return "null";
+        }
+
+        return toShortRepresentation(piece)
+                + (
+                piece.position() == null
+                        ? "(?,?)"
+                        : formatPosition(piece.position())
+        );
     }
 
     public static String formatPosition(Position position) {
+
+        if (position == null) {
+            return "(?,?)";
+        }
 
         return "("
                 + position.getX()
@@ -79,32 +130,11 @@ public final class PieceRepresentationHelper {
                 + ")";
     }
 
-
-    public static String toRepresentation(PieceDTO piece) {
-
-        if (piece == null) {
-            return "null";
-        }
-
-        String owner =
-                piece.owner() == null ? "?" : piece.owner().name().substring(0, 1);
-
-        String shape =
-                shapeCode(piece);
-
-        String value =
-                String.valueOf(piece.value());
-
-        String position =
-                piece.position() == null
-                        ? "(?,?)"
-                        : formatPosition(piece.position());
-
-        return owner + shape + value + position;
-    }
-
     private static String shapeCode(PieceDTO piece) {
-        if (piece.shape() == null) return "?";
+
+        if (piece == null || piece.shape() == null) {
+            return "?";
+        }
 
         return switch (piece.shape()) {
             case CIRCLE -> "C";

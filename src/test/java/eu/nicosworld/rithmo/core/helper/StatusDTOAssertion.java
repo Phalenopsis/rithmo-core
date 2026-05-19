@@ -5,6 +5,7 @@ import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
@@ -15,7 +16,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StatusDTOAssertion {
-    private GameStatusDTO statusDTO;
+
+    private final GameStatusDTO statusDTO;
 
     private StatusDTOAssertion(GameStatusDTO statusDTO) {
         this.statusDTO = statusDTO;
@@ -26,216 +28,266 @@ public class StatusDTOAssertion {
     }
 
     public StatusDTOAssertion hasActivePlayer(PlayerColorDTO colorDTO) {
+
         assertThat(statusDTO.currentPlayer())
                 .isEqualTo(colorDTO);
+
         return this;
     }
 
     public StatusDTOAssertion isInPreCapturePhase() {
-        assertThat(statusDTO.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
+
+        assertThat(statusDTO.phase())
+                .isEqualTo(PhaseDTO.PRE_CAPTURE);
+
         return this;
     }
 
     public StatusDTOAssertion isInPostCapturePhase() {
-        assertThat(statusDTO.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
+
+        assertThat(statusDTO.phase())
+                .isEqualTo(PhaseDTO.POST_CAPTURE);
+
         return this;
     }
 
     public StatusDTOAssertion isInMovePhase() {
-        assertThat(statusDTO.phase()).isEqualTo(PhaseDTO.MOVE);
+
+        assertThat(statusDTO.phase())
+                .isEqualTo(PhaseDTO.MOVE);
+
         return this;
     }
 
     public StatusDTOAssertion dontHaveSkipDecision() {
-        List<DecisionDTO> dtoList = statusDTO.possibleDecisions()
-                .stream()
-                .filter(DecisionDTO::skip)
-                .toList();
 
-        assertThat(dtoList).isEmpty();
+        assertThat(
+                statusDTO.possibleDecisions()
+                        .stream()
+                        .filter(DecisionDTO::skip)
+                        .toList()
+        ).isEmpty();
+
         return this;
     }
 
     public StatusDTOAssertion haveSkipDecision() {
-        List<DecisionDTO> dtoList = statusDTO.possibleDecisions()
-                .stream()
-                .filter(DecisionDTO::skip)
-                .toList();
 
-        assertThat(dtoList).isNotEmpty();
+        assertThat(
+                statusDTO.possibleDecisions()
+                        .stream()
+                        .filter(DecisionDTO::skip)
+                        .toList()
+        ).isNotEmpty();
+
         return this;
     }
 
-    public StatusDTOAssertion haveAllDecisionsWithActor(PieceDTO actor) {
-        assertThat(statusDTO.possibleDecisions()
-                .stream()
-                .allMatch(d->d.actorId().equals(actor.id()))
+    public StatusDTOAssertion haveAllDecisionsWithActor(String actorRepresentation) {
+
+        PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(
+                statusDTO,
+                actorRepresentation
         );
+
+        assertThat(
+                statusDTO.possibleDecisions()
+                        .stream()
+                        .allMatch(d -> actor.id().equals(d.actorId()))
+        ).isTrue();
 
         return this;
     }
 
     /**
-     * Count only captureDecision. No Skip, move or reintroduction decision
-     * @param n expected count decision
-     * @return this
+     * Count only capture decisions.
+     * No skip, move or reintroduction decisions.
      */
     public StatusDTOAssertion hasCaptureDecisionCount(int n) {
-        Set<DecisionDTO> captureDecisions = statusDTO.possibleDecisions()
-                        .stream()
-                        .filter(d -> !d.skip())
-                        .filter(d -> !d.capturedIdList().isEmpty())
-                .collect(Collectors.toSet());
 
-        assertThat(captureDecisions.size())
+        long actual = statusDTO.possibleDecisions()
+                .stream()
+                .filter(d -> !d.skip())
+                .filter(d ->
+                        d.capturedIdList() != null
+                                && !d.capturedIdList().isEmpty()
+                )
+                .count();
+
+        assertThat(actual)
                 .isEqualTo(n);
 
         return this;
     }
 
-    public StatusDTOAssertion canCaptureInOneDecision(String... pieceRepresentations) {
-        // 1. On crée la map de correspondance [ID -> Représentation]
-        Map<String, String> idToRepresentation = new HashMap<>();
+    public StatusDTOAssertion canCaptureInOneDecision(
+            String... pieceRepresentations
+    ) {
 
-        for (PieceDTO piece : statusDTO.board().pieces()) {
-            // Pièce simple
-            idToRepresentation.put(piece.id(), TestDebugger.getStringRepresentation(piece));
+        List<String> expected = Arrays.stream(pieceRepresentations)
+                .sorted()
+                .toList();
 
-            // Composants de pyramide
-            if (piece.shape().equals(PieceShape.PYRAMID)) {
-                for (PieceDTO component : piece.components()) {
-                    String rep = "P" + TestDebugger.getStringRepresentation(component);
-                    idToRepresentation.put(component.id(), rep);
-                }
-            }
-        }
+        boolean found = statusDTO.possibleDecisions()
+                .stream()
+                .filter(d ->
+                        d.capturedIdList() != null
+                                && !d.capturedIdList().isEmpty()
+                )
+                .anyMatch(decision -> {
 
-        // 2. Préparation des attentes (on trie pour comparer des listes/sets)
-        List<String> expectedRepresentations = Arrays.asList(pieceRepresentations);
-        Collections.sort(expectedRepresentations);
+                    List<String> captured = decision.capturedIdList()
+                            .stream()
+                            .map(this::findPieceRepresentationById)
+                            .filter(Objects::nonNull)
+                            .sorted()
+                            .toList();
 
-        // 3. Parcours des décisions pour trouver le "Match"
-        boolean found = statusDTO.possibleDecisions().stream().anyMatch(decision -> {
-            if(Objects.isNull(decision.capturedIdList())) return false;
-            // Pour chaque ID capturé dans cette décision, on récupère sa représentation
-            List<String> currentDecisionReps = decision.capturedIdList().stream()
-                    .map(idToRepresentation::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    return captured.equals(expected);
+                });
 
-            // Si la décision capture exactement le bon nombre de pièces
-            if (currentDecisionReps.size() != expectedRepresentations.size()) {
-                return false;
-            }
-
-            Collections.sort(currentDecisionReps);
-            return currentDecisionReps.equals(expectedRepresentations);
-        });
-
-        // 4. Assertion
         if (!found) {
+
             throw new AssertionError(String.format(
-                    "Aucune décision ne permet de capturer exactement : %s. Décisions possibles : %s",
-                    Arrays.toString(pieceRepresentations),
-                    formatPossibleDecisionsForError(idToRepresentation)
+                    """
+                    Aucune décision ne permet de capturer exactement :
+
+                    %s
+
+                    Décisions possibles :
+                    %s
+                    """,
+                    expected,
+                    formatPossibleDecisionsForError()
             ));
         }
 
         return this;
     }
 
-    // Optionnel : Pour aider au debug en cas d'échec
-    private String formatPossibleDecisionsForError(Map<String, String> idToRep) {
-        return statusDTO.possibleDecisions().stream()
+    private String formatPossibleDecisionsForError() {
+
+        return statusDTO.possibleDecisions()
+                .stream()
                 .filter(d -> !d.skip())
-                .map(d -> d.capturedIdList().stream().map(idToRep::get).collect(Collectors.joining(", ")))
-                .filter(s -> !s.isEmpty())
+                .map(d -> {
+
+                    if (d.capturedIdList() == null) {
+                        return "";
+                    }
+
+                    return d.capturedIdList()
+                            .stream()
+                            .map(this::findPieceRepresentationById)
+                            .collect(Collectors.joining(", "));
+                })
+                .filter(s -> !s.isBlank())
                 .collect(Collectors.joining(" | "));
     }
 
-    public StatusDTOAssertion havePyramidComposedBy(PlayerColorDTO color, String... expectedComponents) {
-        // 1. Trouver la pyramide de la couleur donnée sur le plateau
-        PieceDTO pyramid = statusDTO.board().pieces().stream()
+    public StatusDTOAssertion havePyramidComposedBy(
+            PlayerColorDTO color,
+            String... expectedComponents
+    ) {
+
+        PieceDTO pyramid = statusDTO.board().pieces()
+                .stream()
                 .filter(p -> p.owner().equals(color))
                 .filter(p -> p.shape().equals(PieceShape.PYRAMID))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Aucune pyramide trouvée pour la couleur : " + color));
+                .orElseThrow(() ->
+                        new AssertionError(
+                                "Aucune pyramide trouvée pour : " + color
+                        )
+                );
 
-        // 2. Extraire les représentations des composants actuels de cette pyramide
-        List<String> actualComponentsReps = pyramid.components().stream()
-                .map(TestDebugger::getStringRepresentation)
-                .collect(Collectors.toList());
+        List<String> actual = pyramid.components()
+                .stream()
+                .map(PieceRepresentationHelper::toShortRepresentation)
+                .sorted()
+                .toList();
 
-        // 3. Préparer les listes pour comparaison (tri pour s'affranchir de l'ordre)
-        List<String> expectedList = Arrays.asList(expectedComponents);
+        List<String> expected = Arrays.stream(expectedComponents)
+                .sorted()
+                .toList();
 
-        Collections.sort(actualComponentsReps);
-        Collections.sort(expectedList);
+        if (!actual.equals(expected)) {
 
-        // 4. Assertion
-        if (!actualComponentsReps.equals(expectedList)) {
             throw new AssertionError(String.format(
-                    "La pyramide %s n'a pas la composition attendue.\nAttendus : %s\nActuels  : %s",
+                    """
+                    La pyramide %s n'a pas la composition attendue.
+
+                    Attendus : %s
+                    Actuels  : %s
+                    """,
                     color,
-                    expectedList,
-                    actualComponentsReps
+                    expected,
+                    actual
             ));
         }
 
         return this;
     }
 
-    public StatusDTOAssertion hasStrictMoveDecisionTo(String... expectedLandingPositions) {
+    public StatusDTOAssertion hasStrictMoveDecisionTo(
+            String... expectedLandingPositions
+    ) {
         return hasMoveDecisionTo(true, expectedLandingPositions);
     }
 
-    public StatusDTOAssertion hasMoveDecisionTo(String... expectedLandingPositions) {
+    public StatusDTOAssertion hasMoveDecisionTo(
+            String... expectedLandingPositions
+    ) {
         return hasMoveDecisionTo(false, expectedLandingPositions);
     }
 
-    public StatusDTOAssertion hasMoveDecisionTo(boolean isStrict, String... expectedLandingPositions) {
-        // 1. On extrait tous les landings des décisions possibles sous forme de String
-        // On filtre les nulls (car certaines décisions comme 'skip' n'ont pas de landing)
-        Set<String> actualLandings = statusDTO.possibleDecisions().stream()
+    public StatusDTOAssertion hasMoveDecisionTo(
+            boolean strict,
+            String... expectedLandingPositions
+    ) {
+
+        Set<String> actualLandings = statusDTO.possibleDecisions()
+                .stream()
                 .map(DecisionDTO::landing)
                 .filter(Objects::nonNull)
                 .map(Position::toString)
-                .map(s->s.replace(" ", ""))
+                .map(this::normalize)
                 .collect(Collectors.toSet());
 
-        // 2. On vérifie pour chaque position attendue si elle est présente dans les décisions
-        List<String> missingPositions = new ArrayList<>();
-        for (String expected : expectedLandingPositions) {
-            String normalizedExpected = expected.replace(" ", "");
-            if (!actualLandings.contains(normalizedExpected)) {
-                missingPositions.add(expected); // On garde l'original pour le message d'erreur
-            }
-        }
+        Set<String> expectedLandings = Arrays.stream(expectedLandingPositions)
+                .map(this::normalize)
+                .collect(Collectors.toSet());
 
-        // 3. Assertion
-        if (!missingPositions.isEmpty()) {
+        Set<String> missing = new HashSet<>(expectedLandings);
+        missing.removeAll(actualLandings);
+
+        if (!missing.isEmpty()) {
+
             throw new AssertionError(String.format(
-                    "Certaines destinations de mouvement sont manquantes.\n" +
-                            "Attendues non trouvées : %s\n" +
-                            "Landings réellement disponibles : %s",
-                    missingPositions,
+                    """
+                    Certaines destinations de mouvement sont manquantes.
+
+                    Manquantes : %s
+                    Disponibles : %s
+                    """,
+                    missing,
                     actualLandings
             ));
         }
 
-        if(isStrict) {
-            Set<String> normalizedExpectedSet = Arrays.stream(expectedLandingPositions)
-                    .map(s -> s.replace(" ", ""))
-                    .collect(Collectors.toSet());
+        if (strict) {
 
-            if (!actualLandings.equals(normalizedExpectedSet)) {
-                // On calcule la différence pour un message d'erreur clair
-                Set<String> extras = new HashSet<>(actualLandings);
-                extras.removeAll(normalizedExpectedSet);
+            Set<String> extras = new HashSet<>(actualLandings);
+            extras.removeAll(expectedLandings);
+
+            if (!extras.isEmpty()) {
 
                 throw new AssertionError(String.format(
-                        "Mode Strict : Les destinations ne correspondent pas exactement.\n" +
-                                "En trop dans le moteur : %s",
+                        """
+                        Mode strict : destinations inattendues.
+
+                        En trop : %s
+                        """,
                         extras
                 ));
             }
@@ -244,28 +296,36 @@ public class StatusDTOAssertion {
         return this;
     }
 
-    public StatusDTOAssertion havePyramidValue(PlayerColorDTO color, int expectedValue) {
-        // 1. On récupère la pyramide
-        PieceDTO pyramid = statusDTO.board().pieces().stream()
+    public StatusDTOAssertion havePyramidValue(
+            PlayerColorDTO color,
+            int expectedValue
+    ) {
+
+        PieceDTO pyramid = statusDTO.board().pieces()
+                .stream()
                 .filter(p -> p.owner().equals(color))
                 .filter(p -> p.shape().equals(PieceShape.PYRAMID))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Aucune pyramide trouvée pour " + color));
+                .orElseThrow(() ->
+                        new AssertionError(
+                                "Aucune pyramide trouvée pour " + color
+                        )
+                );
 
-        // 2. On calcule la valeur actuelle (somme de ses composants)
         int actualValue = pyramid.value();
 
-
-        // 3. Assertion
         if (actualValue != expectedValue) {
+
             throw new AssertionError(String.format(
-                    "Valeur de la pyramide %s incorrecte.\nAttendue : %d\nActuelle : %d (via %s)",
+                    """
+                    Valeur incorrecte pour la pyramide %s
+
+                    Attendue : %d
+                    Actuelle : %d
+                    """,
                     color,
                     expectedValue,
-                    actualValue,
-                    pyramid.components().stream()
-                            .map(c -> String.valueOf(c.value()))
-                            .collect(Collectors.joining("+"))
+                    actualValue
             ));
         }
 
@@ -273,16 +333,23 @@ public class StatusDTOAssertion {
     }
 
     public StatusDTOAssertion hasReintroductionOptionsForActivePlayer() {
+
         PlayerColorDTO color = statusDTO.currentPlayer();
-        boolean exists = statusDTO.possibleOptions().entrySet().stream()
-                .flatMap(e -> e.getValue().stream())
+
+        boolean exists = statusDTO.possibleOptions()
+                .values()
+                .stream()
+                .flatMap(Set::stream)
                 .anyMatch(option ->
-                        option instanceof ReintroductionOptionDTO ro &&
-                                ro.pieceDTO().owner().equals(color)
+                        option instanceof ReintroductionOptionDTO ro
+                                && ro.pieceDTO().owner().equals(color)
                 );
 
         if (!exists) {
-            throw new AssertionError("Aucune option de réintroduction pour " + color);
+
+            throw new AssertionError(
+                    "Aucune option de réintroduction pour " + color
+            );
         }
 
         return this;
@@ -290,16 +357,23 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion allReintroductionOptionsComeFromReserve() {
 
-        Map<String, Set<String>> reserveByPlayer = statusDTO.assets().entrySet().stream()
-                .collect(Collectors.toMap(
-                        e -> e.getKey().name(),
-                        e -> e.getValue().reserve().stream()
-                                .map(PieceDTO::id)
-                                .collect(Collectors.toSet())
-                ));
+        Map<String, Set<String>> reserveByPlayer =
+                statusDTO.assets()
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                e -> e.getKey().name(),
+                                e -> e.getValue()
+                                        .reserve()
+                                        .stream()
+                                        .map(PieceDTO::id)
+                                        .collect(Collectors.toSet())
+                        ));
 
-        statusDTO.possibleOptions().entrySet().stream()
-                .flatMap(e -> e.getValue().stream())
+        statusDTO.possibleOptions()
+                .values()
+                .stream()
+                .flatMap(Set::stream)
                 .filter(ReintroductionOptionDTO.class::isInstance)
                 .map(ReintroductionOptionDTO.class::cast)
                 .forEach(option -> {
@@ -310,9 +384,12 @@ public class StatusDTOAssertion {
                     Set<String> reserveIds = reserveByPlayer.get(owner);
 
                     if (reserveIds == null || !reserveIds.contains(pieceId)) {
+
                         throw new AssertionError(
-                                "Réintroduction invalide : pièce non présente en réserve = "
-                                        + option.pieceDTO()
+                                "Réintroduction invalide : "
+                                        + PieceRepresentationHelper.toRepresentation(
+                                        option.pieceDTO()
+                                )
                         );
                     }
                 });
@@ -322,15 +399,17 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion hasNoReintroductionOptions() {
 
-        boolean exists = statusDTO.possibleOptions().entrySet().stream()
-                .flatMap(e -> e.getValue().stream())
+        boolean exists = statusDTO.possibleOptions()
+                .values()
+                .stream()
+                .flatMap(Set::stream)
                 .anyMatch(ReintroductionOptionDTO.class::isInstance);
 
         if (exists) {
+
             throw new AssertionError("""
-                Réintroduction options présentes alors qu'elles ne devraient pas exister.
-                Vérifie les assets du joueur et la phase MOVE_COMPUTATION.
-                """);
+                    Des options de réintroduction sont présentes.
+                    """);
         }
 
         return this;
@@ -341,25 +420,24 @@ public class StatusDTOAssertion {
             String expectedPosition
     ) {
 
-        String normalizedPosition = expectedPosition.replace(" ", "");
+        String expected =
+                expectedRepresentation
+                        + normalize(expectedPosition);
 
-        boolean found = statusDTO.board().pieces().stream()
-                .anyMatch(piece ->
-                        TestDebugger.getStringRepresentation(piece)
-                                .equals(expectedRepresentation)
-                                &&
-                                Objects.nonNull(piece.position())
-                                &&
-                                piece.position().toString()
-                                        .replace(" ", "")
-                                        .equals(normalizedPosition)
-                );
+        boolean found = statusDTO.board().pieces()
+                .stream()
+                .map(PieceRepresentationHelper::toRepresentation)
+                .anyMatch(expected::equals);
 
         if (!found) {
+
             throw new AssertionError(String.format(
-                    "Aucune pièce '%s' trouvée à la position %s",
-                    expectedRepresentation,
-                    expectedPosition
+                    """
+                    Aucune pièce trouvée.
+
+                    Attendue : %s
+                    """,
+                    expected
             ));
         }
 
@@ -370,71 +448,82 @@ public class StatusDTOAssertion {
             String pieceRepresentation
     ) {
 
-        boolean found = statusDTO.assets().values().stream()
-                .flatMap(assets -> assets.reserve().stream())
-                .anyMatch(piece ->
-                        TestDebugger.getStringRepresentation(piece)
-                                .equals(pieceRepresentation)
-                );
+        boolean found = statusDTO.assets()
+                .values()
+                .stream()
+                .flatMap(a -> a.reserve().stream())
+                .map(PieceRepresentationHelper::toShortRepresentation)
+                .anyMatch(pieceRepresentation::equals);
 
         if (found) {
+
+            throw new AssertionError(
+                    "La réserve contient encore : "
+                            + pieceRepresentation
+            );
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion capturedContains(
+            String... expectedRepresentations
+    ) {
+
+        List<String> actual = statusDTO.assets()
+                .values()
+                .stream()
+                .flatMap(a -> a.captured().stream())
+                .map(PieceRepresentationHelper::toShortRepresentation)
+                .toList();
+
+        List<String> missing = Arrays.stream(expectedRepresentations)
+                .filter(expected -> !actual.contains(expected))
+                .toList();
+
+        if (!missing.isEmpty()) {
+
             throw new AssertionError(String.format(
-                    "La réserve contient encore la pièce : %s",
-                    pieceRepresentation
+                    """
+                    Certaines pièces manquent dans les captures.
+
+                    Manquantes : %s
+                    Capturées  : %s
+                    """,
+                    missing,
+                    actual
             ));
         }
 
         return this;
     }
 
-    public StatusDTOAssertion capturedContains(String... expectedRepresentations) {
+    public StatusDTOAssertion hasInReserve(
+            String... expectedRepresentations
+    ) {
 
-        List<String> actualCaptured = statusDTO.assets().values().stream()
-                .flatMap(assets -> assets.captured().stream())
-                .map(TestDebugger::getStringRepresentation)
+        List<String> actual = statusDTO.assets()
+                .values()
+                .stream()
+                .flatMap(a -> a.reserve().stream())
+                .map(PieceRepresentationHelper::toShortRepresentation)
                 .toList();
 
         List<String> missing = Arrays.stream(expectedRepresentations)
-                .filter(expected -> !actualCaptured.contains(expected))
+                .filter(expected -> !actual.contains(expected))
                 .toList();
 
         if (!missing.isEmpty()) {
+
             throw new AssertionError(String.format(
                     """
-                    Certaines pièces attendues ne sont pas présentes dans les captures.
-                    
+                    Certaines pièces manquent dans la réserve.
+
                     Manquantes : %s
-                    Capturées  : %s
+                    Réserve    : %s
                     """,
                     missing,
-                    actualCaptured
-            ));
-        }
-
-        return this;
-    }
-
-    public StatusDTOAssertion hasInReserve(String... expectedRepresentations) {
-
-        List<String> actualReserve = statusDTO.assets().values().stream()
-                .flatMap(assets -> assets.reserve().stream())
-                .map(TestDebugger::getStringRepresentation)
-                .toList();
-
-        List<String> missing = Arrays.stream(expectedRepresentations)
-                .filter(expected -> !actualReserve.contains(expected))
-                .toList();
-
-        if (!missing.isEmpty()) {
-            throw new AssertionError(String.format(
-                    """
-                    Certaines pièces attendues ne sont pas présentes dans la réserve.
-                    
-                    Manquantes : %s
-                    Capturées  : %s
-                    """,
-                    missing,
-                    actualReserve
+                    actual
             ));
         }
 
@@ -442,68 +531,77 @@ public class StatusDTOAssertion {
     }
 
     public StatusDTOAssertion hasNOptions(int n) {
-        assertThat(
-                statusDTO.possibleOptions()
-                        .values()
-                        .stream()
-                        .mapToInt(Set::size)
-                        .sum()
-        ).isEqualTo(n);
+
+        int actual = statusDTO.possibleOptions()
+                .values()
+                .stream()
+                .mapToInt(Set::size)
+                .sum();
+
+        assertThat(actual)
+                .isEqualTo(n);
+
         return this;
     }
 
     public StatusDTOAssertion hasNDecisions(int n) {
-        assertThat(statusDTO.possibleDecisions().size()).isEqualTo(n);
+
+        assertThat(statusDTO.possibleDecisions())
+                .hasSize(n);
+
         return this;
     }
 
     public StatusDTOAssertion hasOnlyMoveDecisions() {
+
         assertThat(statusDTO.possibleDecisions())
-                .allMatch(d -> !d.skip()
-                && d.capturedIdList().isEmpty()
-                && Objects.nonNull(d.landing()));
+                .allMatch(d ->
+                        !d.skip()
+                                && d.capturedIdList().isEmpty()
+                                && d.landing() != null
+                );
+
         return this;
     }
 
-    public StatusDTOAssertion hasNOptionsFor(String pieceRepresentation, int n) {
+    public StatusDTOAssertion hasNOptionsFor(
+            String pieceRepresentation,
+            int n
+    ) {
 
-        PieceDTO piece = statusDTO.possibleOptions().keySet().stream()
-                .filter(this::isRealPiece)
-                .filter(p -> PieceRepresentationHelper.toRepresentation(p)
-                        .equals(pieceRepresentation))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        "Aucune pièce trouvée dans possibleOptions : "
-                                + pieceRepresentation
-                ));
+        PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
+                statusDTO,
+                pieceRepresentation
+        );
 
-        int actualCount = statusDTO.possibleOptions()
+        long actualCount = statusDTO.possibleOptions()
                 .getOrDefault(piece, Collections.emptySet())
                 .stream()
-                .filter(option -> !(option instanceof eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO))
-                .toList()
-                .size();
+                .filter(option -> !(option instanceof SkipOptionDTO))
+                .count();
 
         if (actualCount != n) {
+
             throw new AssertionError(String.format(
                     """
-                    Nombre d'options incorrect pour la pièce %s
-                    
+                    Nombre d'options incorrect pour %s
+
                     Attendu : %d
                     Actuel  : %d
-                    Options : %s
                     """,
                     pieceRepresentation,
                     n,
-                    actualCount,
-                    statusDTO.possibleOptions().getOrDefault(piece, Collections.emptySet())
+                    actualCount
             ));
         }
 
         return this;
     }
 
-    public StatusDTOAssertion hasNDecisionsFor(String pieceRepresentation, int n) {
+    public StatusDTOAssertion hasNDecisionsFor(
+            String pieceRepresentation,
+            int n
+    ) {
 
         PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
                 statusDTO,
@@ -512,53 +610,153 @@ public class StatusDTOAssertion {
 
         long actualCount = statusDTO.possibleDecisions()
                 .stream()
-                .filter(Objects::nonNull)
                 .filter(d -> !d.skip())
                 .filter(d -> piece.id().equals(d.actorId()))
                 .count();
 
         if (actualCount != n) {
+
             throw new AssertionError(String.format(
                     """
-                    Nombre de décisions incorrect pour la pièce %s
-                    
+                    Nombre de décisions incorrect pour %s
+
                     Attendu : %d
                     Actuel  : %d
-                    
-                    ActorId : %s
                     """,
                     pieceRepresentation,
                     n,
-                    actualCount,
-                    piece.id()
+                    actualCount
             ));
         }
 
         return this;
     }
 
-    private boolean isRealPiece(PieceDTO p) {
-        return p != null && p.id() != null;
+    private String findPieceRepresentationById(String id) {
+
+        return statusDTO.board().pieces()
+                .stream()
+                .flatMap(piece -> {
+
+                    List<PieceDTO> all = new ArrayList<>();
+                    all.add(piece);
+
+                    if (piece.shape() == PieceShape.PYRAMID) {
+                        all.addAll(piece.components());
+                    }
+
+                    return all.stream();
+                })
+                .filter(piece -> id.equals(piece.id()))
+                .map(PieceRepresentationHelper::toRepresentation)
+                .findFirst()
+                .orElse(null);
     }
 
-    private PieceDTO findPieceByActorId(String actorId) {
+    private String normalize(String value) {
+        return value.replace(" ", "");
+    }
 
-        for (PieceDTO piece : statusDTO.board().pieces()) {
+    public StatusDTOAssertion hasCaptureSourcesFor(
+            String targetRepresentation,
+            String... expectedActors
+    ) {
 
-            if (piece.id().equals(actorId)) {
-                return piece;
-            }
+        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
 
-            if (piece.shape() == PieceShape.PYRAMID) {
-                for (PieceDTO c : piece.components()) {
-                    if (c.id().equals(actorId)) {
-                        return piece;
-                    }
-                }
-            }
+        Set<String> actualActors = statusDTO.possibleDecisions().stream()
+                .filter(d -> !d.skip())
+                .filter(d -> d.capturedIdList() != null
+                        && d.capturedIdList().contains(targetId))
+                .map(DecisionDTO::actorId)
+                .collect(Collectors.toSet());
+
+        Set<String> expected = Arrays.stream(expectedActors)
+                .map(rep -> PieceRepresentationHelper.findId(statusDTO, rep))
+                .collect(Collectors.toSet());
+
+        if (!actualActors.equals(expected)) {
+            throw new AssertionError(String.format(
+                    """
+                    Sources de capture incorrectes pour %s
+    
+                    Attendus : %s
+                    Actuels  : %s
+                    """,
+                    targetRepresentation,
+                    Arrays.toString(expectedActors),
+                    actualActors
+            ));
         }
 
-        return null;
+        return this;
     }
 
+    public StatusDTOAssertion hasCaptureCiblesFor(
+            String actorRepresentation,
+            String... expectedTargets
+    ) {
+
+        String actorId = PieceRepresentationHelper.findId(statusDTO, actorRepresentation);
+
+        Set<String> actualTargets = statusDTO.possibleDecisions().stream()
+                .filter(d -> !d.skip())
+                .filter(d -> actorId.equals(d.actorId()))
+                .flatMap(d -> d.capturedIdList().stream())
+                .collect(Collectors.toSet());
+
+        Set<String> expected = Arrays.stream(expectedTargets)
+                .map(rep -> PieceRepresentationHelper.findId(statusDTO, rep))
+                .collect(Collectors.toSet());
+
+        if (!actualTargets.equals(expected)) {
+            throw new AssertionError(String.format(
+                    """
+                    Cibles de capture incorrectes pour %s
+    
+                    Attendus : %s
+                    Actuels  : %s
+                    """,
+                    actorRepresentation,
+                    Arrays.toString(expectedTargets),
+                    actualTargets
+            ));
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion cannotCaptureWith(
+            String actorRepresentation,
+            String targetRepresentation
+    ) {
+
+        String actorId = PieceRepresentationHelper.findId(statusDTO, actorRepresentation);
+        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+
+        boolean exists = statusDTO.possibleDecisions().stream()
+                .filter(d -> !d.skip())
+                .filter(d -> actorId.equals(d.actorId()))
+                .anyMatch(d ->
+                        d.capturedIdList() != null
+                                && d.capturedIdList().contains(targetId)
+                );
+
+        if (exists) {
+            throw new AssertionError(String.format(
+                    """
+                    Capture interdite détectée
+    
+                    Actor : %s
+                    Target: %s
+    
+                    Une décision existe alors qu'elle ne devrait pas.
+                    """,
+                    actorRepresentation,
+                    targetRepresentation
+            ));
+        }
+
+        return this;
+    }
 }
