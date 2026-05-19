@@ -1,9 +1,8 @@
 package eu.nicosworld.rithmo.core.e2e;
 
-import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
-import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
-import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
+import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
+import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
@@ -12,32 +11,23 @@ import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.*;
-import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class EncounterTutorialTest {
 
     private GameFacade gameFacade;
-    private InMemoryGameRepository gameRepository;
-    private InMemoryOptionRepository optionRepository;
 
     @BeforeEach
     void setUp() {
-        gameRepository = new InMemoryGameRepository();
-        optionRepository = new InMemoryOptionRepository();
+        InMemoryGameRepository gameRepository = new InMemoryGameRepository();
+        InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
         gameFacade = new GameFacade(gameRepository, optionRepository);
     }
 
@@ -47,13 +37,13 @@ class EncounterTutorialTest {
         Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID skipId = FindOptionHelper.findSkipOption(status);
+        UUID skipId = FindDecisionHelper.findSkipDecision(status);
 
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
-        // Assertion utilisant directement l'enum PhaseDTO
-        assertThat(nextStatus.phase()).isEqualTo(PhaseDTO.MOVE);
-        //assertThat(nextStatus.possibleOptions()).allMatch(opt -> opt instanceof MoveOptionDTO);
+        StatusDTOAssertion.from(nextStatus)
+                        .isInMovePhase()
+                        .hasOnlyMoveDecisions();
     }
 
     @Test
@@ -62,15 +52,12 @@ class EncounterTutorialTest {
         Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID landingId = FindOptionHelper.findDecisionWithCaptures(status,1);
+        UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status,1);
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), landingId);
 
-        assertThat(nextStatus.phase()).isEqualTo(PhaseDTO.MOVE);
-        assertThat(nextStatus.possibleOptions()
-                .values()
-                .stream()
-                .flatMap(Set::stream)
-                .allMatch(MoveOptionDTO.class::isInstance));
+        StatusDTOAssertion.from(nextStatus)
+                .isInMovePhase()
+                .hasOnlyMoveDecisions();
     }
 
     @Test
@@ -79,7 +66,7 @@ class EncounterTutorialTest {
         Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID landingId = FindOptionHelper.findDecisionWithCaptures(status, 2);
+        UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status, 2);
 
         assertThatThrownBy(() -> gameFacade.play(game.getId(), landingId))
                 .isInstanceOf(VictoryException.class);
@@ -90,19 +77,12 @@ class EncounterTutorialTest {
     void shouldPropose3Options_2CapturesFrom2DifferentPieceWhoTargetSameTarget() throws Exception {
         Game game = PreDefinedTestGame.encounterPreCaptureTestCase_WhitePlayer();
         GameStatusDTO status = gameFacade.startGame(game);
-        System.out.println(game.getCurrentState().state().board().prettyPrint());
 
-        List<PreCaptureOptionDTO> options = status.possibleOptions().values().stream()
-                .flatMap(Set::stream)
-                .filter(PreCaptureOptionDTO.class::isInstance)
-                .map(PreCaptureOptionDTO.class::cast)
-                .filter(a -> a.type().equals(CaptureTypeDTO.ENCOUNTER))
-                .toList();
-        System.out.println("IN TEST");
-        TestDebugger.print(options);
-
-        assertThat(status.possibleOptions().size()).isEqualTo(3);
-        assertThat(options.size()).isEqualTo(2);
+        StatusDTOAssertion.from(status)
+                .hasActivePlayer(PlayerColorDTO.WHITE)
+                .isInPreCapturePhase()
+                .haveSkipDecision()
+                .hasCaptureDecisionCount(2);
     }
 
     @Test
@@ -112,27 +92,30 @@ class EncounterTutorialTest {
         Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        PieceDTO pieceDTO = FindOptionHelper.findComponent(status.board(), new Position(2,0), 5);
-        System.out.println(pieceDTO);
-
-        TestDebugger.render(status);
-        System.out.println("possible options");
         TestDebugger.print(status.possibleOptions());
+        TestDebugger.render(status);
+        TestDebugger.print(status.possibleDecisions());
 
-        Set<PreCaptureOptionDTO> optionList = status.possibleOptions().get(pieceDTO)
-                .stream()
-                .filter(o -> o instanceof PreCaptureOptionDTO)
-                .map(PreCaptureOptionDTO.class::cast)
-                .collect(Collectors.toSet());
+        StatusDTOAssertion.from(status)
+                .isInPreCapturePhase()
+                .hasNOptions(4)
+                .hasNDecisions(5)
+                .hasNOptionsFor("WC5(2,0)", 2)
+                .hasNOptionsFor("WC4(2,0)", 1)
+                .hasNDecisionsFor("WC5(2,0)", 3)
+                .hasNDecisionsFor("WC4(2,0)", 1);
 
-        assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
-        assertThat(status.possibleOptions().size() == 7);
-
-        UUID id = FindOptionHelper.findPreCaptureDecisionId(status, pieceDTO, optionList, new Position(3, 1));
-
-        System.out.println("id = " + id);
+        UUID id = FindDecisionHelper.findCaptureDecisionId(status, "WC5(2,0)", new Position(3,1), "BC5(3,1)", "BC5(1,1)");
 
         GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), id);
-        assertThat(statusAfterPreCapture.phase()).isEqualTo(PhaseDTO.MOVE);
+        StatusDTOAssertion.from(statusAfterPreCapture)
+                .hasActivePlayer(PlayerColorDTO.WHITE)
+                .isInMovePhase()
+                .hasPiece("WP9", "(3,1)")
+                .hasOnlyMoveDecisions()
+                .hasStrictMoveDecisionTo("(2,0)", "(2,2)")
+                .hasNoReintroductionOptions()
+                .capturedContains("BC5", "BC5")
+                .hasInReserve("WC5");
     }
 }
