@@ -318,17 +318,16 @@ public class FindDecisionHelper {
 
         for (PieceDTO piece : statusDTO.board().pieces()) {
 
-            // Full piece match
-            if (matchesRepresentation(piece, representation)) {
+            if (PieceRepresentationHelper.toRepresentation(piece)
+                    .equals(representation)) {
                 return piece.id();
             }
 
-            // Pyramid components
             if (piece.shape().equals(PieceShape.PYRAMID)) {
-
                 for (PieceDTO component : piece.components()) {
 
-                    if (matchesRepresentation(component, representation)) {
+                    if (PieceRepresentationHelper.toRepresentation(component)
+                            .equals(representation)) {
                         return component.id();
                     }
                 }
@@ -345,21 +344,8 @@ public class FindDecisionHelper {
             PieceDTO piece,
             String representation
     ) {
-
-        String expected =
-                TestDebugger.getStringRepresentation(piece)
-                        + formatPosition(piece.position());
-
-        return expected.equals(representation);
-    }
-
-    private static String formatPosition(Position position) {
-
-        return "("
-                + position.getX()
-                + ","
-                + position.getY()
-                + ")";
+        return PieceRepresentationHelper.toRepresentation(piece)
+                .equals(representation);
     }
 
     public static UUID findPreCaptureDecisionId(

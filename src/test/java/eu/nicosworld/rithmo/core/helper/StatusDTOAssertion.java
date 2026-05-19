@@ -104,7 +104,6 @@ public class StatusDTOAssertion {
             // Composants de pyramide
             if (piece.shape().equals(PieceShape.PYRAMID)) {
                 for (PieceDTO component : piece.components()) {
-                    // On préfixe par 'P' comme tu l'as défini
                     String rep = "P" + TestDebugger.getStringRepresentation(component);
                     idToRepresentation.put(component.id(), rep);
                 }
@@ -224,20 +223,22 @@ public class StatusDTOAssertion {
             ));
         }
 
-        Set<String> normalizedExpectedSet = Arrays.stream(expectedLandingPositions)
-                .map(s -> s.replace(" ", ""))
-                .collect(Collectors.toSet());
+        if(isStrict) {
+            Set<String> normalizedExpectedSet = Arrays.stream(expectedLandingPositions)
+                    .map(s -> s.replace(" ", ""))
+                    .collect(Collectors.toSet());
 
-        if (!actualLandings.equals(normalizedExpectedSet)) {
-            // On calcule la différence pour un message d'erreur clair
-            Set<String> extras = new HashSet<>(actualLandings);
-            extras.removeAll(normalizedExpectedSet);
+            if (!actualLandings.equals(normalizedExpectedSet)) {
+                // On calcule la différence pour un message d'erreur clair
+                Set<String> extras = new HashSet<>(actualLandings);
+                extras.removeAll(normalizedExpectedSet);
 
-            throw new AssertionError(String.format(
-                    "Mode Strict : Les destinations ne correspondent pas exactement.\n" +
-                            "En trop dans le moteur : %s",
-                    extras
-            ));
+                throw new AssertionError(String.format(
+                        "Mode Strict : Les destinations ne correspondent pas exactement.\n" +
+                                "En trop dans le moteur : %s",
+                        extras
+                ));
+            }
         }
 
         return this;
@@ -411,6 +412,153 @@ public class StatusDTOAssertion {
         }
 
         return this;
+    }
+
+    public StatusDTOAssertion hasInReserve(String... expectedRepresentations) {
+
+        List<String> actualReserve = statusDTO.assets().values().stream()
+                .flatMap(assets -> assets.reserve().stream())
+                .map(TestDebugger::getStringRepresentation)
+                .toList();
+
+        List<String> missing = Arrays.stream(expectedRepresentations)
+                .filter(expected -> !actualReserve.contains(expected))
+                .toList();
+
+        if (!missing.isEmpty()) {
+            throw new AssertionError(String.format(
+                    """
+                    Certaines pièces attendues ne sont pas présentes dans la réserve.
+                    
+                    Manquantes : %s
+                    Capturées  : %s
+                    """,
+                    missing,
+                    actualReserve
+            ));
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion hasNOptions(int n) {
+        assertThat(
+                statusDTO.possibleOptions()
+                        .values()
+                        .stream()
+                        .mapToInt(Set::size)
+                        .sum()
+        ).isEqualTo(n);
+        return this;
+    }
+
+    public StatusDTOAssertion hasNDecisions(int n) {
+        assertThat(statusDTO.possibleDecisions().size()).isEqualTo(n);
+        return this;
+    }
+
+    public StatusDTOAssertion hasOnlyMoveDecisions() {
+        assertThat(statusDTO.possibleDecisions())
+                .allMatch(d -> !d.skip()
+                && d.capturedIdList().isEmpty()
+                && Objects.nonNull(d.landing()));
+        return this;
+    }
+
+    public StatusDTOAssertion hasNOptionsFor(String pieceRepresentation, int n) {
+
+        PieceDTO piece = statusDTO.possibleOptions().keySet().stream()
+                .filter(this::isRealPiece)
+                .filter(p -> PieceRepresentationHelper.toRepresentation(p)
+                        .equals(pieceRepresentation))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "Aucune pièce trouvée dans possibleOptions : "
+                                + pieceRepresentation
+                ));
+
+        int actualCount = statusDTO.possibleOptions()
+                .getOrDefault(piece, Collections.emptySet())
+                .stream()
+                .filter(option -> !(option instanceof eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO))
+                .toList()
+                .size();
+
+        if (actualCount != n) {
+            throw new AssertionError(String.format(
+                    """
+                    Nombre d'options incorrect pour la pièce %s
+                    
+                    Attendu : %d
+                    Actuel  : %d
+                    Options : %s
+                    """,
+                    pieceRepresentation,
+                    n,
+                    actualCount,
+                    statusDTO.possibleOptions().getOrDefault(piece, Collections.emptySet())
+            ));
+        }
+
+        return this;
+    }
+
+    public StatusDTOAssertion hasNDecisionsFor(String pieceRepresentation, int n) {
+
+        PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
+                statusDTO,
+                pieceRepresentation
+        );
+
+        long actualCount = statusDTO.possibleDecisions()
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(d -> !d.skip())
+                .filter(d -> piece.id().equals(d.actorId()))
+                .count();
+
+        if (actualCount != n) {
+            throw new AssertionError(String.format(
+                    """
+                    Nombre de décisions incorrect pour la pièce %s
+                    
+                    Attendu : %d
+                    Actuel  : %d
+                    
+                    ActorId : %s
+                    """,
+                    pieceRepresentation,
+                    n,
+                    actualCount,
+                    piece.id()
+            ));
+        }
+
+        return this;
+    }
+
+    private boolean isRealPiece(PieceDTO p) {
+        return p != null && p.id() != null;
+    }
+
+    private PieceDTO findPieceByActorId(String actorId) {
+
+        for (PieceDTO piece : statusDTO.board().pieces()) {
+
+            if (piece.id().equals(actorId)) {
+                return piece;
+            }
+
+            if (piece.shape() == PieceShape.PYRAMID) {
+                for (PieceDTO c : piece.components()) {
+                    if (c.id().equals(actorId)) {
+                        return piece;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
 }
