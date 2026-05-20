@@ -11,32 +11,12 @@ import eu.nicosworld.rithmo.core.persistence.GameRepository;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnProcessor;
+import eu.nicosworld.rithmo.core.turn.TurnProcessorFactory;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.action.*;
-import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
-import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
-import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
-import eu.nicosworld.rithmo.core.turn.applier.ReintroductionApplier;
 import eu.nicosworld.rithmo.core.turn.option.*;
-import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
-import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
-import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
-import eu.nicosworld.rithmo.core.turn.resolver.ReintroductionResolver;
-import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
-import eu.nicosworld.rithmo.engine.capture.CaptureRule;
-import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
-import eu.nicosworld.rithmo.engine.capture.capturerule.AssaultRule;
-import eu.nicosworld.rithmo.engine.capture.capturerule.EncounterRule;
-import eu.nicosworld.rithmo.engine.capture.capturerule.PowerRule;
 import eu.nicosworld.rithmo.engine.model.*;
-import eu.nicosworld.rithmo.engine.move.FreePathMovementValidator;
-import eu.nicosworld.rithmo.engine.move.MovementEngine;
-import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
-import eu.nicosworld.rithmo.engine.reintroduction.ReintroductionEngine;
-import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
-import eu.nicosworld.rithmo.engine.victory.GoodsVictoryRule;
-import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
-import eu.nicosworld.rithmo.engine.victory.VictoryRule;
+
 
 import java.util.*;
 
@@ -48,40 +28,20 @@ public class GameFacade {
 
     private final GameRepository gameRepository;
     private final OptionRepository optionRepository;
-    private final Map<CaptureRuleOption, CaptureRule> captureRegistry;
-    private final MoveResolver moveResolver;
-    private final ReintroductionResolver reintroductionResolver;
-    private final ActionApplier actionApplier;
+    private final TurnProcessorFactory turnProcessorFactory;
 
     /**
      * Constructs the facade and initializes stateless engine components.
      */
-    public GameFacade(GameRepository gameRepository, OptionRepository optionRepository) {
+    public GameFacade(
+            GameRepository gameRepository,
+            OptionRepository optionRepository
+    ) {
+
         this.gameRepository = gameRepository;
         this.optionRepository = optionRepository;
 
-        // Initialize reusable engine mechanics
-        MovementEngine movementEngine = new MovementEngine();
-        this.moveResolver = new MoveResolver(movementEngine);
-
-        ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
-        reintroductionResolver = new ReintroductionResolver(reintroductionEngine);
-
-        MoveApplier moveApplier = new MoveApplier();
-        CaptureApplier captureApplier = new CaptureApplier();
-        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
-        this.actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
-
-        RegularMoveGenerator regularGenerator = new RegularMoveGenerator();
-        FreePathMovementValidator pathValidator = new FreePathMovementValidator();
-
-        // Populate the capture rule registry
-        this.captureRegistry = Map.of(
-                CaptureRuleOption.ENCOUNTER, new EncounterRule(regularGenerator, pathValidator),
-                CaptureRuleOption.AMBUSH, new AmbushRule(regularGenerator, pathValidator),
-                CaptureRuleOption.ASSAULT, new AssaultRule(regularGenerator, pathValidator),
-                CaptureRuleOption.POWER, new PowerRule(regularGenerator, pathValidator)
-        );
+        this.turnProcessorFactory = new TurnProcessorFactory();
     }
 
     /**
@@ -111,45 +71,10 @@ public class GameFacade {
     }
 
     /**
-     * Configures a TurnProcessor tailored to specific game rules.
-     */
-    private TurnProcessor createProcessorForGame(GameOptions options) {
-        // Filter the registry to keep only selected capture rules
-        List<CaptureRule> rules = options.captureRules().stream()
-                .map(captureRegistry::get)
-                .filter(Objects::nonNull)
-                .toList();
-
-        CaptureEngine captureEngine = new CaptureEngine(rules);
-        CaptureResolver captureResolver = new CaptureResolver(captureEngine);
-        PhaseResolver phaseResolver = new PhaseResolver(
-                captureResolver,
-                moveResolver,
-                reintroductionResolver);
-
-        List<VictoryRule> victories = resolveVictoryRules(options.victoryRules());
-        VictoryEngine victoryEngine = new VictoryEngine(victories);
-
-        return new TurnProcessor(actionApplier, phaseResolver, victoryEngine);
-    }
-
-    /**
-     * Maps victory rule options to concrete engine rules.
-     */
-    private List<VictoryRule> resolveVictoryRules(Map<VictoryRuleOption, Integer> options) {
-        return options.entrySet().stream()
-                .map(entry -> switch (entry.getKey()) {
-                    case GOODS -> new GoodsVictoryRule(entry.getValue());
-                    case BODY -> new BodyVictoryRule(entry.getValue());
-                })
-                .toList();
-    }
-
-    /**
      * Internal execution of the first automatic phase transition.
      */
     private GameStatusDTO play(Game game) throws VictoryException, PatException {
-        TurnProcessor processor = createProcessorForGame(game.getOptions());
+        TurnProcessor processor = turnProcessorFactory.create(game.getOptions());
 
         // Process initial START phase to reach the first decision point
         TurnState nextState = processor.process(game.getCurrentState());
@@ -172,7 +97,7 @@ public class GameFacade {
         PendingAction pending = optionRepository.findById(optionId)
                 .orElseThrow(() -> new IllegalArgumentException("Option expired or invalid: " + optionId));
 
-        TurnProcessor processor = createProcessorForGame(game.getOptions());
+        TurnProcessor processor = turnProcessorFactory.create(game.getOptions());
         TurnState nextState = processor.process(game.getCurrentState(), pending.actionToExecute());
 
         Game updatedGame = Game.from(game, nextState);
