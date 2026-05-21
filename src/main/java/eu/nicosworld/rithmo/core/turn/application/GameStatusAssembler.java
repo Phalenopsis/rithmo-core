@@ -8,15 +8,12 @@ import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.application.decision.DecisionRegistry;
+import eu.nicosworld.rithmo.core.turn.application.presenter.PresentationResult;
 import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.engine.model.Piece;
 import eu.nicosworld.rithmo.engine.model.Position;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class GameStatusAssembler {
 
@@ -30,207 +27,29 @@ public class GameStatusAssembler {
 
     public UiInformation assemble(Game game) {
 
-        return generateActionsDecisionsAndDTOs(
-                game,
-                game.getCurrentState().options()
-        );
-    }
-
-    /**
-     * Orchestrates the transformation of internal options
-     * into UI DTOs and executable decisions.
-     */
-    private UiInformation generateActionsDecisionsAndDTOs(
-            Game game,
-            List<TurnOption> options
-    ) {
-
         Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece =
                 new HashMap<>();
 
         DecisionRegistry decisionRegistry =
                 new DecisionRegistry(optionRepository);
 
-        for (TurnOption option : options) {
+        for (TurnOption option : game.getCurrentState().options()) {
 
-            if (option instanceof MoveOption moveOption) {
+            PresentationResult result =
+                    presentOption(game, option);
 
-                MoveAction action =
-                        (MoveAction) mapToTurnAction(moveOption);
+            addOptions(
+                    playerOptionPerPiece,
+                    result.piece(),
+                    result.options()
+            );
 
-                Position actorPosition =
-                        moveOption.move().from();
-
-                Piece actor =
-                        game.getCurrentState()
-                                .state()
-                                .board()
-                                .getPieceAt(actorPosition);
-
-                PieceDTO actorDTO =
-                        PieceDTO.from(actor, actorPosition);
-
-                DecisionDTO rawDecision =
-                        DecisionDTO.from(
-                                UUID.randomUUID(),
-                                game.getCurrentState().state().board(),
-                                action
-                        );
+            for (int i = 0; i < result.actions().size(); i++) {
 
                 decisionRegistry.register(
                         game.getId(),
-                        action,
-                        rawDecision
-                );
-
-                MoveOptionDTO playerOptionDTO =
-                        MoveOptionDTO.from(moveOption);
-
-                addOption(
-                        playerOptionPerPiece,
-                        actorDTO,
-                        playerOptionDTO
-                );
-            }
-
-            else if (option instanceof PostCaptureOption postCaptureOption) {
-
-                PostCaptureAction action =
-                        (PostCaptureAction) mapToTurnAction(postCaptureOption);
-
-                Position actorPosition =
-                        postCaptureOption.captures()
-                                .getFirst()
-                                .actor()
-                                .position();
-
-                Piece actor =
-                        postCaptureOption.captures()
-                                .getFirst()
-                                .actor()
-                                .specificComponent();
-
-                PieceDTO actorDTO =
-                        PieceDTO.from(actor, actorPosition);
-
-                DecisionDTO rawDecision =
-                        DecisionDTO.from(
-                                UUID.randomUUID(),
-                                action
-                        );
-
-                decisionRegistry.register(
-                        game.getId(),
-                        action,
-                        rawDecision
-                );
-
-                List<CaptureOptionDTO> playerOptionDTOs =
-                        CaptureOptionDTO.from(postCaptureOption);
-
-                addOption(
-                        playerOptionPerPiece,
-                        actorDTO,
-                        playerOptionDTOs
-                );
-            }
-
-            else if (option instanceof PreCaptureOption preCaptureOption) {
-
-                List<PreCaptureAction> actions =
-                        PreCaptureAction.from(preCaptureOption);
-
-                Position actorPosition =
-                        preCaptureOption.captures()
-                                .getFirst()
-                                .actor()
-                                .position();
-
-                Piece actor =
-                        preCaptureOption.captures()
-                                .getFirst()
-                                .actor()
-                                .specificComponent();
-
-                PieceDTO actorDTO =
-                        PieceDTO.from(actor, actorPosition);
-
-                List<PreCaptureOptionDTO> playerOptionDTOs =
-                        PreCaptureOptionDTO.from(preCaptureOption);
-
-                addOption(
-                        playerOptionPerPiece,
-                        actorDTO,
-                        playerOptionDTOs
-                );
-
-                for (PreCaptureAction action : actions) {
-
-                    DecisionDTO rawDecision =
-                            DecisionDTO.from(
-                                    UUID.randomUUID(),
-                                    action
-                            );
-
-                    decisionRegistry.register(
-                            game.getId(),
-                            action,
-                            rawDecision
-                    );
-                }
-            }
-
-            else if (option instanceof ReintroductionOption reintroductionOption) {
-
-                ReintroductionAction action =
-                        (ReintroductionAction) mapToTurnAction(option);
-
-                ReintroductionOptionDTO playerOptionDTO =
-                        ReintroductionOptionDTO.from(reintroductionOption);
-
-                PieceDTO actorDTO =
-                        playerOptionDTO.pieceDTO();
-
-                DecisionDTO rawDecision =
-                        DecisionDTO.from(
-                                UUID.randomUUID(),
-                                action
-                        );
-
-                decisionRegistry.register(
-                        game.getId(),
-                        action,
-                        rawDecision
-                );
-
-                addOption(
-                        playerOptionPerPiece,
-                        actorDTO,
-                        playerOptionDTO
-                );
-            }
-
-            else {
-
-                TurnAction action =
-                        mapToTurnAction(option);
-
-                DecisionDTO rawDecision =
-                        DecisionDTO.skipFrom(UUID.randomUUID());
-
-                decisionRegistry.register(
-                        game.getId(),
-                        action,
-                        rawDecision
-                );
-
-                SkipOptionDTO playerOptionDTO =
-                        new SkipOptionDTO();
-
-                addOption(
-                        playerOptionPerPiece,
-                        PieceDTO.GLOBAL_OPTION,
-                        playerOptionDTO
+                        result.actions().get(i),
+                        result.decisions().get(i)
                 );
             }
         }
@@ -241,26 +60,208 @@ public class GameStatusAssembler {
         );
     }
 
-    private void addOption(
-            Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
-            PieceDTO pieceDTO,
-            PlayerOptionDTO playerOptionDTO
+    private PresentationResult presentOption(
+            Game game,
+            TurnOption option
     ) {
 
-        playerOptions
-                .computeIfAbsent(pieceDTO, k -> new java.util.HashSet<>())
-                .add(playerOptionDTO);
+        return switch (option) {
+
+            case MoveOption moveOption ->
+                    presentMoveOption(game, moveOption);
+
+            case PostCaptureOption postCaptureOption ->
+                    presentPostCaptureOption(postCaptureOption);
+
+            case PreCaptureOption preCaptureOption ->
+                    presentPreCaptureOption(preCaptureOption);
+
+            case ReintroductionOption reintroductionOption ->
+                    presentReintroductionOption(reintroductionOption);
+
+            case SkipPreCaptureOption skipPreCaptureOption ->
+                    presentSkipOption(skipPreCaptureOption);
+
+            case SkipPostCaptureOption skipPostCaptureOption ->
+                    presentSkipOption(skipPostCaptureOption);
+        };
     }
 
-    private void addOption(
+    private PresentationResult presentMoveOption(
+            Game game,
+            MoveOption moveOption
+    ) {
+
+        MoveAction action =
+                MoveAction.from(moveOption);
+
+        Position actorPosition =
+                moveOption.move().from();
+
+        Piece actor =
+                game.getCurrentState()
+                        .state()
+                        .board()
+                        .getPieceAt(actorPosition);
+
+        PieceDTO actorDTO =
+                PieceDTO.from(actor, actorPosition);
+
+        DecisionDTO rawDecision =
+                DecisionDTO.from(
+                        UUID.randomUUID(),
+                        game.getCurrentState().state().board(),
+                        action
+                );
+
+        MoveOptionDTO optionDTO =
+                MoveOptionDTO.from(moveOption);
+
+        return new PresentationResult(
+                actorDTO,
+                List.of(optionDTO),
+                List.of(action),
+                List.of(rawDecision)
+        );
+    }
+
+    private PresentationResult presentPostCaptureOption(
+            PostCaptureOption postCaptureOption
+    ) {
+
+        PostCaptureAction action =
+                PostCaptureAction.from(postCaptureOption);
+
+        Position actorPosition =
+                postCaptureOption.captures()
+                        .getFirst()
+                        .actor()
+                        .position();
+
+        Piece actor =
+                postCaptureOption.captures()
+                        .getFirst()
+                        .actor()
+                        .specificComponent();
+
+        PieceDTO actorDTO =
+                PieceDTO.from(actor, actorPosition);
+
+        DecisionDTO rawDecision =
+                DecisionDTO.from(
+                        UUID.randomUUID(),
+                        action
+                );
+
+        List<PlayerOptionDTO> optionDTOs =
+                new ArrayList<>(
+                        CaptureOptionDTO.from(postCaptureOption)
+                );
+
+        return new PresentationResult(
+                actorDTO,
+                optionDTOs,
+                List.of(action),
+                List.of(rawDecision)
+        );
+    }
+
+    private PresentationResult presentPreCaptureOption(
+            PreCaptureOption preCaptureOption
+    ) {
+
+        List<PreCaptureAction> actions =
+                PreCaptureAction.from(preCaptureOption);
+
+        Position actorPosition =
+                preCaptureOption.captures()
+                        .getFirst()
+                        .actor()
+                        .position();
+
+        Piece actor =
+                preCaptureOption.captures()
+                        .getFirst()
+                        .actor()
+                        .specificComponent();
+
+        PieceDTO actorDTO =
+                PieceDTO.from(actor, actorPosition);
+
+        List<PlayerOptionDTO> optionDTOs =
+                new ArrayList<>(
+                        PreCaptureOptionDTO.from(preCaptureOption)
+                );
+
+        List<DecisionDTO> decisions =
+                actions.stream()
+                        .map(action ->
+                                DecisionDTO.from(
+                                        UUID.randomUUID(),
+                                        action
+                                )
+                        )
+                        .toList();
+
+        return new PresentationResult(
+                actorDTO,
+                optionDTOs,
+                new ArrayList<>(actions),
+                decisions
+        );
+    }
+
+    private PresentationResult presentReintroductionOption(
+            ReintroductionOption reintroductionOption
+    ) {
+
+        ReintroductionAction action =
+                ReintroductionAction.from(reintroductionOption);
+
+        ReintroductionOptionDTO optionDTO =
+                ReintroductionOptionDTO.from(reintroductionOption);
+
+        DecisionDTO rawDecision =
+                DecisionDTO.from(
+                        UUID.randomUUID(),
+                        action
+                );
+
+        return new PresentationResult(
+                optionDTO.pieceDTO(),
+                List.of(optionDTO),
+                List.of(action),
+                List.of(rawDecision)
+        );
+    }
+
+    private PresentationResult presentSkipOption(
+            TurnOption option
+    ) {
+
+        TurnAction action =
+                mapToTurnAction(option);
+
+        DecisionDTO rawDecision =
+                DecisionDTO.skipFrom(UUID.randomUUID());
+
+        return new PresentationResult(
+                PieceDTO.GLOBAL_OPTION,
+                List.of(new SkipOptionDTO()),
+                List.of(action),
+                List.of(rawDecision)
+        );
+    }
+
+    private void addOptions(
             Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
             PieceDTO pieceDTO,
-            List<? extends PlayerOptionDTO> playerOptionDTOList
+            List<PlayerOptionDTO> optionDTOs
     ) {
 
         playerOptions
-                .computeIfAbsent(pieceDTO, k -> new java.util.HashSet<>())
-                .addAll(playerOptionDTOList);
+                .computeIfAbsent(pieceDTO, k -> new HashSet<>())
+                .addAll(optionDTOs);
     }
 
     /**
