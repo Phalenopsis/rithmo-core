@@ -2,13 +2,10 @@ package eu.nicosworld.rithmo.core.e2e;
 
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
-import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
-import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
-import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
+import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -16,7 +13,6 @@ import eu.nicosworld.rithmo.core.PreDefinedGame;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
-import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,11 +37,10 @@ class GameFacadeE2ETest {
 
     @Test
     @DisplayName("Flux complet : Démarrage et exécution d'une action (gère Moves et PreCaptures)")
-    void fullGameFlowTest() throws Exception {
+    void fullGameFlowTest_withRepositoryVerification() throws Exception {
         // 1. ARRANGEMENT
         Game initialGame = PreDefinedGame.predefinedVerySimpleGame();
         UUID gameId = initialGame.getId();
-        RithmoDebug.printBoardAfterArrange(initialGame.getCurrentState().state().board());
 
         // 2. ACTION : Démarrage du jeu
         GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
@@ -56,7 +51,7 @@ class GameFacadeE2ETest {
 
         // 3. ACTION : Sélection et exécution de la première option jouable
         // On simule l'UI qui doit extraire un ID valide pour le moteur
-        UUID actionIdToPlay = FindOptionHelper.findAnyNonSkipOption(statusAfterStart);
+        UUID actionIdToPlay = FindDecisionHelper.findAnyNonSkipDecision(statusAfterStart);
 
         GameStatusDTO statusAfterPlay = gameFacade.play(gameId, actionIdToPlay);
 
@@ -87,29 +82,18 @@ class GameFacadeE2ETest {
 
         StatusDTOAssertion.from(statusAfterStart)
                 .isInPreCapturePhase()
-                .canCaptureInOneDecision("PBT16", "PBC4");
+                .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
 
-        TestDebugger.render(statusAfterStart);
-
-        DecisionDTO dto = statusAfterStart.possibleDecisions()
-                .stream()
-                .filter(d -> !d.skip())
-                .filter(d -> d.capturedIdList().size() > 1)
-                .findFirst()
-                .orElseThrow();
-
-        PieceDTO actor = FindOptionHelper.findActor(statusAfterStart, dto);
-
-        GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), dto.id());
-
-        TestDebugger.render(statusAfterCapture);
-        TestDebugger.print(statusAfterCapture.possibleDecisions());
-        TestDebugger.print(statusAfterCapture.possibleOptions());
+        UUID id = FindDecisionHelper.findCaptureDecisionId(
+                statusAfterStart,
+                "WC16(0,3)",
+                "BT16(0,0)", "BC4(0,0)");
+        GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), id);
 
         StatusDTOAssertion.from(statusAfterCapture)
                 .isInMovePhase()
-                .dontHaveSkipOption()
-                .haveAllDecisionsWithActor(actor)
+                .dontHaveSkipDecision()
+                .haveAllDecisionsWithActor("WP190(0,3)")
                 .havePyramidComposedBy(PlayerColorDTO.BLACK, "BS36", "BS25", "BT9", "BC1")
                 .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
                 .havePyramidValue(PlayerColorDTO.BLACK, 71);
@@ -123,32 +107,20 @@ class GameFacadeE2ETest {
 
         StatusDTOAssertion.from(statusAfterStart)
                 .isInPreCapturePhase()
-                .canCaptureInOneDecision("PBT16", "PBC4");
+                .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
 
-        TestDebugger.render(statusAfterStart);
+        UUID id = FindDecisionHelper.findCaptureDecisionId(
+                statusAfterStart,
+                "WC16(0,3)",
+                "BT16(0,0)", "BC4(0,0)");
 
-        DecisionDTO dto = statusAfterStart.possibleDecisions()
-                .stream()
-                .filter(d -> !d.skip())
-                .filter(d -> d.capturedIdList().size() > 1)
-                .findFirst()
-                .orElseThrow();
-
-        TestDebugger.print(statusAfterStart.possibleOptions());
-        PieceDTO actor = FindOptionHelper.findActor(statusAfterStart, dto);
-        System.out.println(actor);
-
-
-        GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), dto.id());
-
-        TestDebugger.render(statusAfterCapture);
-        //TestDebugger.print(statusAfterCapture.possibleDecisions());
-        //TestDebugger.print(statusAfterCapture.possibleOptions());
+        GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), id);
 
         StatusDTOAssertion.from(statusAfterCapture)
+                .hasActivePlayer(PlayerColorDTO.WHITE)
                 .isInMovePhase()
-                .dontHaveSkipOption()
-                .haveAllDecisionsWithActor(actor)
+                .dontHaveSkipDecision()
+                .haveAllDecisionsWithActor("WP190(0,3)")
                 .havePyramidComposedBy(PlayerColorDTO.BLACK, "BS36")
                 .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
                 .havePyramidValue(PlayerColorDTO.BLACK, 36)
@@ -164,18 +136,17 @@ class GameFacadeE2ETest {
         Game initialGame = PreDefinedTestGame.gameTestForCaptureAfterReintroduction();
         UUID gameId = initialGame.getId();
         GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
-        TestDebugger.render(statusAfterStart);
 
-        UUID captureId = FindOptionHelper.findDecisionWithCaptures(statusAfterStart,1);
+        UUID captureId = FindDecisionHelper.findDecisionWithCaptures(statusAfterStart,1);
         GameStatusDTO statusDTO1 = gameFacade.play(gameId, captureId);
 
-        UUID moveTo23Id = FindOptionHelper.findMoveIdByDestination(statusDTO1, new Position(2,3));
+        UUID moveTo23Id = FindDecisionHelper.findMoveDecisionId(statusDTO1, new Position(2,3));
         GameStatusDTO statusDTO2 = gameFacade.play(gameId, moveTo23Id);
 
-        UUID moveTo22Id = FindOptionHelper.findMoveIdByDestination(statusDTO2, new Position(2,2));
+        UUID moveTo22Id = FindDecisionHelper.findMoveDecisionId(statusDTO2, new Position(2,2));
         GameStatusDTO statusDTO3 = gameFacade.play(gameId, moveTo22Id);
 
-        UUID reintroductionId = FindOptionHelper.findReintroductionIdByDestination(
+        UUID reintroductionId = FindDecisionHelper.findReintroductionIdByDestination(
                 statusDTO3,
                 "BT4",
                 new Position(0, 2)
@@ -187,9 +158,9 @@ class GameFacadeE2ETest {
                 .hasActivePlayer(PlayerColorDTO.BLACK)
                 .reserveDoesNotContain("BT4")
                 .capturedContains("WT4")
-                .canCaptureInOneDecision("WC4");
+                .canCaptureInOneDecision("WC4(2,2)");
 
-        UUID captureAfterReintroductionId = FindOptionHelper.findDecisionWithCaptures(statusDTO4, 1);
+        UUID captureAfterReintroductionId = FindDecisionHelper.findDecisionWithCaptures(statusDTO4, 1);
         assertThatThrownBy(() -> gameFacade.play(gameId, captureAfterReintroductionId))
                 .isInstanceOf(PatException.class)
                 .hasMessage("WHITE is pat");

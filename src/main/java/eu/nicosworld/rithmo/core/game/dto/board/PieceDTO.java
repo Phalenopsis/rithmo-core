@@ -7,13 +7,46 @@ import eu.nicosworld.rithmo.engine.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * UI-facing representation of a game piece in its current or contextual state.
+ * <p>
+ * A {@code PieceDTO} is a read-model projection of a domain {@link Piece} or
+ * {@link PieceAtPosition}, used exclusively for UI rendering and option display.
+ * It is not part of the engine model and carries no behavior.
+ *
+ * <p>
+ * This DTO is designed to support both:
+ * <ul>
+ *     <li>simple pieces (direct mapping of a single engine piece)</li>
+ *     <li>composite pieces (such as pyramids, which expose their internal components)</li>
+ * </ul>
+ *
+ * <p>
+ * For composite structures like pyramids, the {@code components} field contains
+ * a flattened representation of the internal pieces, all contextualized at the
+ * same board position.
+ *
+ * <p>
+ * Special cases:
+ * <ul>
+ *     <li>{@link #GLOBAL_OPTION} is used as a sentinel value for non-piece-related UI options (e.g. skip actions)</li>
+ *     <li>{@link #empty()} represents a null-equivalent placeholder and should only be used internally</li>
+ * </ul>
+ *
+ * @param id unique identifier of the piece
+ * @param position current position of the piece on the board (may be {@code null} in some projections)
+ * @param shape geometric or logical shape of the piece
+ * @param value numeric value associated with the piece (game-specific rule)
+ * @param owner owner/player of the piece
+ * @param components list of sub-components if the piece is composite (empty otherwise)
+ */
 public record PieceDTO(
         String id,
         Position position,
         PieceShape shape,
         int value,
         PlayerColorDTO owner,
-        List<PieceDTO> components // Vide sauf pour la PYRAMID
+        List<PieceDTO> components // only for PYRAMID
 ) {
     public static final PieceDTO GLOBAL_OPTION = PieceDTO.empty();
 

@@ -60,7 +60,8 @@ public class TurnProcessorIntegrationAfterMoveTest {
 
         // 2. Action : On récupère un mouvement et on l'applique
         Move move = TurnHelper.getAllMoves(turn1, startingPosition).getFirst();
-        MoveAction action = new MoveAction(move);
+        Piece actor = turn1.state().board().getPieceAt(move.from());
+        MoveAction action = new MoveAction(actor, move);
 
         TurnState turn2 = processor.process(turn1, action);
 
@@ -97,7 +98,8 @@ public class TurnProcessorIntegrationAfterMoveTest {
 
         // 2. Action : On récupère un mouvement et on l'applique
         Move move = TurnHelper.getMove(turn1, startingPosition, goalPosition);
-        MoveAction action = new MoveAction(move);
+        Piece actor = turn1.state().board().getPieceAt(move.from());
+        MoveAction action = new MoveAction(actor, move);
 
         TurnState turn2 = processor.process(turn1, action);
         RithmoDebug.printBoardAfterAct(turn2.state().board());
@@ -138,7 +140,8 @@ public class TurnProcessorIntegrationAfterMoveTest {
 
         // 2. Action : On récupère un mouvement et on l'applique
         Move move = TurnHelper.getMove(turn1, startingPosition, goalPosition);
-        MoveAction action = new MoveAction(move);
+        Piece actor = turn1.state().board().getPieceAt(move.from());
+        MoveAction action = new MoveAction(actor, move);
 
         TurnState turn2 = processor.process(turn1, action);
         RithmoDebug.printBoardAfterAct(turn2.state().board());

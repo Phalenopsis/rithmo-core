@@ -3,30 +3,24 @@ package eu.nicosworld.rithmo.core.e2e;
 import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
-import eu.nicosworld.rithmo.core.helper.FindOptionHelper;
+import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
+import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
-import eu.nicosworld.rithmo.engine.model.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class AmbushTest {
     private GameFacade gameFacade;
-    private InMemoryGameRepository gameRepository;
-    private InMemoryOptionRepository optionRepository;
 
     @BeforeEach
     void setUp() {
-        gameRepository = new InMemoryGameRepository();
-        optionRepository = new InMemoryOptionRepository();
+        InMemoryGameRepository gameRepository = new InMemoryGameRepository();
+        InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
         gameFacade = new GameFacade(gameRepository, optionRepository);
     }
 
@@ -35,11 +29,15 @@ public class AmbushTest {
     void shouldProposeAPostCaptureOption() throws Exception {
         Game game = PreDefinedTestGame.ambushPostCaptureTest_Case();
         GameStatusDTO status = gameFacade.startGame(game);
-        UUID moveId = FindOptionHelper.findMoveIdByDestination(status, new Position(1, 2));
 
+        UUID moveId = FindDecisionHelper.findMoveDecisionId(status, "BC4(0,3)", "(1,2)");
         GameStatusDTO nextStatus = gameFacade.play(status.gameId(), moveId);
 
-        assertThat(nextStatus.phase()).isEqualTo(PhaseDTO.POST_CAPTURE);
+        StatusDTOAssertion.from(nextStatus)
+                .isInPostCapturePhase()
+                .canCaptureInOneDecision("WT12(2,1)")
+                .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
+                .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
     }
 
     @Test
@@ -48,12 +46,10 @@ public class AmbushTest {
         Game game = PreDefinedTestGame.ambushPreCaptureTest_Case();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        TestDebugger.render(status);
-
-        TestDebugger.print(status.possibleOptions());
-
-        assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
-
+        StatusDTOAssertion.from(status)
+                .isInPreCapturePhase()
+                .canCaptureInOneDecision("WT12(2,1)")
+                .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
     }
 
     @Test
@@ -62,12 +58,9 @@ public class AmbushTest {
         Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        TestDebugger.render(status);
-
-        TestDebugger.print(status.possibleOptions());
-
-        assertThat(status.phase()).isEqualTo(PhaseDTO.PRE_CAPTURE);
-        assertThat(status.possibleOptions().size() == 7);
-
+        StatusDTOAssertion.from(status)
+                        .isInPreCapturePhase()
+                .hasNDecisions(11)
+                .hasNOptions(7);
     }
 }

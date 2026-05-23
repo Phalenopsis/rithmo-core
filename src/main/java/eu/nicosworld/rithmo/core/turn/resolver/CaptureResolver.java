@@ -63,8 +63,10 @@ public class CaptureResolver {
 
             for (List<CaptureAction> subset : subsets) {
                 List<Position> validLandings = calculateValidLandings(subset);
+                Piece realActor = subset.getFirst().actor().specificComponent();
+                PieceAtPosition realActorAtPosition = new PieceAtPosition(realActor, piece.position());
 
-                options.add(new PreCaptureOption(List.copyOf(subset), validLandings));
+                options.add(new PreCaptureOption(realActorAtPosition, List.copyOf(subset), validLandings));
             }
         }
 
@@ -91,7 +93,7 @@ public class CaptureResolver {
         );
 
         return resolveCaptureSubsets(actions).stream()
-                .map(PostCaptureOption::new)
+                .map(PostCaptureOption::from)
                 .toList();
     }
 

@@ -33,7 +33,7 @@ public class PreDefinedGame {
         return new Game(options, turnState);
     }
 
-    public static Game FourEigthBoardGame() {
+    public static Game fourEightBoardGame() {
         Board board = new BoardBuilder(8, 4)
                 // --- Black player (Columns 0 and 1) ---
                 .fullBlackPyramidAt(new Position(0, 0))

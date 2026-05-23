@@ -2,6 +2,7 @@ package eu.nicosworld.rithmo.core.turn.resolver;
 
 import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.engine.model.GameState;
+import eu.nicosworld.rithmo.engine.model.Piece;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
@@ -11,11 +12,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * High-level coordinator responsible for determining the available {@link TurnOption}s
- * based on the current {@link eu.nicosworld.rithmo.core.turn.TurnPhase}.
- * <p>
- * It leverages specialized resolvers for movement and capture logic to build
- * the list of choices presented to the player.
+ * High-level coordinator responsible for resolving legal {@link TurnOption}s
+ * for each phase of a turn.
+ *
+ * <p>This component acts as the bridge between low-level engine resolvers
+ * and the application-layer projection pipeline.</p>
+ *
+ * <p>It delegates movement, capture, and reintroduction computation
+ * to specialized resolvers and aggregates their results into
+ * structured {@link TurnOption} collections.</p>
+ *
+ * <p>The produced options are later transformed into:
+ * <ul>
+ *     <li>player-visible option DTOs</li>
+ *     <li>UI decisions</li>
+ *     <li>executable turn actions</li>
+ * </ul>
+ * </p>
  */
 public class PhaseResolver {
 
@@ -54,17 +67,25 @@ public class PhaseResolver {
     }
 
     /**
-     * Resolves all possible movement options for the current player.
+     * Resolves all movement-related options available for the current player.
+     *
+     * <p>This includes:
+     * <ul>
+     *     <li>standard movement options</li>
+     *     <li>piece reintroduction options when applicable</li>
+     * </ul>
+     * </p>
      *
      * @param state The current game state.
-     * @return A list of {@link MoveOption}s.
+     * @return A list of movement-phase {@link TurnOption}s.
      */
     public List<TurnOption> resolveMove(GameState state) {
         List<Move> moves = movementResolver.resolveMove(state);
 
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
-            options.add(new MoveOption(move));
+            Piece piece = state.board().getPieceAt(move.from());
+            options.add(MoveOption.from(piece, move));
         }
 
         List<Reintroduction> reintroductions = reintroductionResolver.resolveReintroductions(state);
@@ -76,7 +97,7 @@ public class PhaseResolver {
     }
 
     /**
-     * Resolves movement options restricted to a specific piece.
+     * Resolves movement options restricted to a specific acting piece.
      * Useful for multi-step movements or forced actions.
      *
      * @param state The current game state.
@@ -88,7 +109,7 @@ public class PhaseResolver {
 
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
-            options.add(new MoveOption(move));
+            options.add(MoveOption.from(pap.piece(), move));
         }
 
         return options;
