@@ -8,12 +8,47 @@ import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.application.decision.DecisionRegistry;
-import eu.nicosworld.rithmo.core.turn.application.presenter.TurnProjection;
+import eu.nicosworld.rithmo.core.turn.application.projection.TurnProjection;
 import eu.nicosworld.rithmo.core.turn.application.projection.ExecutableDecision;
 import eu.nicosworld.rithmo.core.turn.option.*;
 
 import java.util.*;
 
+/**
+ * Orchestrates the projection of the current game state into a UI-consumable structure.
+ *
+ * <p>This class is responsible for transforming engine-generated {@link TurnOption}s
+ * into a structured representation of:
+ * <ul>
+ *     <li>visible player options</li>
+ *     <li>executable decisions bound to engine actions</li>
+ * </ul>
+ * </p>
+ *
+ * <p>It acts as the boundary between the engine layer and the external UI layer
+ * (web, JavaFX, AI clients, etc.), ensuring that no engine-specific logic leaks
+ * into UI consumption models.</p>
+ *
+ * <p>The assembly process follows a two-step pipeline:</p>
+ * <ol>
+ *     <li>Each {@link TurnOption} is projected into a {@link TurnProjection}</li>
+ *     <li>Projections are aggregated into a final {@link UiInformation} object</li>
+ * </ol>
+ *
+ * <p>This design removes all index-based coupling between actions and decisions
+ * by relying on explicit {@link ExecutableDecision} bindings.</p>
+ *
+ * <p>Internally, a {@link DecisionRegistry} is used to:
+ * <ul>
+ *     <li>ensure stable decision identity across the game session</li>
+ *     <li>persist executable actions associated with decisions</li>
+ *     <li>deduplicate equivalent decision structures</li>
+ * </ul>
+ * </p>
+ *
+ * <p>This class is intentionally stateless with respect to game logic,
+ * and only performs projection and orchestration responsibilities.</p>
+ */
 public class GameStatusAssembler {
 
     private final OptionRepository optionRepository;

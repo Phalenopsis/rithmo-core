@@ -5,7 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0-SNAPSHOT] - In work
+## [0.2.3] - 2026-05-23
+
+### Changed
+
+* **FindOptionHelper** renamed to **FindDecisionHelper** and extended with additional helper methods
+* **StatusDTOAssertion**: added new assertion methods for improved game state validation
+* **PreDefinedGame**: renamed `FourEightBoardGame` to `fourEightBoardGame`
+
+---
+
+### Fixed
+
+* **GameFacade**: fixed a real-world bug related to pyramid component naming collision (Pyramid components vs pyramid components)
+
+---
+
+### Refactor
+
+* **GameFacade**:
+  * reduced responsibilities by delegating turn processing, decision handling, and UI assembly to dedicated components (`TurnProcessorFactory`, `GameStatusAssembler`, `DecisionRegistry`)
+
+* **TurnProcessorFactory**:
+  * extracted processor creation and engine wiring logic
+  * centralized capture rule registration and victory rule resolution
+
+* **GameStatusAssembler**:
+  * refactored projection pipeline to remove index-based coupling between actions and decisions
+  * replaced `PresentationResult` with `TurnProjection`
+  * introduced `ExecutableDecision` to explicitly bind `DecisionDTO` and `TurnAction`
+
+* **Presentation Layer**:
+  * replaced `PresentationResult` with `TurnProjection`
+  * removed parallel list synchronization between actions and decisions
+  * introduced explicit binding model via `ExecutableDecision`
+
+* **Decision System**:
+  * introduced `DecisionRegistry` to centralize:
+    - decision identity generation
+    - deduplication of UI decisions
+    - persistence of executable actions (`PendingAction`)
+  * removed index-based correlation between UI decisions and engine actions
+  * strengthened separation between UI projection and engine execution
+
+* **Application Architecture**:
+  * clarified separation between:
+    - engine execution (`TurnProcessor`, `PhaseResolver`, `ActionApplier`)
+    - application projection layer (`GameStatusAssembler`, `DecisionRegistry`)
+  * reinforced unidirectional flow:
+    `Game → TurnState → Engine Execution → UI Projection → Decision Execution`
+
+* **Core Flow**:
+  * simplified execution pipeline to:
+    `load → execute → persist → project`
+
+---
+
+### Notes
+
+* Versions 0.2.1 and 0.2.2 were deployed to diagnose a core/engine versioning mismatch issue
+---
+
+## [0.2.0-SNAPSHOT] - 2026/05/16
 
 ### Added
 - **BoardDTO**: Add width and height.
