@@ -36,7 +36,7 @@ public class GameStatusAssembler {
         for (TurnOption option : game.getCurrentState().options()) {
 
             PresentationResult result =
-                    presentOption(game, option);
+                    presentOption(option);
 
             addOptions(
                     playerOptionPerPiece,
@@ -60,15 +60,12 @@ public class GameStatusAssembler {
         );
     }
 
-    private PresentationResult presentOption(
-            Game game,
-            TurnOption option
-    ) {
+    private PresentationResult presentOption(TurnOption option) {
 
         return switch (option) {
 
             case MoveOption moveOption ->
-                    presentMoveOption(game, moveOption);
+                    presentMoveOption(moveOption);
 
             case PostCaptureOption postCaptureOption ->
                     presentPostCaptureOption(postCaptureOption);
@@ -87,30 +84,14 @@ public class GameStatusAssembler {
         };
     }
 
-    private PresentationResult presentMoveOption(
-            Game game,
-            MoveOption moveOption
-    ) {
+    private PresentationResult presentMoveOption(MoveOption moveOption) {
 
         MoveAction action =
                 MoveAction.from(moveOption);
 
-        Position actorPosition =
-                moveOption.move().from();
-
-        Piece actor =
-                game.getCurrentState()
-                        .state()
-                        .board()
-                        .getPieceAt(actorPosition);
-
-        PieceDTO actorDTO =
-                PieceDTO.from(actor, actorPosition);
-
         DecisionDTO rawDecision =
                 DecisionDTO.from(
                         UUID.randomUUID(),
-                        game.getCurrentState().state().board(),
                         action
                 );
 
@@ -118,7 +99,7 @@ public class GameStatusAssembler {
                 MoveOptionDTO.from(moveOption);
 
         return new PresentationResult(
-                actorDTO,
+                optionDTO.actor(),
                 List.of(optionDTO),
                 List.of(action),
                 List.of(rawDecision)

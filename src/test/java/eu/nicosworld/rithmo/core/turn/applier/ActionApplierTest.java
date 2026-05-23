@@ -154,6 +154,7 @@ class ActionApplierTest {
         GameState state = GameState.initial(board, Player.BLACK);
 
         MoveAction action = new MoveAction(
+                blackCircle,
                 new Move(blackCirclePosition,
                         blackCirclePositionAfterMove,
                         MoveNature.REGULAR)
@@ -182,6 +183,7 @@ class ActionApplierTest {
         GameState state = GameState.initial(board, Player.WHITE);
 
         MoveAction action = new MoveAction(
+                whiteTriangle,
                 new Move(whiteTrianglePosition,
                         whiteTrianglePositionAfterMove,
                         MoveNature.IRREGULAR)

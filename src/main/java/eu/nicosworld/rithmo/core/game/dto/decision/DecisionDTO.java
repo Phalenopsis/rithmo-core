@@ -26,11 +26,10 @@ public record DecisionDTO(
         Position landing,
         boolean skip
 ) {
-    public static DecisionDTO from(UUID id, Board board, MoveAction moveAction) {
-        Piece piece = board.getPieceAt(moveAction.move().from());
+    public static DecisionDTO from(UUID id, MoveAction moveAction) {
         return new DecisionDTO(
                 id,
-                piece.getId(),
+                moveAction.actor().getId(),
                 Set.of(),
                 moveAction.move().to(),
                 false

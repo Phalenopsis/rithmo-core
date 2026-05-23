@@ -2,6 +2,7 @@ package eu.nicosworld.rithmo.core.turn.resolver;
 
 import eu.nicosworld.rithmo.core.turn.option.*;
 import eu.nicosworld.rithmo.engine.model.GameState;
+import eu.nicosworld.rithmo.engine.model.Piece;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
@@ -64,7 +65,8 @@ public class PhaseResolver {
 
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
-            options.add(new MoveOption(move));
+            Piece piece = state.board().getPieceAt(move.from());
+            options.add(new MoveOption(piece, move));
         }
 
         List<Reintroduction> reintroductions = reintroductionResolver.resolveReintroductions(state);
@@ -88,7 +90,7 @@ public class PhaseResolver {
 
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
-            options.add(new MoveOption(move));
+            options.add(new MoveOption(pap.piece(), move));
         }
 
         return options;

@@ -1,5 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.option;
 
+import eu.nicosworld.rithmo.engine.model.Piece;
 import eu.nicosworld.rithmo.engine.move.Move;
 
 /**
@@ -7,4 +8,7 @@ import eu.nicosworld.rithmo.engine.move.Move;
  *
  * @param move The engine-level move details.
  */
-public record MoveOption(Move move) implements TurnOption {}
+public record MoveOption(
+        Piece actor,
+        Move move
+) implements TurnOption {}
