@@ -8,7 +8,8 @@ import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.application.decision.DecisionRegistry;
-import eu.nicosworld.rithmo.core.turn.application.presenter.PresentationResult;
+import eu.nicosworld.rithmo.core.turn.application.presenter.TurnProjection;
+import eu.nicosworld.rithmo.core.turn.application.projection.ExecutableDecision;
 import eu.nicosworld.rithmo.core.turn.option.*;
 
 import java.util.*;
@@ -33,21 +34,20 @@ public class GameStatusAssembler {
 
         for (TurnOption option : game.getCurrentState().options()) {
 
-            PresentationResult result =
-                    presentOption(option);
+            TurnProjection projection = presentOption(option);
 
             addOptions(
                     playerOptionPerPiece,
-                    result.piece(),
-                    result.options()
+                    projection.piece(),
+                    projection.options()
             );
 
-            for (int i = 0; i < result.actions().size(); i++) {
+            for (ExecutableDecision executable : projection.executableDecisions()) {
 
                 decisionRegistry.register(
                         game.getId(),
-                        result.actions().get(i),
-                        result.decisions().get(i)
+                        executable.action(),
+                        executable.decision()
                 );
             }
         }
@@ -58,7 +58,7 @@ public class GameStatusAssembler {
         );
     }
 
-    private PresentationResult presentOption(TurnOption option) {
+    private TurnProjection presentOption(TurnOption option) {
 
         return switch (option) {
 
@@ -82,29 +82,27 @@ public class GameStatusAssembler {
         };
     }
 
-    private PresentationResult presentMoveOption(MoveOption moveOption) {
+    private TurnProjection presentMoveOption(MoveOption moveOption) {
 
-        MoveAction action =
-                MoveAction.from(moveOption);
+        MoveAction action = MoveAction.from(moveOption);
 
-        DecisionDTO rawDecision =
-                DecisionDTO.from(
-                        UUID.randomUUID(),
-                        action
-                );
+        DecisionDTO decision =
+                DecisionDTO.from(UUID.randomUUID(), action);
 
         MoveOptionDTO optionDTO =
                 MoveOptionDTO.from(moveOption);
 
-        return new PresentationResult(
+        ExecutableDecision executable =
+                new ExecutableDecision(decision, action);
+
+        return new TurnProjection(
                 optionDTO.actor(),
                 List.of(optionDTO),
-                List.of(action),
-                List.of(rawDecision)
+                List.of(executable)
         );
     }
 
-    private PresentationResult presentPostCaptureOption(
+    private TurnProjection presentPostCaptureOption(
             PostCaptureOption postCaptureOption
     ) {
 
@@ -125,48 +123,42 @@ public class GameStatusAssembler {
                         CaptureOptionDTO.from(postCaptureOption)
                 );
 
-        return new PresentationResult(
+        return new TurnProjection(
                 actorDTO,
                 optionDTOs,
-                List.of(action),
-                List.of(rawDecision)
+                List.of(new ExecutableDecision(rawDecision, action))
         );
     }
 
-    private PresentationResult presentPreCaptureOption(
-            PreCaptureOption preCaptureOption
-    ) {
+    private TurnProjection presentPreCaptureOption(PreCaptureOption option) {
 
         List<PreCaptureAction> actions =
-                PreCaptureAction.from(preCaptureOption);
+                PreCaptureAction.from(option);
 
         PieceDTO actorDTO =
-                PieceDTO.from(preCaptureOption.actor());
+                PieceDTO.from(option.actor());
 
         List<PlayerOptionDTO> optionDTOs =
-                new ArrayList<>(
-                        PreCaptureOptionDTO.from(preCaptureOption)
-                );
+                new ArrayList<>(PreCaptureOptionDTO.from(option));
 
-        List<DecisionDTO> decisions =
+        List<ExecutableDecision> executableDecisions =
                 actions.stream()
-                        .map(action ->
-                                DecisionDTO.from(
-                                        UUID.randomUUID(),
-                                        action
-                                )
-                        )
+                        .map(action -> {
+                            DecisionDTO decision =
+                                    DecisionDTO.from(UUID.randomUUID(), action);
+
+                            return new ExecutableDecision(decision, action);
+                        })
                         .toList();
 
-        return new PresentationResult(
+        return new TurnProjection(
                 actorDTO,
                 optionDTOs,
-                new ArrayList<>(actions),
-                decisions
+                executableDecisions
         );
     }
 
-    private PresentationResult presentReintroductionOption(
+    private TurnProjection presentReintroductionOption(
             ReintroductionOption reintroductionOption
     ) {
 
@@ -182,29 +174,28 @@ public class GameStatusAssembler {
                         action
                 );
 
-        return new PresentationResult(
+        return new TurnProjection(
                 optionDTO.pieceDTO(),
                 List.of(optionDTO),
-                List.of(action),
-                List.of(rawDecision)
-        );
+                List.of(
+                new ExecutableDecision(
+                        rawDecision,
+                        action
+                )
+        ));
     }
 
-    private PresentationResult presentSkipOption(
-            TurnOption option
-    ) {
+    private TurnProjection presentSkipOption(TurnOption option) {
 
-        TurnAction action =
-                mapToSkipTurnAction(option);
+        TurnAction action = mapToSkipTurnAction(option);
 
-        DecisionDTO rawDecision =
+        DecisionDTO decision =
                 DecisionDTO.skipFrom(UUID.randomUUID());
 
-        return new PresentationResult(
+        return new TurnProjection(
                 PieceDTO.GLOBAL_OPTION,
                 List.of(new SkipOptionDTO()),
-                List.of(action),
-                List.of(rawDecision)
+                List.of(new ExecutableDecision(decision, action))
         );
     }
 
