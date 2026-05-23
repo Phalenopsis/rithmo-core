@@ -66,7 +66,7 @@ public class PhaseResolver {
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
             Piece piece = state.board().getPieceAt(move.from());
-            options.add(new MoveOption(piece, move));
+            options.add(MoveOption.from(piece, move));
         }
 
         List<Reintroduction> reintroductions = reintroductionResolver.resolveReintroductions(state);
@@ -90,7 +90,7 @@ public class PhaseResolver {
 
         List<TurnOption> options = new ArrayList<>();
         for (Move move : moves) {
-            options.add(new MoveOption(pap.piece(), move));
+            options.add(MoveOption.from(pap.piece(), move));
         }
 
         return options;

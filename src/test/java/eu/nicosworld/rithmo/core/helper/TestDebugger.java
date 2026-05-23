@@ -24,13 +24,13 @@ public class TestDebugger {
 
     public static void print(Set<DecisionDTO> decisions) {
 
-        System.out.println("START TEST DEBUGGER");
+        System.out.println("PRINT POSSIBLE DECISIONS");
 
         for (DecisionDTO decision : decisions) {
             System.out.println(decision);
         }
 
-        System.out.println("END TEST DEBUGGER");
+        System.out.println("END PRINT POSSIBLE DECISIONS");
     }
 
     public static void printTurnOption(List<? extends TurnOption> list) {

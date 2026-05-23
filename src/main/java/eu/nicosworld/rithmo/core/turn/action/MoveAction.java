@@ -11,6 +11,6 @@ import eu.nicosworld.rithmo.engine.move.Move;
  */
 public record MoveAction(Piece actor, Move move) implements TurnAction {
     public static MoveAction from(MoveOption option) {
-        return new MoveAction(option.actor(), option.move());
+        return new MoveAction(option.actor().piece(), option.move());
     }
 }

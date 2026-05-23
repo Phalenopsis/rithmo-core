@@ -12,7 +12,7 @@ public record MoveOptionDTO(
 ) implements PlayerOptionDTO {
     public static MoveOptionDTO from(MoveOption option) {
         return new MoveOptionDTO(
-                PieceDTO.from(option.actor(), option.move().from()),
+                PieceDTO.from(option.actor().piece(), option.move().from()),
                 option.move().to(),
                 MoveTypeDTO.from(option.move().nature())
         );

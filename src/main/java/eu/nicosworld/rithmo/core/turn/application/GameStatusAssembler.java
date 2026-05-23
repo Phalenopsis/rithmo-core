@@ -10,8 +10,6 @@ import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.application.decision.DecisionRegistry;
 import eu.nicosworld.rithmo.core.turn.application.presenter.PresentationResult;
 import eu.nicosworld.rithmo.core.turn.option.*;
-import eu.nicosworld.rithmo.engine.model.Piece;
-import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.*;
 
@@ -113,20 +111,8 @@ public class GameStatusAssembler {
         PostCaptureAction action =
                 PostCaptureAction.from(postCaptureOption);
 
-        Position actorPosition =
-                postCaptureOption.captures()
-                        .getFirst()
-                        .actor()
-                        .position();
-
-        Piece actor =
-                postCaptureOption.captures()
-                        .getFirst()
-                        .actor()
-                        .specificComponent();
-
         PieceDTO actorDTO =
-                PieceDTO.from(actor, actorPosition);
+                PieceDTO.from(postCaptureOption.actor());
 
         DecisionDTO rawDecision =
                 DecisionDTO.from(
@@ -154,20 +140,8 @@ public class GameStatusAssembler {
         List<PreCaptureAction> actions =
                 PreCaptureAction.from(preCaptureOption);
 
-        Position actorPosition =
-                preCaptureOption.captures()
-                        .getFirst()
-                        .actor()
-                        .position();
-
-        Piece actor =
-                preCaptureOption.captures()
-                        .getFirst()
-                        .actor()
-                        .specificComponent();
-
         PieceDTO actorDTO =
-                PieceDTO.from(actor, actorPosition);
+                PieceDTO.from(preCaptureOption.actor());
 
         List<PlayerOptionDTO> optionDTOs =
                 new ArrayList<>(
@@ -221,7 +195,7 @@ public class GameStatusAssembler {
     ) {
 
         TurnAction action =
-                mapToTurnAction(option);
+                mapToSkipTurnAction(option);
 
         DecisionDTO rawDecision =
                 DecisionDTO.skipFrom(UUID.randomUUID());
@@ -249,26 +223,16 @@ public class GameStatusAssembler {
      * Maps a selection option
      * to its corresponding executable action.
      */
-    private TurnAction mapToTurnAction(
+    private TurnAction mapToSkipTurnAction(
             TurnOption option
     ) {
 
         return switch (option) {
-
-            case MoveOption moveOption ->
-                    MoveAction.from(moveOption);
-
-            case PostCaptureOption postCaptureOption ->
-                    PostCaptureAction.from(postCaptureOption);
-
             case SkipPreCaptureOption skipPreCaptureOption ->
                     SkipPreCaptureAction.from(skipPreCaptureOption);
 
             case SkipPostCaptureOption skipPostCaptureOption ->
                     SkipPostCaptureAction.from(skipPostCaptureOption);
-
-            case ReintroductionOption reintroductionOption ->
-                    ReintroductionAction.from(reintroductionOption);
 
             default ->
                     throw new RuntimeException("Bad Turn Option");

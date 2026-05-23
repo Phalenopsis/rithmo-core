@@ -262,4 +262,20 @@ public class PreDefinedTestGame {
         TurnState turnState = TurnState.of(gameState, TurnPhase.START);
         return new Game(options, turnState);
     }
+
+    public static Game gameTestWithMultiplePreCaptures() {
+        Board board = new BoardBuilder(4, 4)
+                .blackCircle(4).at(2, 1)
+                .whiteTriangle(4).at(3, 2)
+                .whiteCircle(4).at(3,0)
+                .blackTriangle(16).at(1,2)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.ENCOUNTER, CaptureRuleOption.POWER),
+                Map.of(VictoryRuleOption.BODY, 5)
+        );
+        GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+        return new Game(options, turnState);
+    }
 }
