@@ -1,137 +1,71 @@
 package eu.nicosworld.rithmo.core.turn.application.decision;
 
 import eu.nicosworld.rithmo.core.DecisionKey;
-import eu.nicosworld.rithmo.core.game.PendingAction;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.TurnAction;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+
 /**
- * Maintains UI decision identity consistency across multiple engine actions.
+ * Orchestrates the full lifecycle of a UI decision.
  *
- * Multiple engine actions may correspond to the same player-facing decision.
- * This registry:
- * - deduplicates UI decisions
- * - guarantees stable decision IDs
- * - persists executable pending actions
+ * <p>This includes:</p>
+ * <ul>
+ *     <li>Resolving stable decision identity</li>
+ *     <li>Projecting raw engine output into UI DTOs</li>
+ *     <li>Persisting executable actions for later execution</li>
+ *     <li>Maintaining an in-memory set of active UI decisions</li>
+ * </ul>
+ *
+ * <p>This class does not contain domain logic itself.
+ * It delegates responsibilities to specialized services.</p>
+ *
+ * <p>It acts as the coordination layer between engine output
+ * and UI-facing decision representation.</p>
  */
 public class DecisionRegistry {
 
-    private final OptionRepository optionRepository;
+    private final DecisionIdService idService;
+    private final DecisionProjectionService projectionService;
+    private final DecisionCommandStore commandStore;
 
-    /**
-     * UI-visible decisions.
-     */
-    private final Set<DecisionDTO> decisions =
-            new HashSet<>();
-
-    /**
-     * Deduplication registry.
-     */
-    private final Map<DecisionKey, UUID> existingDecisionIds =
-            new HashMap<>();
+    private final Set<DecisionDTO> decisions = new HashSet<>();
 
     public DecisionRegistry(
             OptionRepository optionRepository
     ) {
-        this.optionRepository = optionRepository;
+        this.idService = new DecisionIdService();
+        this.projectionService = new DecisionProjectionService();
+        this.commandStore = new DecisionCommandStore(optionRepository);
     }
 
-    /**
-     * Registers a new executable action and associates it
-     * with a stable UI decision identifier.
-     *
-     * Several engine actions may share the same decision ID.
-     */
     public void register(
             UUID gameId,
             TurnAction action,
             DecisionDTO rawDecision
     ) {
 
-        DecisionKey key =
-                buildDecisionKey(rawDecision);
+        DecisionKey key = buildKey(rawDecision);
 
-        UUID decisionId =
-                existingDecisionIds.computeIfAbsent(
-                        key,
-                        k -> UUID.randomUUID()
-                );
+        UUID id = idService.resolve(key);
 
-        boolean alreadyExists =
-                decisions.stream()
-                        .anyMatch(d ->
-                                d.id().equals(decisionId)
-                        );
+        DecisionDTO finalDecision =
+                projectionService.build(id, rawDecision);
 
-        if (!alreadyExists) {
+        decisions.add(finalDecision);
 
-            DecisionDTO finalDecision;
-
-            if (rawDecision.skip()) {
-
-                finalDecision =
-                        DecisionDTO.skipFrom(decisionId);
-
-            } else {
-
-                finalDecision =
-                        new DecisionDTO(
-                                decisionId,
-                                rawDecision.actorId(),
-                                rawDecision.capturedIdList(),
-                                rawDecision.landing(),
-                                false
-                        );
-            }
-
-            decisions.add(finalDecision);
-        }
-
-        /**
-         * IMPORTANT:
-         * multiple engine actions
-         * may share the same decision ID
-         */
-        savePending(
-                gameId,
-                decisionId,
-                action
-        );
+        commandStore.store(gameId, id, action);
     }
 
     public Set<DecisionDTO> getDecisions() {
         return Set.copyOf(decisions);
     }
 
-    /**
-     * Persists an executable pending action.
-     */
-    private void savePending(
-            UUID gameId,
-            UUID decisionId,
-            TurnAction action
-    ) {
-
-        optionRepository.save(
-                new PendingAction(
-                        decisionId,
-                        gameId,
-                        action
-                )
-        );
-    }
-
-    private DecisionKey buildDecisionKey(
-            DecisionDTO dto
-    ) {
-
+    private DecisionKey buildKey(DecisionDTO dto) {
         return new DecisionKey(
                 dto.actorId(),
                 dto.capturedIdList(),
