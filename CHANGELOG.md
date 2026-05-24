@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4-SNAPSHOT] - in progress
+
+### Added
+
+* **PreDefinedGame**: added a predefined test game with 4 rules
+* **Config**: added a test JAR to expose test helpers in deployed packages
+
+### Tests
+
+* Added tests for multiple captures within the same decision
+
 ## [0.2.3] - 2026-05-23
 
 ### Changed
