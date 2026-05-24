@@ -6,6 +6,7 @@ import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
+import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
@@ -31,5 +32,20 @@ public class MultiplePreCaptureTest {
         TestDebugger.print(status.possibleOptions());
 
         TestDebugger.print(status.possibleDecisions());
+    }
+
+    @Test
+    void test4Rules() throws VictoryException, PatException {
+        Game game = PreDefinedTestGame.gameWithMultiCaptures_FourRules();
+        GameStatusDTO status = gameFacade.startGame(game);
+
+        TestDebugger.render(status);
+        TestDebugger.print(status.possibleOptions());
+
+        TestDebugger.print(status.possibleDecisions());
+
+        StatusDTOAssertion.from(status)
+                .isInPreCapturePhase();
+
     }
 }

@@ -1,7 +1,9 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
+import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
+import eu.nicosworld.rithmo.engine.capture.capturerule.AssaultRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.PowerRule;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureContext;
@@ -295,6 +297,9 @@ class CaptureResolverTest {
             List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
             System.out.println("RAW CAPTURES:");
+            for(PreCaptureOption choice : choices) {
+                System.out.println(choice);
+            }
 
             assertEquals(3, choices.size());
         }
@@ -321,6 +326,32 @@ class CaptureResolverTest {
             List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
             assertEquals(6, choices.size());
+        }
+    }
+
+    @Nested
+    class FourRulesEngine {
+        @BeforeEach
+        void setup() {
+            EncounterRule encounterRule = new EncounterRule(regularMoveGenerator, freePathMovementValidator);
+            PowerRule powerRule = new PowerRule(regularMoveGenerator, freePathMovementValidator);
+            AssaultRule assaultRule = new AssaultRule(regularMoveGenerator, freePathMovementValidator);
+            AmbushRule ambushRule = new AmbushRule(regularMoveGenerator, freePathMovementValidator);
+
+            captureEngine = new CaptureEngine(List.of(encounterRule, powerRule, assaultRule, ambushRule));
+            captureResolver = new CaptureResolver(captureEngine);
+        }
+
+        @Test
+        void resolvePostCaptures_WithPyramids() {
+            Board board = PreDefinedTestGame.gameWithMultiCaptures_FourRules().getCurrentState().state().board();
+
+            List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
+            for(PreCaptureOption choice: choices) {
+                System.out.println(choice);
+            }
+
+            assertEquals(13, choices.size());
         }
     }
 

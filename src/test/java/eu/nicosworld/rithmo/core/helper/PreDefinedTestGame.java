@@ -278,4 +278,22 @@ public class PreDefinedTestGame {
         TurnState turnState = TurnState.of(gameState, TurnPhase.START);
         return new Game(options, turnState);
     }
+
+    public static Game gameWithMultiCaptures_FourRules() {
+        Board board = new BoardBuilder(4,4)
+                .blackSquare(8).at(0,0)
+                .blackTriangle(8).at(2, 3)
+                .piece(PieceType.PYRAMID, 0, PlayerColor.WHITE)
+                .withComponent(PieceType.CIRCLE, 8)
+                .withComponent(PieceType.TRIANGLE,64)
+                .at(0, 3)
+                .build();
+        GameOptions options = new GameOptions(
+                Set.of(CaptureRuleOption.ENCOUNTER, CaptureRuleOption.POWER, CaptureRuleOption.ASSAULT, CaptureRuleOption.AMBUSH),
+                Map.of(VictoryRuleOption.BODY, 5)
+        );
+        GameState gameState = GameState.initial(board, Player.BLACK);
+        TurnState turnState = TurnState.of(gameState, TurnPhase.START);
+        return new Game(options, turnState);
+    }
 }
