@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * **PreDefinedGame**: added a predefined test game with 4 rules
-* **Config**: added a test JAR to expose test helpers in deployed packages
+* **Build**: added a filtered test JAR to expose reusable test helpers to downstream test suites
 
 ### Tests
 

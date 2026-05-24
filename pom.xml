@@ -2,10 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- ===================== -->
+    <!-- Project metadata -->
+    <!-- ===================== -->
     <groupId>eu.nicosworld</groupId>
     <artifactId>rithmo-core</artifactId>
     <version>0.2.4-SNAPSHOT</version>
@@ -20,13 +23,24 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <!-- Java -->
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+
+        <!-- Internal dependencies -->
         <rithmo-engine.version>0.5.1-SNAPSHOT</rithmo-engine.version>
 
+        <!-- Test dependencies -->
         <junit.version>5.10.0</junit.version>
         <mockito.version>5.11.0</mockito.version>
         <assertj.version>3.27.7</assertj.version>
+
+        <!-- Maven plugins -->
+        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+        <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
+        <maven.jar.plugin.version>3.4.1</maven.jar.plugin.version>
     </properties>
 
     <!-- ===================== -->
@@ -45,14 +59,23 @@
     <!-- ===================== -->
     <dependencies>
 
-        <!-- 🔗 ENGINE -->
+        <!-- Engine -->
         <dependency>
             <groupId>eu.nicosworld</groupId>
             <artifactId>rithmo-engine</artifactId>
             <version>${rithmo-engine.version}</version>
         </dependency>
 
-        <!-- 🧪 JUnit 5 -->
+        <!-- Engine test helpers -->
+        <dependency>
+            <groupId>eu.nicosworld</groupId>
+            <artifactId>rithmo-engine</artifactId>
+            <version>${rithmo-engine.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -60,7 +83,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- 🎭 Mockito Core -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -68,7 +90,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- 🎭 Mockito JUnit 5 integration (optionnel mais recommandé) -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -83,14 +104,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>eu.nicosworld</groupId>
-            <artifactId>rithmo-engine</artifactId>
-            <version>${rithmo-engine.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <!-- ===================== -->
@@ -99,11 +112,11 @@
     <build>
         <plugins>
 
-            <!-- Compiler -->
+            <!-- Java compilation -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
@@ -111,28 +124,28 @@
                 </configuration>
             </plugin>
 
-            <!-- Tests -->
+            <!-- Unit tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+                <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
 
-            <!-- IMPORTANT: permet packaging propre pour lib -->
+            <!-- Deployment -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>${maven.deploy.plugin.version}</version>
             </plugin>
 
-            <!-- (optionnel mais recommandé) sources jar -->
+            <!-- Sources JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>${maven.source.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -143,11 +156,14 @@
                 </executions>
             </plugin>
 
+            <!-- Filtered test JAR for reusable test helpers -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.plugin.version}</version>
                 <executions>
                     <execution>
+                        <id>attach-test-helpers</id>
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
@@ -163,6 +179,9 @@
         </plugins>
     </build>
 
+    <!-- ===================== -->
+    <!-- Distribution -->
+    <!-- ===================== -->
     <distributionManagement>
         <repository>
             <id>github</id>
@@ -170,4 +189,5 @@
             <url>https://maven.pkg.github.com/Phalenopsis/rithmo-core</url>
         </repository>
     </distributionManagement>
+
 </project>
