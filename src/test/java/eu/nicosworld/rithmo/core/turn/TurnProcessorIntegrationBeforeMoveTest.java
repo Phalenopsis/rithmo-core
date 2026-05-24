@@ -59,8 +59,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 TurnPhase.START
         );
 
-        RithmoDebug.printBoardAfterAct(state.board());
-
         TurnState turn1 = processor.process(startTurn, null);
 
         assertThat(turn1).isNotSameAs(startTurn);
@@ -87,8 +85,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 state,
                 TurnPhase.START
         );
-
-        RithmoDebug.printBoardAfterAct(state.board());
 
         TurnState turn1 = processor.process(startTurn, null);
 
@@ -120,8 +116,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 TurnPhase.START
         );
 
-        RithmoDebug.printBoardAfterAct(state.board());
-
         TurnState turn1 = processor.process(startTurn, null);
 
         assertThat(turn1).isNotSameAs(startTurn);
@@ -149,8 +143,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 TurnPhase.START
         );
 
-        RithmoDebug.printBoardAfterAct(state.board());
-
         TurnState turn1 = processor.process(startTurn, null);
 
         TurnState turn2 = processor.process(turn1, new SkipPreCaptureAction());
@@ -168,7 +160,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 .hasRegularMoveTo(0,0)
                 .hasRegularMoveTo(0,2)
                 .hasRegularMoveTo(2,0);
-
     }
 
     @Test
@@ -184,8 +175,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 state,
                 TurnPhase.MOVE_COMPUTATION
         );
-
-        RithmoDebug.printBoardAfterAct(state.board());
 
         assertThatThrownBy(() -> processor.process(startTurn, null))
                 .isInstanceOf(PatException.class)
@@ -205,8 +194,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 state,
                 TurnPhase.START
         );
-
-        RithmoDebug.printBoardAfterAct(state.board());
 
         TurnState turn1 = processor.process(startTurn, null);
 
@@ -229,11 +216,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                 TurnPhase.START
         );
 
-        RithmoDebug.printBoardAfterAct(state.board());
-
         TurnState turn1 = processor.process(startTurn, null);
-
-        showOptions(turn1);
 
         Position attackerPos = new Position(0,0);
         Position targetPos = new Position(1,1);
@@ -283,11 +266,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     TurnPhase.START
             );
 
-            RithmoDebug.printBoardAfterAct(state.board());
-
             TurnState turn1 = processor.process(startTurn, null);
-
-            showOptions(turn1);
 
             Position attackerPos = new Position(0,0);
             Position targetPos = new Position(1,1);
@@ -299,8 +278,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
 
             assertThat(turn1).isNotSameAs(startTurn);
             assertThat(turn2).isNotSameAs(turn1);
-
-            RithmoDebug.printBoardAfterAct(turn2.state().board());
 
             TurnAssertion.assertThis(turn2)
                     .isInMoveApplicationPhase()
@@ -330,11 +307,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     TurnPhase.START
             );
 
-            RithmoDebug.printBoardAfterAct(state.board());
-
             TurnState turn1 = processor.process(startTurn, null);
-
-            showOptions(turn1);
 
             TurnAssertion.assertThis(turn1)
                     .hasSkipPreCaptureOption()
@@ -391,8 +364,6 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     state,
                     TurnPhase.START
             );
-
-            RithmoDebug.printBoardAfterAct(state.board());
 
             TurnState turn1 = processor.process(startTurn, null);
 
@@ -452,11 +423,7 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     TurnPhase.START
             );
 
-            RithmoDebug.printBoardAfterAct(state.board());
-
             TurnState turn1 = processor.process(startTurn, null);
-
-            showOptions(turn1);
 
             Position attackerPos = new Position(1,1);
             Position targetPos1 = new Position(2,2);
@@ -470,14 +437,10 @@ class TurnProcessorIntegrationBeforeMoveTest {
                     targetPos2
             );
 
-            System.out.println("Chosen action = " + chosenAction);
-
             TurnState turn2 = processor.process(turn1, chosenAction);
 
             assertThat(turn1).isNotSameAs(startTurn);
             assertThat(turn2).isNotSameAs(turn1);
-
-            RithmoDebug.printBoardAfterAct(turn2.state().board());
 
             TurnAssertion.assertThis(turn2)
                     .isInMoveApplicationPhase()

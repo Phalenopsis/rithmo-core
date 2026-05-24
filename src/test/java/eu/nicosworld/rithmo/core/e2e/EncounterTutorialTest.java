@@ -92,8 +92,6 @@ class EncounterTutorialTest {
         Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
         GameStatusDTO status = gameFacade.startGame(game);
 
-        TestDebugger.render(status);
-
         StatusDTOAssertion.from(status)
                 .isInPreCapturePhase()
                 .hasNOptions(4)

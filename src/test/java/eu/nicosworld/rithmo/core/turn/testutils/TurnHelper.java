@@ -82,8 +82,6 @@ public class TurnHelper {
                 .map(PreCaptureOption.class::cast)
                 .filter(opt -> {
 
-                    System.out.println(opt);
-
                     // 1. Check Landing
                     if (!opt.possibleLandings().contains(landingPos)) {
                         return false;

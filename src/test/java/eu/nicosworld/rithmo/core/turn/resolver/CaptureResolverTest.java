@@ -57,12 +57,6 @@ class CaptureResolverTest {
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
 
-        System.out.println(board.prettyPrint());
-
-        for(PreCaptureOption option: choices) {
-            System.out.println(option);
-        }
-
         assertEquals(7, choices.size());
     }
 
@@ -75,8 +69,6 @@ class CaptureResolverTest {
                 .build();
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-
-        TestDebugger.printTurnOption(choices);
 
         assertEquals(3, choices.size());
     }
@@ -132,17 +124,13 @@ class CaptureResolverTest {
                 .blackCircle(5).at(1,3)
                 .blackCircle(5).at(1,1)
                 .build();
-        RithmoDebug.printBoardAfterArrange(board);
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-        TestDebugger.printTurnOption(choices);
 
         assertEquals(4, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(1,1)))
                 .toList();
-        System.out.println("Options for attacker in 1,1");
-        TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
         assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
@@ -158,17 +146,14 @@ class CaptureResolverTest {
                 .whiteCircle(5).at(2, 0)
                 .blackCircle(5).at(1,3)
                 .build();
-        RithmoDebug.printBoardAfterArrange(board);
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-        TestDebugger.printTurnOption(choices);
 
         assertEquals(4, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(1,1)))
                 .toList();
-        System.out.println("Options for attacker in 1,1");
-        TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
+
         assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
@@ -184,17 +169,13 @@ class CaptureResolverTest {
                 .whiteCircle(5).at(2, 0)
                 .blackCircle(5).at(1,3)
                 .build();
-        RithmoDebug.printBoardAfterArrange(board);
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, Player.WHITE));
-        TestDebugger.printTurnOption(choices);
 
         assertEquals(4, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(0,2)))
                 .toList();
-        System.out.println("Options for attacker in 0,2");
-        TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
         assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
@@ -212,18 +193,14 @@ class CaptureResolverTest {
                 .withComponent(PieceType.CIRCLE, 4)
                 .at(2, 0)
                 .build();
-        RithmoDebug.printBoardAfterArrange(board);
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, Player.WHITE));
-        TestDebugger.printTurnOption(choices);
 
         assertEquals(2, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(2,0))
                 && p.captures().getFirst().actor().specificComponent().getValue() == 5)
                 .toList();
-        System.out.println("Options for attacker component value 5 in 2,0");
-        TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
         assertEquals(1, choicesForAttackerInX1Y1.size());
     }
 
@@ -243,22 +220,19 @@ class CaptureResolverTest {
                 .blackCircle(5)
                 .at(3,1)
                 .build();
-        RithmoDebug.printBoardAfterArrange(board);
 
         List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, Player.WHITE));
-        TestDebugger.printTurnOption(choices);
 
         //assertEquals(2, choices.size());
         List<PreCaptureOption> choicesForAttackerInX1Y1 = choices.stream()
                 .filter(p -> p.captures().getFirst().actor().position().equals(new Position(2,0))
                         && p.captures().getFirst().actor().specificComponent().getValue() == 5)
                 .toList();
-        System.out.println("Options for attacker component value 5 in 2,0");
+
         // attendu : composant valeur 5 peut prendre composant noir de valeur 5 landing en 1,1
         //           composant valeur 5 peut prendre pion noir de valeur 5 landing en 3,1
         //          composant valeur 5 peut prendre composant noir de valeur 5 et pion noir de valeur 5 landing en 1,1
         //          composant valeur 5 peut prendre composant noir de valeur 5 et pion noir de valeur 5 landing en 3,1
-        TestDebugger.printTurnOption(choicesForAttackerInX1Y1);
         assertEquals(3, choicesForAttackerInX1Y1.size());
     }
 
@@ -295,11 +269,6 @@ class CaptureResolverTest {
                     .build();
 
             List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-
-            System.out.println("RAW CAPTURES:");
-            for(PreCaptureOption choice : choices) {
-                System.out.println(choice);
-            }
 
             assertEquals(3, choices.size());
         }
@@ -347,10 +316,6 @@ class CaptureResolverTest {
             Board board = PreDefinedTestGame.gameWithMultiCaptures_FourRules().getCurrentState().state().board();
 
             List<PreCaptureOption> choices = captureResolver.resolvePreCaptures(GameState.initial(board, black));
-            for(PreCaptureOption choice: choices) {
-                System.out.println(choice);
-            }
-
             assertEquals(13, choices.size());
         }
     }

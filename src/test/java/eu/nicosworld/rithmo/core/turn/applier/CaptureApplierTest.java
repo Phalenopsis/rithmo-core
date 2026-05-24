@@ -34,14 +34,9 @@ class CaptureApplierTest {
 
         CaptureAction captureAction = CaptureAction.encounter(actor, target);
 
-        RithmoDebug.printBoardAfterArrange(board);
-
         // Act
         CaptureApplier applier = new CaptureApplier();
         GameState newState = applier.applyCapture(state, captureAction);
-
-        Board newBoard = newState.board();
-        RithmoDebug.printBoardAfterAct(newBoard);
 
         // Assert
         GameStateAssertion.assertThis(newState)
@@ -80,13 +75,9 @@ class CaptureApplierTest {
 
         List<CaptureAction> captureActions = List.of(action1, action2);
 
-        RithmoDebug.printBoardAfterArrange(board);
-
         // Act
         CaptureApplier applier = new CaptureApplier();
         GameState newState = applier.applyCaptures(state, captureActions);
-
-        RithmoDebug.printBoardAfterAct(newState.board());
 
         // Assert
         GameStateAssertion.assertThis(newState)

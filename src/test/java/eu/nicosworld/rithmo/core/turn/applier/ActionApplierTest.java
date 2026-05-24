@@ -188,10 +188,10 @@ class ActionApplierTest {
                         whiteTrianglePositionAfterMove,
                         MoveNature.IRREGULAR)
         );
-        RithmoDebug.printBoardAfterArrange(state.board());
+
         AppliedResult result = actionApplier.apply(state, action);
         GameState newGameState = result.gameState();
-        printBoardAfterAct(newGameState.board());
+
         assertThat(result.landingPosition())
                 .isEqualTo(whiteTrianglePositionAfterMove);
         assertTrue(result.wasMoveIrregular());
@@ -218,10 +218,9 @@ class ActionApplierTest {
                         blackCircleCaptureWhiteAt00
                 )
         );
-        RithmoDebug.printBoardAfterArrange(state.board());
+
         AppliedResult result = actionApplier.apply(state, action);
         GameState newGameState = result.gameState();
-        printBoardAfterAct(newGameState.board());
 
         // Immutability test
         assertThat(newGameState).isNotSameAs(state);
@@ -251,10 +250,9 @@ class ActionApplierTest {
                         blackCircleCaptureWhiteAt00
                 )
         );
-        RithmoDebug.printBoardAfterArrange(state.board());
+
         AppliedResult result = actionApplier.apply(state, action);
         GameState newGameState = result.gameState();
-        printBoardAfterAct(newGameState.board());
 
         // Immutability test
         assertThat(newGameState).isNotSameAs(state);
@@ -282,11 +280,8 @@ class ActionApplierTest {
 
         SkipPostCaptureAction action = new SkipPostCaptureAction();
 
-
-        RithmoDebug.printBoardAfterArrange(state.board());
         AppliedResult result = actionApplier.apply(state, action);
         GameState newGameState = result.gameState();
-        printBoardAfterAct(newGameState.board());
 
         // Immutability test
         assertThat(newGameState).isSameAs(state);

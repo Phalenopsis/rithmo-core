@@ -56,8 +56,6 @@ public class TurnProcessorIntegrationAfterMoveTest {
         // On part d'un état où on doit bouger (déjà calculé par le processeur auparavant)
         TurnState turn1 = processor.process(TurnState.of(state, TurnPhase.START), null);
 
-        RithmoDebug.printBoardAfterAct(turn1.state().board());
-
         // 2. Action : On récupère un mouvement et on l'applique
         Move move = TurnHelper.getAllMoves(turn1, startingPosition).getFirst();
         Piece actor = turn1.state().board().getPieceAt(move.from());
@@ -94,15 +92,12 @@ public class TurnProcessorIntegrationAfterMoveTest {
         // On part d'un état où on doit bouger (déjà calculé par le processeur auparavant)
         TurnState turn1 = processor.process(TurnState.of(state, TurnPhase.START), null);
 
-        RithmoDebug.printBoardAfterAct(turn1.state().board());
-
         // 2. Action : On récupère un mouvement et on l'applique
         Move move = TurnHelper.getMove(turn1, startingPosition, goalPosition);
         Piece actor = turn1.state().board().getPieceAt(move.from());
         MoveAction action = new MoveAction(actor, move);
 
         TurnState turn2 = processor.process(turn1, action);
-        RithmoDebug.printBoardAfterAct(turn2.state().board());
 
         // 3. Assertions
         TurnAssertion.assertThis(turn2)
@@ -136,21 +131,17 @@ public class TurnProcessorIntegrationAfterMoveTest {
         // On part d'un état où on doit bouger (déjà calculé par le processeur auparavant)
         TurnState turn1 = processor.process(TurnState.of(state, TurnPhase.START), null);
 
-        RithmoDebug.printBoardAfterAct(turn1.state().board());
-
         // 2. Action : On récupère un mouvement et on l'applique
         Move move = TurnHelper.getMove(turn1, startingPosition, goalPosition);
         Piece actor = turn1.state().board().getPieceAt(move.from());
         MoveAction action = new MoveAction(actor, move);
 
         TurnState turn2 = processor.process(turn1, action);
-        RithmoDebug.printBoardAfterAct(turn2.state().board());
 
         PostCaptureOption option = TurnHelper.findPostCaptureOption(turn2.options(), whiteCirclePos);
         PostCaptureAction captureAction = PostCaptureAction.from(option);
 
         TurnState turn3 = processor.process(turn2, captureAction);
-        RithmoDebug.printBoardAfterAct(turn3.state().board());
 
         // 3. Assertions
         TurnAssertion.assertThis(turn3)

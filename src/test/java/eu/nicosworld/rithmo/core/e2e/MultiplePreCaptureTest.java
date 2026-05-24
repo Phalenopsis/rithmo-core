@@ -27,22 +27,12 @@ public class MultiplePreCaptureTest {
     void testMultiplePreCaptures() throws VictoryException, PatException {
         Game game = PreDefinedTestGame.gameTestWithMultiplePreCaptures();
         GameStatusDTO status = gameFacade.startGame(game);
-
-        TestDebugger.render(status);
-        TestDebugger.print(status.possibleOptions());
-
-        TestDebugger.print(status.possibleDecisions());
     }
 
     @Test
     void test4Rules() throws VictoryException, PatException {
         Game game = PreDefinedTestGame.gameWithMultiCaptures_FourRules();
         GameStatusDTO status = gameFacade.startGame(game);
-
-        TestDebugger.render(status);
-        TestDebugger.print(status.possibleOptions());
-
-        TestDebugger.print(status.possibleDecisions());
 
         StatusDTOAssertion.from(status)
                 .isInPreCapturePhase();
