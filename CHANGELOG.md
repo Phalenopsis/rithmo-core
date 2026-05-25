@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Added tests for multiple captures within the same decision
 
+### Documentation
+
+* **Architecture Tooling**: added project dependency graph generation for structural analysis and refactoring guidance
+
 ## [0.2.3] - 2026-05-23
 
 ### Changed

@@ -13,7 +13,6 @@ import java.util.List;
  * A {@code PieceDTO} is a read-model projection of a domain {@link Piece} or
  * {@link PieceAtPosition}, used exclusively for UI rendering and option display.
  * It is not part of the engine model and carries no behavior.
- *
  * <p>
  * This DTO is designed to support both:
  * <ul>
@@ -29,8 +28,8 @@ import java.util.List;
  * <p>
  * Special cases:
  * <ul>
- *     <li>{@link #GLOBAL_OPTION} is used as a sentinel value for non-piece-related UI options (e.g. skip actions)</li>
- *     <li>{@link #empty()} represents a null-equivalent placeholder and should only be used internally</li>
+ *     <li>{@code #GLOBAL_OPTION} is used as a sentinel value for non-piece-related UI options (e.g. skip actions)</li>
+ *     <li>{@code #empty()} represents a null-equivalent placeholder and should only be used internally</li>
  * </ul>
  *
  * @param id unique identifier of the piece
@@ -75,7 +74,7 @@ public record PieceDTO(
 
     public static PieceDTO componentFrom(Piece piece, Position position) {
         if(piece instanceof Pyramid) {
-            throw new IllegalArgumentException("PieceDTO.mapComponentFrom() : A component can't be be pyramid.");
+            throw new IllegalArgumentException("PieceDTO.mapComponentFrom() : A component cannot be pyramid.");
         }
         return new PieceDTO(
                 piece.getId(),
