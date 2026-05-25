@@ -1,9 +1,11 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
+import eu.nicosworld.rithmo.engine.capture.justification.PowerRelation;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
+import eu.nicosworld.rithmo.engine.testutils.CaptureJustifications;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
 import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,7 @@ class CaptureApplierTest {
         InvolvedPiece actor = InvolvedPiece.whole(attackerPiece, attackerPos);
         InvolvedPiece target = InvolvedPiece.whole(targetPiece, targetPos);
 
-        CaptureAction captureAction = CaptureAction.encounter(actor, target);
+        CaptureAction captureAction = CaptureAction.encounter(actor, target, CaptureJustifications.encounter(4));
 
         // Act
         CaptureApplier applier = new CaptureApplier();
@@ -63,6 +65,8 @@ class CaptureApplierTest {
 
         GameState state = GameState.initial(board, Player.BLACK);
 
+        RithmoDebug.printBoardAfterArrange(state.board());
+
         Piece attackerPiece = board.getPieceAt(attackerPos);
         Piece targetPiece1 = board.getPieceAt(targetPos1);
         Piece targetPiece2 = board.getPieceAt(targetPos2);
@@ -70,8 +74,8 @@ class CaptureApplierTest {
         // Préparation des actions via les factories
         InvolvedPiece actor = InvolvedPiece.whole(attackerPiece, attackerPos);
 
-        CaptureAction action1 = CaptureAction.encounter(actor, InvolvedPiece.whole(targetPiece1, targetPos1));
-        CaptureAction action2 = CaptureAction.encounter(actor, InvolvedPiece.whole(targetPiece2, targetPos2));
+        CaptureAction action1 = CaptureAction.encounter(actor, InvolvedPiece.whole(targetPiece1, targetPos1), CaptureJustifications.encounter(4));
+        CaptureAction action2 = CaptureAction.power(actor, InvolvedPiece.whole(targetPiece2, targetPos2), CaptureJustifications.power(4, PowerRelation.POWER, 2, 16));
 
         List<CaptureAction> captureActions = List.of(action1, action2);
 

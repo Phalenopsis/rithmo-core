@@ -1,12 +1,14 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
 import eu.nicosworld.rithmo.core.turn.action.*;
+import eu.nicosworld.rithmo.engine.capture.justification.EncounterJustification;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
+import eu.nicosworld.rithmo.engine.testutils.CaptureJustifications;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
 import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +16,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static eu.nicosworld.rithmo.engine.testutils.RithmoDebug.printBoardAfterAct;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,8 +62,8 @@ class ActionApplierTest {
         InvolvedPiece target22 = InvolvedPiece.whole(whiteCircle, whiteCirclePosition);
         InvolvedPiece target00 = InvolvedPiece.whole(whiteTriangle, whiteTrianglePosition);
 
-        blackCircleCaptureWhiteAt22 = CaptureAction.encounter(actor, target22);
-        blackCircleCaptureWhiteAt00 = CaptureAction.encounter(actor, target00);
+        blackCircleCaptureWhiteAt22 = CaptureAction.encounter(actor, target22, CaptureJustifications.encounter(4));
+        blackCircleCaptureWhiteAt00 = CaptureAction.encounter(actor, target00, CaptureJustifications.encounter(4));
     }
 
     @Test
