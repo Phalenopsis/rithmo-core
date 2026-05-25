@@ -6,9 +6,11 @@ import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
+import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,8 @@ public class FourEightGameTest {
         UUID gameId = game.getId();
         GameStatusDTO status = gameFacade.startGame(game);
 
+        TestDebugger.render(status);
+
         UUID firstMoveId = FindDecisionHelper.findMoveDecisionId(status, "BP91(0,0)", "(2,0)");
         GameStatusDTO statusDTO2 = gameFacade.play(gameId, firstMoveId);
 
@@ -49,6 +53,16 @@ public class FourEightGameTest {
         StatusDTOAssertion.from(statusDTO5)
                 .hasActivePlayer(PlayerColorDTO.WHITE)
                 .isInPostCapturePhase()
-                .hasCaptureDecisionCount(3);
+                .haveSkipDecision()
+                .hasCaptureDecisionCount(3)
+                .hasNOptions(6)
+                .canPostCaptureWithByEncounter("WT25(4,0)", "BS25(2,0)")
+                .canPostCaptureWithByAssault("WT25(4,0)", "BS25(2,0)")
+                .canPostCaptureWithByEncounter("WT36(4,0)", "BS36(2,0)")
+                .canPostCaptureWithByAssault("WT36(4,0)", "BS36(2,0)")
+                .canPostCaptureWithByPower("WS64(4,0)", "BC4(2,0)")
+                .hasCaptureCiblesFor("WT25(4,0)", "BS25(2,0)")
+                .hasCaptureCiblesFor("WS64(4,0)", "BC4(2,0)")
+                .hasCaptureCiblesFor("WT36(4,0)", "BS36(2,0)");
     }
 }
