@@ -229,9 +229,8 @@ class CaptureResolverTest {
                         && p.captures().getFirst().actor().specificComponent().getValue() == 5)
                 .toList();
 
-        // attendu : composant valeur 5 peut prendre composant noir de valeur 5 landing en 1,1
+        // attendu : composant valeur 5 peut prendre composant noir de valeur 5 landing null
         //           composant valeur 5 peut prendre pion noir de valeur 5 landing en 3,1
-        //          composant valeur 5 peut prendre composant noir de valeur 5 et pion noir de valeur 5 landing en 1,1
         //          composant valeur 5 peut prendre composant noir de valeur 5 et pion noir de valeur 5 landing en 3,1
         assertEquals(3, choicesForAttackerInX1Y1.size());
     }
