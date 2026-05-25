@@ -4,13 +4,17 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.CaptureOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -758,5 +762,74 @@ public class StatusDTOAssertion {
         }
 
         return this;
+    }
+
+    private <T> StatusDTOAssertion checkOption(
+            String actorRepresentation,
+            Class<T> optionClass,
+            Predicate<T> matcher
+    ) {
+        PieceDTO pieceDTO = PieceRepresentationHelper.findPieceOrComponent(
+                statusDTO,
+                actorRepresentation
+        );
+
+        boolean exists = statusDTO.possibleOptions().get(pieceDTO)
+                .stream()
+                .filter(optionClass::isInstance)
+                .map(optionClass::cast)
+                .anyMatch(matcher);
+
+        if (!exists) {
+            throw new AssertionError("Option non trouvée");
+        }
+
+        return this;
+    }
+
+    private StatusDTOAssertion canPreCaptureWithBy(String actorRepresentation, String targetRepresentation, CaptureTypeDTO captureTypeDTO) {
+        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+        return checkOption(actorRepresentation,
+                PreCaptureOptionDTO.class,
+                o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
+    }
+
+    private StatusDTOAssertion canPostCaptureWithBy(String actorRepresentation, String targetRepresentation, CaptureTypeDTO captureTypeDTO) {
+        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+        return checkOption(actorRepresentation,
+                CaptureOptionDTO.class,
+                o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
+    }
+
+    public StatusDTOAssertion canPostCaptureWithByEncounter(String actorRepresentation, String targetRepresentation) {
+       return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ENCOUNTER);
+    }
+
+    public StatusDTOAssertion canPostCaptureWithByAssault(String actorRepresentation, String targetRepresentation) {
+        return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ASSAULT);
+    }
+
+    public StatusDTOAssertion canPostCaptureWithByPower(String actorRepresentation, String targetRepresentation) {
+        return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.POWER);
+    }
+
+    public StatusDTOAssertion canPostCaptureWithByAmbush(String actorRepresentation, String targetRepresentation) {
+        return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.AMBUSH);
+    }
+
+    public StatusDTOAssertion canPreCaptureWithByEncounter(String actorRepresentation, String targetRepresentation) {
+        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ENCOUNTER);
+    }
+
+    public StatusDTOAssertion canPreCaptureWithByAssault(String actorRepresentation, String targetRepresentation) {
+        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ASSAULT);
+    }
+
+    public StatusDTOAssertion canPreCaptureWithByPower(String actorRepresentation, String targetRepresentation) {
+        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.POWER);
+    }
+
+    public StatusDTOAssertion canPreCaptureWithByAmbush(String actorRepresentation, String targetRepresentation) {
+        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.AMBUSH);
     }
 }
