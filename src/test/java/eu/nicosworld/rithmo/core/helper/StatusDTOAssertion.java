@@ -11,6 +11,7 @@ import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
+import eu.nicosworld.rithmo.core.helper.assertions.*;
 import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.*;
@@ -21,19 +22,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class StatusDTOAssertion {
 
-    private final GameStatusDTO statusDTO;
+    private final GameStatusDTO actual;
 
-    private StatusDTOAssertion(GameStatusDTO statusDTO) {
-        this.statusDTO = statusDTO;
+    private StatusDTOAssertion(GameStatusDTO actual) {
+        this.actual = actual;
     }
 
     public static StatusDTOAssertion from(GameStatusDTO statusDTO) {
         return new StatusDTOAssertion(statusDTO);
     }
 
-    public StatusDTOAssertion hasActivePlayer(PlayerColorDTO colorDTO) {
+    public DecisionAssertions decisions() {
+        return new DecisionAssertions(actual, this);
+    }
 
-        assertThat(statusDTO.currentPlayer())
+    public OptionAssertions options() {
+        return new OptionAssertions(actual, this);
+    }
+
+    public AssetAssertions assets() {
+        return new AssetAssertions(actual, this);
+    }
+
+    public BoardAssertions board() {
+        return new BoardAssertions(actual, this);
+    }
+
+    public GlobalAssertions global() {
+        return new GlobalAssertions(actual, this);
+    }
+
+
+    public StatusDTOAssertion hasActivePlayer(PlayerColorDTO colorDTO) {
+        assertThat(actual.currentPlayer())
                 .isEqualTo(colorDTO);
 
         return this;
@@ -41,7 +62,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion isInPreCapturePhase() {
 
-        assertThat(statusDTO.phase())
+        assertThat(actual.phase())
                 .isEqualTo(PhaseDTO.PRE_CAPTURE);
 
         return this;
@@ -49,7 +70,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion isInPostCapturePhase() {
 
-        assertThat(statusDTO.phase())
+        assertThat(actual.phase())
                 .isEqualTo(PhaseDTO.POST_CAPTURE);
 
         return this;
@@ -57,7 +78,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion isInMovePhase() {
 
-        assertThat(statusDTO.phase())
+        assertThat(actual.phase())
                 .isEqualTo(PhaseDTO.MOVE);
 
         return this;
@@ -66,7 +87,7 @@ public class StatusDTOAssertion {
     public StatusDTOAssertion dontHaveSkipDecision() {
 
         assertThat(
-                statusDTO.possibleDecisions()
+                actual.possibleDecisions()
                         .stream()
                         .filter(DecisionDTO::skip)
                         .toList()
@@ -78,7 +99,7 @@ public class StatusDTOAssertion {
     public StatusDTOAssertion haveSkipDecision() {
 
         assertThat(
-                statusDTO.possibleDecisions()
+                actual.possibleDecisions()
                         .stream()
                         .filter(DecisionDTO::skip)
                         .toList()
@@ -90,12 +111,12 @@ public class StatusDTOAssertion {
     public StatusDTOAssertion haveAllDecisionsWithActor(String actorRepresentation) {
 
         PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(
-                statusDTO,
+                actual,
                 actorRepresentation
         );
 
         assertThat(
-                statusDTO.possibleDecisions()
+                actual.possibleDecisions()
                         .stream()
                         .allMatch(d -> actor.id().equals(d.actorId()))
         ).isTrue();
@@ -109,7 +130,7 @@ public class StatusDTOAssertion {
      */
     public StatusDTOAssertion hasCaptureDecisionCount(int n) {
 
-        long actual = statusDTO.possibleDecisions()
+        long actual = this.actual.possibleDecisions()
                 .stream()
                 .filter(d -> !d.skip())
                 .filter(d ->
@@ -132,7 +153,7 @@ public class StatusDTOAssertion {
                 .sorted()
                 .toList();
 
-        boolean found = statusDTO.possibleDecisions()
+        boolean found = actual.possibleDecisions()
                 .stream()
                 .filter(d ->
                         d.capturedIdList() != null
@@ -171,7 +192,7 @@ public class StatusDTOAssertion {
 
     private String formatPossibleDecisionsForError() {
 
-        return statusDTO.possibleDecisions()
+        return actual.possibleDecisions()
                 .stream()
                 .filter(d -> !d.skip())
                 .map(d -> {
@@ -194,7 +215,7 @@ public class StatusDTOAssertion {
             String... expectedComponents
     ) {
 
-        PieceDTO pyramid = statusDTO.board().pieces()
+        PieceDTO pyramid = actual.board().pieces()
                 .stream()
                 .filter(p -> p.owner().equals(color))
                 .filter(p -> p.shape().equals(PieceShape.PYRAMID))
@@ -250,7 +271,7 @@ public class StatusDTOAssertion {
             String... expectedLandingPositions
     ) {
 
-        Set<String> actualLandings = statusDTO.possibleDecisions()
+        Set<String> actualLandings = actual.possibleDecisions()
                 .stream()
                 .map(DecisionDTO::landing)
                 .filter(Objects::nonNull)
@@ -305,7 +326,7 @@ public class StatusDTOAssertion {
             int expectedValue
     ) {
 
-        PieceDTO pyramid = statusDTO.board().pieces()
+        PieceDTO pyramid = actual.board().pieces()
                 .stream()
                 .filter(p -> p.owner().equals(color))
                 .filter(p -> p.shape().equals(PieceShape.PYRAMID))
@@ -338,9 +359,9 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion hasReintroductionOptionsForActivePlayer() {
 
-        PlayerColorDTO color = statusDTO.currentPlayer();
+        PlayerColorDTO color = actual.currentPlayer();
 
-        boolean exists = statusDTO.possibleOptions()
+        boolean exists = actual.possibleOptions()
                 .values()
                 .stream()
                 .flatMap(Set::stream)
@@ -362,7 +383,7 @@ public class StatusDTOAssertion {
     public StatusDTOAssertion allReintroductionOptionsComeFromReserve() {
 
         Map<String, Set<String>> reserveByPlayer =
-                statusDTO.assets()
+                actual.assets()
                         .entrySet()
                         .stream()
                         .collect(Collectors.toMap(
@@ -374,7 +395,7 @@ public class StatusDTOAssertion {
                                         .collect(Collectors.toSet())
                         ));
 
-        statusDTO.possibleOptions()
+        actual.possibleOptions()
                 .values()
                 .stream()
                 .flatMap(Set::stream)
@@ -403,7 +424,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion hasNoReintroductionOptions() {
 
-        boolean exists = statusDTO.possibleOptions()
+        boolean exists = actual.possibleOptions()
                 .values()
                 .stream()
                 .flatMap(Set::stream)
@@ -428,7 +449,7 @@ public class StatusDTOAssertion {
                 expectedRepresentation
                         + normalize(expectedPosition);
 
-        boolean found = statusDTO.board().pieces()
+        boolean found = actual.board().pieces()
                 .stream()
                 .map(PieceRepresentationHelper::toRepresentation)
                 .anyMatch(expected::equals);
@@ -452,7 +473,7 @@ public class StatusDTOAssertion {
             String pieceRepresentation
     ) {
 
-        boolean found = statusDTO.assets()
+        boolean found = actual.assets()
                 .values()
                 .stream()
                 .flatMap(a -> a.reserve().stream())
@@ -474,7 +495,7 @@ public class StatusDTOAssertion {
             String... expectedRepresentations
     ) {
 
-        List<String> actual = statusDTO.assets()
+        List<String> actual = this.actual.assets()
                 .values()
                 .stream()
                 .flatMap(a -> a.captured().stream())
@@ -506,7 +527,7 @@ public class StatusDTOAssertion {
             String... expectedRepresentations
     ) {
 
-        List<String> actual = statusDTO.assets()
+        List<String> actual = this.actual.assets()
                 .values()
                 .stream()
                 .flatMap(a -> a.reserve().stream())
@@ -536,7 +557,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion hasNOptions(int n) {
 
-        int actual = statusDTO.possibleOptions()
+        int actual = this.actual.possibleOptions()
                 .values()
                 .stream()
                 .mapToInt(Set::size)
@@ -550,7 +571,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion hasNDecisions(int n) {
 
-        assertThat(statusDTO.possibleDecisions())
+        assertThat(actual.possibleDecisions())
                 .hasSize(n);
 
         return this;
@@ -558,7 +579,7 @@ public class StatusDTOAssertion {
 
     public StatusDTOAssertion hasOnlyMoveDecisions() {
 
-        assertThat(statusDTO.possibleDecisions())
+        assertThat(actual.possibleDecisions())
                 .allMatch(d ->
                         !d.skip()
                                 && d.capturedIdList().isEmpty()
@@ -574,11 +595,11 @@ public class StatusDTOAssertion {
     ) {
 
         PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
-                statusDTO,
+                actual,
                 pieceRepresentation
         );
 
-        long actualCount = statusDTO.possibleOptions()
+        long actualCount = actual.possibleOptions()
                 .getOrDefault(piece, Collections.emptySet())
                 .stream()
                 .filter(option -> !(option instanceof SkipOptionDTO))
@@ -608,11 +629,11 @@ public class StatusDTOAssertion {
     ) {
 
         PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
-                statusDTO,
+                actual,
                 pieceRepresentation
         );
 
-        long actualCount = statusDTO.possibleDecisions()
+        long actualCount = actual.possibleDecisions()
                 .stream()
                 .filter(d -> !d.skip())
                 .filter(d -> piece.id().equals(d.actorId()))
@@ -638,7 +659,7 @@ public class StatusDTOAssertion {
 
     private String findPieceRepresentationById(String id) {
 
-        return statusDTO.board().pieces()
+        return actual.board().pieces()
                 .stream()
                 .flatMap(piece -> {
 
@@ -666,9 +687,9 @@ public class StatusDTOAssertion {
             String... expectedActors
     ) {
 
-        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
 
-        Set<String> actualActors = statusDTO.possibleDecisions().stream()
+        Set<String> actualActors = actual.possibleDecisions().stream()
                 .filter(d -> !d.skip())
                 .filter(d -> d.capturedIdList() != null
                         && d.capturedIdList().contains(targetId))
@@ -676,7 +697,7 @@ public class StatusDTOAssertion {
                 .collect(Collectors.toSet());
 
         Set<String> expected = Arrays.stream(expectedActors)
-                .map(rep -> PieceRepresentationHelper.findId(statusDTO, rep))
+                .map(rep -> PieceRepresentationHelper.findId(actual, rep))
                 .collect(Collectors.toSet());
 
         if (!actualActors.equals(expected)) {
@@ -701,16 +722,16 @@ public class StatusDTOAssertion {
             String... expectedTargets
     ) {
 
-        String actorId = PieceRepresentationHelper.findId(statusDTO, actorRepresentation);
+        String actorId = PieceRepresentationHelper.findId(actual, actorRepresentation);
 
-        Set<String> actualTargets = statusDTO.possibleDecisions().stream()
+        Set<String> actualTargets = actual.possibleDecisions().stream()
                 .filter(d -> !d.skip())
                 .filter(d -> actorId.equals(d.actorId()))
                 .flatMap(d -> d.capturedIdList().stream())
                 .collect(Collectors.toSet());
 
         Set<String> expected = Arrays.stream(expectedTargets)
-                .map(rep -> PieceRepresentationHelper.findId(statusDTO, rep))
+                .map(rep -> PieceRepresentationHelper.findId(actual, rep))
                 .collect(Collectors.toSet());
 
         if (!actualTargets.equals(expected)) {
@@ -735,10 +756,10 @@ public class StatusDTOAssertion {
             String targetRepresentation
     ) {
 
-        String actorId = PieceRepresentationHelper.findId(statusDTO, actorRepresentation);
-        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+        String actorId = PieceRepresentationHelper.findId(actual, actorRepresentation);
+        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
 
-        boolean exists = statusDTO.possibleDecisions().stream()
+        boolean exists = actual.possibleDecisions().stream()
                 .filter(d -> !d.skip())
                 .filter(d -> actorId.equals(d.actorId()))
                 .anyMatch(d ->
@@ -770,11 +791,11 @@ public class StatusDTOAssertion {
             Predicate<T> matcher
     ) {
         PieceDTO pieceDTO = PieceRepresentationHelper.findPieceOrComponent(
-                statusDTO,
+                actual,
                 actorRepresentation
         );
 
-        boolean exists = statusDTO.possibleOptions().get(pieceDTO)
+        boolean exists = actual.possibleOptions().get(pieceDTO)
                 .stream()
                 .filter(optionClass::isInstance)
                 .map(optionClass::cast)
@@ -788,14 +809,14 @@ public class StatusDTOAssertion {
     }
 
     private StatusDTOAssertion canPreCaptureWithBy(String actorRepresentation, String targetRepresentation, CaptureTypeDTO captureTypeDTO) {
-        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
         return checkOption(actorRepresentation,
                 PreCaptureOptionDTO.class,
                 o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
     }
 
     private StatusDTOAssertion canPostCaptureWithBy(String actorRepresentation, String targetRepresentation, CaptureTypeDTO captureTypeDTO) {
-        String targetId = PieceRepresentationHelper.findId(statusDTO, targetRepresentation);
+        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
         return checkOption(actorRepresentation,
                 CaptureOptionDTO.class,
                 o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
