@@ -39,4 +39,8 @@ abstract class NestedStatusAssertions {
     public BoardAssertions board() {
         return parent.board();
     }
+
+    protected final String normalize(String value) {
+        return value.replace(" ", "");
+    }
 }

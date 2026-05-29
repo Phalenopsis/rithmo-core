@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.e2e;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.core.GameFacade;
@@ -42,8 +41,10 @@ class EncounterTutorialTest {
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
         StatusDTOAssertion.from(nextStatus)
-                        .isInMovePhase()
-                        .hasOnlyMoveDecisions();
+                .status()
+                    .isInMovePhase()
+                .decisions()
+                    .hasOnlyMoveDecisions();
     }
 
     @Test
@@ -56,8 +57,10 @@ class EncounterTutorialTest {
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), landingId);
 
         StatusDTOAssertion.from(nextStatus)
-                .isInMovePhase()
-                .hasOnlyMoveDecisions();
+                .status()
+                    .isInMovePhase()
+                .decisions()
+                    .hasOnlyMoveDecisions();
     }
 
     @Test
@@ -74,44 +77,57 @@ class EncounterTutorialTest {
 
     @Test
     @DisplayName("4. Il doit y avoir 3 options")
-    void shouldPropose3Options_2CapturesFrom2DifferentPieceWhoTargetSameTarget() throws Exception {
+    void shouldExposeSkipAndTwoCaptureOptionsWhenTwoPiecesTargetSameEnemy() throws Exception {
         Game game = PreDefinedTestGame.encounterPreCaptureTestCase_WhitePlayer();
         GameStatusDTO status = gameFacade.startGame(game);
 
         StatusDTOAssertion.from(status)
-                .hasActivePlayer(PlayerColorDTO.WHITE)
-                .isInPreCapturePhase()
-                .haveSkipDecision()
-                .hasCaptureDecisionCount(2);
+                .status()
+                    .hasActivePlayer(PlayerColorDTO.WHITE)
+                    .isInPreCapturePhase()
+                .options()
+                    .hasOptionCount(3)
+                .decisions()
+                    .hasSkipDecision()
+                    .hasCaptureDecisionCount(2);
     }
 
     @Test
-    @DisplayName("4. on doit avoir une option de pre capture en ambush")
-    void shouldProposeAPreCaptureOption_WhiteAttacker2PyramidsAndAnotherTarget() throws Exception {
+    @DisplayName("5. on doit avoir une option de pre capture en ambush")
+    void shouldResolveAmbushPreCaptureAndTransitionToMovePhase() throws Exception {
 
         Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
         GameStatusDTO status = gameFacade.startGame(game);
 
         StatusDTOAssertion.from(status)
-                .isInPreCapturePhase()
-                .hasNOptions(4)
-                .hasNDecisions(5)
-                .hasNOptionsFor("WC5(2,0)", 2)
-                .hasNOptionsFor("WC4(2,0)", 1)
-                .hasNDecisionsFor("WC5(2,0)", 3)
-                .hasNDecisionsFor("WC4(2,0)", 1);
+                .status()
+                    .isInPreCapturePhase()
+                .options()
+                    .hasOptionCount(4)
+                    .hasOptionCountFor("WC5(2,0)", 2)
+                    .hasOptionCountFor("WC4(2,0)", 1)
+                .decisions()
+                    .hasDecisionCount(5)
+                    .hasDecisionCountFor("WC5(2,0)", 3)
+                    .hasDecisionCountFor("WC4(2,0)", 1);
 
         UUID id = FindDecisionHelper.findCaptureDecisionId(status, "WC5(2,0)", new Position(3,1), "BC5(3,1)", "BC5(1,1)");
 
         GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), id);
+
         StatusDTOAssertion.from(statusAfterPreCapture)
-                .hasActivePlayer(PlayerColorDTO.WHITE)
-                .isInMovePhase()
-                .hasPiece("WP9", "(3,1)")
-                .hasOnlyMoveDecisions()
-                .hasStrictMoveDecisionTo("(2,0)", "(2,2)")
-                .hasNoReintroductionOptions()
-                .capturedContains("BC5", "BC5")
-                .hasInReserve("WC5");
+                .status()
+                    .hasActivePlayer(PlayerColorDTO.WHITE)
+                    .isInMovePhase()
+                .board()
+                    .hasPiece("WP9(3,1)")
+                .assets()
+                    .capturedContains("BC5", "BC5")
+                    .hasInReserve("WC5")
+                .options()
+                    .hasNoReintroductionOptions()
+                .decisions()
+                    .hasOnlyMoveDecisions()
+                    .hasStrictMoveDecisionTo("(2,0)", "(2,2)");
     }
 }

@@ -7,12 +7,10 @@ import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.CaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.assertions.*;
-import eu.nicosworld.rithmo.engine.model.Position;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -48,24 +46,22 @@ public class StatusDTOAssertion {
         return new BoardAssertions(actual, this);
     }
 
-    public GlobalAssertions global() {
+    public GlobalAssertions status() {
         return new GlobalAssertions(actual, this);
     }
 
-
+    @Deprecated(forRemoval = false)
     public StatusDTOAssertion hasActivePlayer(PlayerColorDTO colorDTO) {
-        assertThat(actual.currentPlayer())
-                .isEqualTo(colorDTO);
-
-        return this;
+        return status()
+                .hasActivePlayer(colorDTO)
+                .and();
     }
 
+    @Deprecated(forRemoval = false)
     public StatusDTOAssertion isInPreCapturePhase() {
-
-        assertThat(actual.phase())
-                .isEqualTo(PhaseDTO.PRE_CAPTURE);
-
-        return this;
+        return status()
+                .isInPreCapturePhase()
+                .and();
     }
 
     public StatusDTOAssertion isInPostCapturePhase() {
@@ -76,12 +72,11 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    @Deprecated
     public StatusDTOAssertion isInMovePhase() {
-
-        assertThat(actual.phase())
-                .isEqualTo(PhaseDTO.MOVE);
-
-        return this;
+        return status()
+                .isInMovePhase()
+                .and();
     }
 
     public StatusDTOAssertion dontHaveSkipDecision() {
@@ -96,16 +91,11 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    @Deprecated
     public StatusDTOAssertion haveSkipDecision() {
-
-        assertThat(
-                actual.possibleDecisions()
-                        .stream()
-                        .filter(DecisionDTO::skip)
-                        .toList()
-        ).isNotEmpty();
-
-        return this;
+        return decisions()
+                .hasSkipDecision()
+                .and();
     }
 
     public StatusDTOAssertion haveAllDecisionsWithActor(String actorRepresentation) {
@@ -124,25 +114,11 @@ public class StatusDTOAssertion {
         return this;
     }
 
-    /**
-     * Count only capture decisions.
-     * No skip, move or reintroduction decisions.
-     */
+    @Deprecated
     public StatusDTOAssertion hasCaptureDecisionCount(int n) {
-
-        long actual = this.actual.possibleDecisions()
-                .stream()
-                .filter(d -> !d.skip())
-                .filter(d ->
-                        d.capturedIdList() != null
-                                && !d.capturedIdList().isEmpty()
-                )
-                .count();
-
-        assertThat(actual)
-                .isEqualTo(n);
-
-        return this;
+        return decisions()
+                .hasCaptureDecisionCount(n)
+                .and();
     }
 
     public StatusDTOAssertion canCaptureInOneDecision(
@@ -254,71 +230,22 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    @Deprecated
     public StatusDTOAssertion hasStrictMoveDecisionTo(
             String... expectedLandingPositions
     ) {
-        return hasMoveDecisionTo(true, expectedLandingPositions);
+        return decisions()
+                .hasStrictMoveDecisionTo(expectedLandingPositions)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasMoveDecisionTo(
             String... expectedLandingPositions
     ) {
-        return hasMoveDecisionTo(false, expectedLandingPositions);
-    }
-
-    public StatusDTOAssertion hasMoveDecisionTo(
-            boolean strict,
-            String... expectedLandingPositions
-    ) {
-
-        Set<String> actualLandings = actual.possibleDecisions()
-                .stream()
-                .map(DecisionDTO::landing)
-                .filter(Objects::nonNull)
-                .map(Position::toString)
-                .map(this::normalize)
-                .collect(Collectors.toSet());
-
-        Set<String> expectedLandings = Arrays.stream(expectedLandingPositions)
-                .map(this::normalize)
-                .collect(Collectors.toSet());
-
-        Set<String> missing = new HashSet<>(expectedLandings);
-        missing.removeAll(actualLandings);
-
-        if (!missing.isEmpty()) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Certaines destinations de mouvement sont manquantes.
-
-                    Manquantes : %s
-                    Disponibles : %s
-                    """,
-                    missing,
-                    actualLandings
-            ));
-        }
-
-        if (strict) {
-
-            Set<String> extras = new HashSet<>(actualLandings);
-            extras.removeAll(expectedLandings);
-
-            if (!extras.isEmpty()) {
-
-                throw new AssertionError(String.format(
-                        """
-                        Mode strict : destinations inattendues.
-
-                        En trop : %s
-                        """,
-                        extras
-                ));
-            }
-        }
-
-        return this;
+        return decisions()
+                .hasMoveDecisionTo(expectedLandingPositions)
+                .and();
     }
 
     public StatusDTOAssertion havePyramidValue(
@@ -422,24 +349,18 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    @Deprecated
     public StatusDTOAssertion hasNoReintroductionOptions() {
-
-        boolean exists = actual.possibleOptions()
-                .values()
-                .stream()
-                .flatMap(Set::stream)
-                .anyMatch(ReintroductionOptionDTO.class::isInstance);
-
-        if (exists) {
-
-            throw new AssertionError("""
-                    Des options de réintroduction sont présentes.
-                    """);
-        }
-
-        return this;
+        return options().hasNoReintroductionOptions().and();
     }
 
+    @Deprecated
+    public StatusDTOAssertion hasPiece(
+            String expectedRepresentation) {
+        return board().hasPiece(expectedRepresentation).and();
+    }
+
+    @Deprecated
     public StatusDTOAssertion hasPiece(
             String expectedRepresentation,
             String expectedPosition
@@ -449,24 +370,7 @@ public class StatusDTOAssertion {
                 expectedRepresentation
                         + normalize(expectedPosition);
 
-        boolean found = actual.board().pieces()
-                .stream()
-                .map(PieceRepresentationHelper::toRepresentation)
-                .anyMatch(expected::equals);
-
-        if (!found) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Aucune pièce trouvée.
-
-                    Attendue : %s
-                    """,
-                    expected
-            ));
-        }
-
-        return this;
+        return hasPiece(expected);
     }
 
     public StatusDTOAssertion reserveDoesNotContain(
@@ -491,138 +395,56 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    @Deprecated
     public StatusDTOAssertion capturedContains(
             String... expectedRepresentations
     ) {
-
-        List<String> actual = this.actual.assets()
-                .values()
-                .stream()
-                .flatMap(a -> a.captured().stream())
-                .map(PieceRepresentationHelper::toShortRepresentation)
-                .toList();
-
-        List<String> missing = Arrays.stream(expectedRepresentations)
-                .filter(expected -> !actual.contains(expected))
-                .toList();
-
-        if (!missing.isEmpty()) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Certaines pièces manquent dans les captures.
-
-                    Manquantes : %s
-                    Capturées  : %s
-                    """,
-                    missing,
-                    actual
-            ));
-        }
-
-        return this;
+        return assets()
+                .capturedContains(expectedRepresentations)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasInReserve(
             String... expectedRepresentations
     ) {
-
-        List<String> actual = this.actual.assets()
-                .values()
-                .stream()
-                .flatMap(a -> a.reserve().stream())
-                .map(PieceRepresentationHelper::toShortRepresentation)
-                .toList();
-
-        List<String> missing = Arrays.stream(expectedRepresentations)
-                .filter(expected -> !actual.contains(expected))
-                .toList();
-
-        if (!missing.isEmpty()) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Certaines pièces manquent dans la réserve.
-
-                    Manquantes : %s
-                    Réserve    : %s
-                    """,
-                    missing,
-                    actual
-            ));
-        }
-
-        return this;
+        return assets()
+                .hasInReserve(expectedRepresentations)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasNOptions(int n) {
-
-        int actual = this.actual.possibleOptions()
-                .values()
-                .stream()
-                .mapToInt(Set::size)
-                .sum();
-
-        assertThat(actual)
-                .isEqualTo(n);
-
-        return this;
+        return options()
+                .hasOptionCount(n)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasNDecisions(int n) {
-
-        assertThat(actual.possibleDecisions())
-                .hasSize(n);
-
-        return this;
+        return decisions()
+                .hasDecisionCount(n)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasOnlyMoveDecisions() {
-
-        assertThat(actual.possibleDecisions())
-                .allMatch(d ->
-                        !d.skip()
-                                && d.capturedIdList().isEmpty()
-                                && d.landing() != null
-                );
-
-        return this;
+        return decisions()
+                .hasOnlyMoveDecisions()
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasNOptionsFor(
             String pieceRepresentation,
             int n
     ) {
-
-        PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
-                actual,
-                pieceRepresentation
-        );
-
-        long actualCount = actual.possibleOptions()
-                .getOrDefault(piece, Collections.emptySet())
-                .stream()
-                .filter(option -> !(option instanceof SkipOptionDTO))
-                .count();
-
-        if (actualCount != n) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Nombre d'options incorrect pour %s
-
-                    Attendu : %d
-                    Actuel  : %d
-                    """,
-                    pieceRepresentation,
-                    n,
-                    actualCount
-            ));
-        }
-
-        return this;
+        return options()
+                .hasOptionCountFor(pieceRepresentation, n)
+                .and();
     }
 
+    @Deprecated(forRemoval = false)
     public StatusDTOAssertion hasNDecisionsFor(
             String pieceRepresentation,
             int n
