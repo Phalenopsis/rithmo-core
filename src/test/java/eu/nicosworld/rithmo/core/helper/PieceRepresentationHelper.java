@@ -5,8 +5,6 @@ import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.engine.model.Position;
 
-import java.util.Objects;
-
 public final class PieceRepresentationHelper {
 
     private PieceRepresentationHelper() {
@@ -16,23 +14,24 @@ public final class PieceRepresentationHelper {
             GameStatusDTO statusDTO,
             String representation
     ) {
-
         for (PieceDTO piece : statusDTO.board().pieces()) {
-
             // full piece
             if (matches(piece, representation)) {
                 return piece;
             }
-
             // pyramid components
             if (piece.shape() == PieceShape.PYRAMID) {
-
                 for (PieceDTO component : piece.components()) {
-
                     if (matches(component, representation)) {
                         return component;
                     }
                 }
+            }
+        }
+
+        for(PieceDTO piece: statusDTO.assets().get(statusDTO.currentPlayer()).reserve()) {
+            if (matchesInReserve(piece, representation)) {
+                return piece;
             }
         }
 
@@ -61,6 +60,19 @@ public final class PieceRepresentationHelper {
         }
 
         return toRepresentation(piece)
+                .equals(representation);
+    }
+
+    public static boolean matchesInReserve(
+            PieceDTO piece,
+            String representation
+    ) {
+
+        if (piece == null) {
+            return false;
+        }
+
+        return toShortRepresentation(piece)
                 .equals(representation);
     }
 
