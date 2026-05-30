@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FindDecisionHelper {
 
@@ -83,31 +84,19 @@ public class FindDecisionHelper {
         Position landing =
                 parsePosition(landingString);
 
-        return statusDTO.possibleDecisions()
-                .stream()
-
-                .filter(decision -> !decision.skip())
-
-                .filter(decision ->
-                        actorId.equals(decision.actorId())
-                )
-
+        return findDecisionsFor(statusDTO, actorId)
                 .filter(decision ->
                         decision.capturedIdList() == null
                                 || decision.capturedIdList().isEmpty()
                 )
-
                 .filter(decision ->
                         Objects.equals(
                                 decision.landing(),
                                 landing
                         )
                 )
-
                 .map(DecisionDTO::id)
-
                 .findFirst()
-
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "No matching move decision found for actor "
@@ -172,11 +161,7 @@ public class FindDecisionHelper {
         PieceDTO actor =
                 find(status.board(), actorPosition);
 
-        return status.possibleDecisions()
-                .stream()
-                .filter(decision ->
-                        decision.actorId().equals(actor.id())
-                )
+        return findDecisionsFor(status, actor.id())
                 .filter(decision ->
                         targetPosition.equals(decision.landing())
                 )
@@ -263,12 +248,7 @@ public class FindDecisionHelper {
                         )
                         .collect(Collectors.toSet());
 
-        return statusDTO.possibleDecisions()
-                .stream()
-                .filter(decision -> !decision.skip())
-                .filter(decision ->
-                        actorDTOId.equals(decision.actorId())
-                )
+        return findDecisionsFor(statusDTO, actorDTOId)
                 .filter(decision ->
                         decision.capturedIdList() != null
                                 && decision.capturedIdList()
@@ -325,21 +305,12 @@ public class FindDecisionHelper {
             Set<PreCaptureOptionDTO> optionList,
             Position expectedLanding
     ) {
-
-        String actorId =
-                pieceDTO.id();
-
         Set<String> capturedIds =
                 optionList.stream()
                         .map(option -> option.target().id())
                         .collect(Collectors.toSet());
 
-        return statusDTO.possibleDecisions()
-                .stream()
-                .filter(decision -> !decision.skip())
-                .filter(decision ->
-                        actorId.equals(decision.actorId())
-                )
+        return findDecisionsFor(statusDTO, pieceDTO.id())
                 .filter(decision ->
                         expectedLanding.equals(decision.landing())
                 )
@@ -436,38 +407,15 @@ public class FindDecisionHelper {
             String pieceRepresentation,
             Position expectedLanding
     ) {
+        PieceDTO pieceDTO = PieceRepresentationHelper
+                .findPieceOrComponent(statusDTO, pieceRepresentation);
 
-        return statusDTO.possibleDecisions()
-                .stream()
-
-                .filter(decision -> !decision.skip())
-
+        return findDecisionsFor(statusDTO, pieceDTO.id())
                 .filter(decision ->
                         expectedLanding.equals(decision.landing())
                 )
-
-                .filter(decision -> {
-
-                    String actorId =
-                            decision.actorId();
-
-                    return statusDTO.possibleOptions()
-                            .keySet()
-                            .stream()
-                            .filter(piece ->
-                                    piece.id().equals(actorId)
-                            )
-                            .anyMatch(piece ->
-                                    PieceRepresentationHelper
-                                            .toShortRepresentation(piece)
-                                            .equals(pieceRepresentation)
-                            );
-                })
-
                 .map(DecisionDTO::id)
-
                 .findFirst()
-
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "No reintroduction decision found for "
@@ -476,5 +424,11 @@ public class FindDecisionHelper {
                                         + expectedLanding
                         )
                 );
+    }
+
+    public static Stream<DecisionDTO> findDecisionsFor(GameStatusDTO statusDTO, String actorId) {
+        return statusDTO.possibleDecisions().stream()
+                .filter(d -> !d.skip())
+                .filter(d -> actorId.equals(d.actorId()));
     }
 }
