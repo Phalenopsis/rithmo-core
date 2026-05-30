@@ -9,14 +9,12 @@ import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AssaultTest {
@@ -39,7 +37,9 @@ class AssaultTest {
         UUID skipId = FindDecisionHelper.findSkipDecision(status);
         GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
-        assertThat(nextStatus.phase()).isEqualTo(PhaseDTO.MOVE);
+        StatusDTOAssertion.from(nextStatus)
+                .status()
+                    .isInMovePhase();
     }
 
     @Test
@@ -58,7 +58,8 @@ class AssaultTest {
                 "WC8(3,1)");
         GameStatusDTO statusAfterPreCapture = gameFacade.play(gameId, id);
         StatusDTOAssertion.from(statusAfterPreCapture)
-                .isInMovePhase();
+                .status()
+                    .isInMovePhase();
 
         // --- ÉTAPE 2 : MOVE -> Vers la position (2,2) ---
         UUID moveId = FindDecisionHelper.findMoveDecisionId(
@@ -67,9 +68,11 @@ class AssaultTest {
                 "(2,2)");
         GameStatusDTO statusAfterMove = gameFacade.play(gameId,moveId);
         StatusDTOAssertion.from(statusAfterMove)
-                .isInPostCapturePhase()
-                .haveSkipDecision()
-                .canCaptureInOneDecision("WC4(3,3)");
+                .status()
+                    .isInPostCapturePhase()
+                .decisions()
+                    .hasSkipDecision()
+                    .canCaptureInOneDecision("WC4(3,3)");
 
         UUID captureId = FindDecisionHelper.findCaptureDecisionId(
                 statusAfterMove,
