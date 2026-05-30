@@ -430,34 +430,9 @@ public class StatusDTOAssertion {
             String pieceRepresentation,
             int n
     ) {
-
-        PieceDTO piece = PieceRepresentationHelper.findPieceOrComponent(
-                actual,
-                pieceRepresentation
-        );
-
-        long actualCount = actual.possibleDecisions()
-                .stream()
-                .filter(d -> !d.skip())
-                .filter(d -> piece.id().equals(d.actorId()))
-                .count();
-
-        if (actualCount != n) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Nombre de décisions incorrect pour %s
-
-                    Attendu : %d
-                    Actuel  : %d
-                    """,
-                    pieceRepresentation,
-                    n,
-                    actualCount
-            ));
-        }
-
-        return this;
+        return decisions()
+                .hasDecisionCountFor(pieceRepresentation, n)
+                .and();
     }
 
     @Deprecated
@@ -486,175 +461,81 @@ public class StatusDTOAssertion {
         return value.replace(" ", "");
     }
 
+    @Deprecated
     public StatusDTOAssertion hasCaptureSourcesFor(
             String targetRepresentation,
             String... expectedActors
     ) {
-
-        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
-
-        Set<String> actualActors = actual.possibleDecisions().stream()
-                .filter(d -> !d.skip())
-                .filter(d -> d.capturedIdList() != null
-                        && d.capturedIdList().contains(targetId))
-                .map(DecisionDTO::actorId)
-                .collect(Collectors.toSet());
-
-        Set<String> expected = Arrays.stream(expectedActors)
-                .map(rep -> PieceRepresentationHelper.findId(actual, rep))
-                .collect(Collectors.toSet());
-
-        if (!actualActors.equals(expected)) {
-            throw new AssertionError(String.format(
-                    """
-                    Sources de capture incorrectes pour %s
-    
-                    Attendus : %s
-                    Actuels  : %s
-                    """,
-                    targetRepresentation,
-                    Arrays.toString(expectedActors),
-                    actualActors
-            ));
-        }
-
-        return this;
+        return decisions()
+                .hasCaptureSourcesFor(targetRepresentation,expectedActors)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion hasCaptureCiblesFor(
             String actorRepresentation,
             String... expectedTargets
     ) {
-
-        String actorId = PieceRepresentationHelper.findId(actual, actorRepresentation);
-
-        Set<String> actualTargets = actual.possibleDecisions().stream()
-                .filter(d -> !d.skip())
-                .filter(d -> actorId.equals(d.actorId()))
-                .flatMap(d -> d.capturedIdList().stream())
-                .collect(Collectors.toSet());
-
-        Set<String> expected = Arrays.stream(expectedTargets)
-                .map(rep -> PieceRepresentationHelper.findId(actual, rep))
-                .collect(Collectors.toSet());
-
-        if (!actualTargets.equals(expected)) {
-            throw new AssertionError(String.format(
-                    """
-                    Cibles de capture incorrectes pour %s
-    
-                    Attendus : %s
-                    Actuels  : %s
-                    """,
-                    actorRepresentation,
-                    Arrays.toString(expectedTargets),
-                    actualTargets
-            ));
-        }
-
-        return this;
+        return decisions()
+                .hasCaptureCiblesFor(actorRepresentation, expectedTargets)
+                .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion cannotCaptureWith(
             String actorRepresentation,
             String targetRepresentation
     ) {
-
-        String actorId = PieceRepresentationHelper.findId(actual, actorRepresentation);
-        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
-
-        boolean exists = actual.possibleDecisions().stream()
-                .filter(d -> !d.skip())
-                .filter(d -> actorId.equals(d.actorId()))
-                .anyMatch(d ->
-                        d.capturedIdList() != null
-                                && d.capturedIdList().contains(targetId)
-                );
-
-        if (exists) {
-            throw new AssertionError(String.format(
-                    """
-                    Capture interdite détectée
-    
-                    Actor : %s
-                    Target: %s
-    
-                    Une décision existe alors qu'elle ne devrait pas.
-                    """,
-                    actorRepresentation,
-                    targetRepresentation
-            ));
-        }
-
-        return this;
+        return decisions()
+                .cannotCaptureWith(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    private <T> StatusDTOAssertion checkOption(
-            String actorRepresentation,
-            Class<T> optionClass,
-            Predicate<T> matcher
-    ) {
-        PieceDTO pieceDTO = PieceRepresentationHelper.findPieceOrComponent(
-                actual,
-                actorRepresentation
-        );
-
-        boolean exists = actual.possibleOptions().get(pieceDTO)
-                .stream()
-                .filter(optionClass::isInstance)
-                .map(optionClass::cast)
-                .anyMatch(matcher);
-
-        if (!exists) {
-            throw new AssertionError("Option non trouvée");
-        }
-
-        return this;
+    public StatusDTOAssertion canPostCaptureWithByEncounter(String actorRepresentation, String... targetRepresentation) {
+       return options()
+               .canPostCaptureWithByEncounter(actorRepresentation, targetRepresentation)
+               .and();
     }
 
-    private StatusDTOAssertion canPreCaptureWithBy(String actorRepresentation, String targetRepresentation, CaptureTypeDTO captureTypeDTO) {
-        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
-        return checkOption(actorRepresentation,
-                PreCaptureOptionDTO.class,
-                o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
+    public StatusDTOAssertion canPostCaptureWithByAssault(String actorRepresentation, String... targetRepresentation) {
+        return options()
+                .canPostCaptureWithByAssault(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    private StatusDTOAssertion canPostCaptureWithBy(String actorRepresentation, String targetRepresentation, CaptureTypeDTO captureTypeDTO) {
-        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
-        return checkOption(actorRepresentation,
-                CaptureOptionDTO.class,
-                o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
+    public StatusDTOAssertion canPostCaptureWithByPower(String actorRepresentation, String... targetRepresentation) {
+        return options()
+                .canPostCaptureWithByPower(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    public StatusDTOAssertion canPostCaptureWithByEncounter(String actorRepresentation, String targetRepresentation) {
-       return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ENCOUNTER);
+    public StatusDTOAssertion canPostCaptureWithByAmbush(String actorRepresentation, String... targetRepresentation) {
+        return options
+                .canPostCaptureWithByAmbush(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    public StatusDTOAssertion canPostCaptureWithByAssault(String actorRepresentation, String targetRepresentation) {
-        return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ASSAULT);
+    public StatusDTOAssertion canPreCaptureWithByEncounter(String actorRepresentation, String... targetRepresentation) {
+        return options
+                .canPreCaptureWithByEncounter(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    public StatusDTOAssertion canPostCaptureWithByPower(String actorRepresentation, String targetRepresentation) {
-        return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.POWER);
+    public StatusDTOAssertion canPreCaptureWithByAssault(String actorRepresentation, String... targetRepresentation) {
+        return options
+                .canPreCaptureWithByAssault(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    public StatusDTOAssertion canPostCaptureWithByAmbush(String actorRepresentation, String targetRepresentation) {
-        return canPostCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.AMBUSH);
+    public StatusDTOAssertion canPreCaptureWithByPower(String actorRepresentation, String... targetRepresentation) {
+        return options
+                .canPreCaptureWithByPower(actorRepresentation, targetRepresentation)
+                .and();
     }
 
-    public StatusDTOAssertion canPreCaptureWithByEncounter(String actorRepresentation, String targetRepresentation) {
-        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ENCOUNTER);
-    }
-
-    public StatusDTOAssertion canPreCaptureWithByAssault(String actorRepresentation, String targetRepresentation) {
-        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.ASSAULT);
-    }
-
-    public StatusDTOAssertion canPreCaptureWithByPower(String actorRepresentation, String targetRepresentation) {
-        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.POWER);
-    }
-
-    public StatusDTOAssertion canPreCaptureWithByAmbush(String actorRepresentation, String targetRepresentation) {
-        return canPreCaptureWithBy(actorRepresentation, targetRepresentation, CaptureTypeDTO.AMBUSH);
+    public StatusDTOAssertion canPreCaptureWithByAmbush(String actorRepresentation, String... targetRepresentation) {
+        return options
+                .canPreCaptureWithByAmbush(actorRepresentation, targetRepresentation)
+                .and();
     }
 }

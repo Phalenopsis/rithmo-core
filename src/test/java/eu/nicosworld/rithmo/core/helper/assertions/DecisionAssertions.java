@@ -3,6 +3,7 @@ package eu.nicosworld.rithmo.core.helper.assertions;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
+import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 import eu.nicosworld.rithmo.engine.model.Position;
@@ -36,9 +37,8 @@ public final class DecisionAssertions extends NestedStatusAssertions {
     }
 
     public DecisionAssertions hasCaptureDecisionCount(int n) {
-        long captureDecisionCounted = this.actual.possibleDecisions()
-                .stream()
-                .filter(d -> !d.skip())
+        long captureDecisionCounted = FindDecisionHelper
+                .findNonSkipDecision(actual)
                 .filter(d ->
                         d.capturedIdList() != null
                                 && !d.capturedIdList().isEmpty()
@@ -67,10 +67,8 @@ public final class DecisionAssertions extends NestedStatusAssertions {
                 pieceRepresentation
         );
 
-        long decisionCount = actual.possibleDecisions()
-                .stream()
-                .filter(d -> !d.skip())
-                .filter(d -> piece.id().equals(d.actorId()))
+        long decisionCount = FindDecisionHelper
+                .findDecisionsFor(actual, piece.id())
                 .count();
 
         if (decisionCount != n) {
@@ -164,6 +162,83 @@ public final class DecisionAssertions extends NestedStatusAssertions {
         if (!found) {
             throw new AssertionError(StatusAssertionMessages.noMatchCapture(expected,
                     support.formatPossibleDecisionsForError()));
+        }
+
+        return this;
+    }
+
+    public DecisionAssertions hasCaptureCiblesFor(
+            String actorRepresentation,
+            String... expectedTargets
+    ) {
+        String actorId = PieceRepresentationHelper.findId(actual, actorRepresentation);
+
+        Set<String> actualTargets = FindDecisionHelper
+                .findDecisionsFor(actual, actorId)
+                .flatMap(d -> d.capturedIdList().stream())
+                .collect(Collectors.toSet());
+
+        Set<String> expected = Arrays.stream(expectedTargets)
+                .map(rep -> PieceRepresentationHelper.findId(actual, rep))
+                .collect(Collectors.toSet());
+
+        if (!actualTargets.equals(expected)) {
+            throw new AssertionError(StatusAssertionMessages.incorrectCaptureTargets(
+                    actorRepresentation,
+                    Arrays.toString(expectedTargets),
+                    actualTargets
+            ));
+        }
+
+        return this;
+    }
+
+    public DecisionAssertions cannotCaptureWith(
+            String actorRepresentation,
+            String targetRepresentation
+    ) {
+
+        String actorId = PieceRepresentationHelper.findId(actual, actorRepresentation);
+        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
+
+        boolean exists = FindDecisionHelper
+                .findDecisionsFor(actual, actorId)
+                .anyMatch(d ->
+                        d.capturedIdList() != null
+                                && d.capturedIdList().contains(targetId)
+                );
+
+        if (exists) {
+            throw new AssertionError(StatusAssertionMessages.forbiddenCapture(actorRepresentation, targetRepresentation));
+        }
+
+        return this;
+    }
+
+    public DecisionAssertions hasCaptureSourcesFor(
+            String targetRepresentation,
+            String... expectedActors
+    ) {
+
+        String targetId = PieceRepresentationHelper.findId(actual, targetRepresentation);
+
+        Set<String> actualActors = FindDecisionHelper
+                .findNonSkipDecision(actual)
+                .filter(d -> d.capturedIdList() != null
+                        && d.capturedIdList().contains(targetId))
+                .map(DecisionDTO::actorId)
+                .collect(Collectors.toSet());
+
+        Set<String> expected = Arrays.stream(expectedActors)
+                .map(rep -> PieceRepresentationHelper.findId(actual, rep))
+                .collect(Collectors.toSet());
+
+        if (!actualActors.equals(expected)) {
+            throw new AssertionError(StatusAssertionMessages.incorrectCaptureSources(
+                    targetRepresentation,
+                    Arrays.toString(expectedActors),
+                    actualActors
+            ));
         }
 
         return this;

@@ -6,6 +6,7 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,10 +35,12 @@ public class AmbushTest {
         GameStatusDTO nextStatus = gameFacade.play(status.gameId(), moveId);
 
         StatusDTOAssertion.from(nextStatus)
-                .isInPostCapturePhase()
-                .canCaptureInOneDecision("WT12(2,1)")
-                .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
-                .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
+                .status()
+                    .isInPostCapturePhase()
+                .decisions()
+                    .canCaptureInOneDecision("WT12(2,1)")
+                    .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
+                    .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
     }
 
     @Test
@@ -47,20 +50,32 @@ public class AmbushTest {
         GameStatusDTO status = gameFacade.startGame(game);
 
         StatusDTOAssertion.from(status)
-                .isInPreCapturePhase()
-                .canCaptureInOneDecision("WT12(2,1)")
-                .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
+                .status()
+                    .isInPreCapturePhase()
+                .decisions()
+                    .canCaptureInOneDecision("WT12(2,1)")
+                    .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
     }
 
     @Test
-    @DisplayName("3. on doit avoir une option de pre capture en ambush")
+    @DisplayName("3. on doit avoir 6 options de pre capture en ambush")
     void shouldProposeAPreCaptureOption_With2fullPyramid() throws Exception {
         Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
         GameStatusDTO status = gameFacade.startGame(game);
 
         StatusDTOAssertion.from(status)
-                        .isInPreCapturePhase()
-                .hasNDecisions(11)
-                .hasNOptions(7);
+                .status()
+                    .isInPreCapturePhase()
+                .options()
+                    .hasOptionCount(7)
+                    .hasSkipOption()
+                    .canPreCaptureWithByAmbush("BT16(1,0)", "WS64(2,1)")
+                    .canPreCaptureWithByAmbush("BT9(1,0)", "WT36(2,1)")
+                    .canPreCaptureWithByAmbush("BC4(1,0)", "WC16(2,1)")
+                    .canPreCaptureWithByAmbush("BC4(1,2)", "WC16(2,1)", "WT36(2,1)", "WS64(2,1)")
+                .decisions()
+                    .hasDecisionCount(11)
+                    .hasSkipDecision()
+                    .canCaptureInOneDecision("WC16(2,1)", "WT36(2,1)", "WS64(2,1)");
     }
 }
