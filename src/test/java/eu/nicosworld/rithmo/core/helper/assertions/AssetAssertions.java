@@ -4,6 +4,7 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,6 +50,29 @@ public final class AssetAssertions extends NestedStatusAssertions {
 
         if (!missing.isEmpty()) {
             throw new AssertionError(StatusAssertionMessages.missingInReserve(missing, actual));
+        }
+
+        return this;
+    }
+
+    public AssetAssertions reserveDoesNotContain(
+            String ...pieceRepresentations
+    ) {
+        ArrayList<String> unexpected = new ArrayList<>();
+        for(String pieceRepresentation: pieceRepresentations) {
+            boolean found = actual.assets()
+                    .values()
+                    .stream()
+                    .flatMap(a -> a.reserve().stream())
+                    .map(PieceRepresentationHelper::toShortRepresentation)
+                    .anyMatch(pieceRepresentation::equals);
+            if(found) {
+                unexpected.add(pieceRepresentation);
+            }
+        }
+
+        if (!unexpected.isEmpty()) {
+            throw new AssertionError(StatusAssertionMessages.unexpectedReservePieces(unexpected));
         }
 
         return this;

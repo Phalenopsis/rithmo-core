@@ -81,8 +81,10 @@ class GameFacadeE2ETest {
         GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
 
         StatusDTOAssertion.from(statusAfterStart)
-                .isInPreCapturePhase()
-                .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
+                .status()
+                    .isInPreCapturePhase()
+                .decisions()
+                    .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
 
         UUID id = FindDecisionHelper.findCaptureDecisionId(
                 statusAfterStart,
@@ -91,12 +93,15 @@ class GameFacadeE2ETest {
         GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), id);
 
         StatusDTOAssertion.from(statusAfterCapture)
-                .isInMovePhase()
-                .dontHaveSkipDecision()
-                .haveAllDecisionsWithActor("WP190(0,3)")
-                .havePyramidComposedBy(PlayerColorDTO.BLACK, "BS36", "BS25", "BT9", "BC1")
-                .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
-                .havePyramidValue(PlayerColorDTO.BLACK, 71);
+                .status()
+                    .isInMovePhase()
+                .board()
+                    .hasPyramidValue(PlayerColorDTO.BLACK, 71)
+                    .hasPyramidComposedBy(PlayerColorDTO.BLACK, "BS36", "BS25", "BT9", "BC1")
+                .decisions()
+                    .hasOnlyMoveDecisions()
+                    .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
+                    .hasOnlyDecisionsFor("WP190(0,3)");
     }
 
     @Test
@@ -106,8 +111,10 @@ class GameFacadeE2ETest {
         GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
 
         StatusDTOAssertion.from(statusAfterStart)
-                .isInPreCapturePhase()
-                .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
+                .status()
+                    .isInPreCapturePhase()
+                .decisions()
+                    .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
 
         UUID id = FindDecisionHelper.findCaptureDecisionId(
                 statusAfterStart,
@@ -117,17 +124,21 @@ class GameFacadeE2ETest {
         GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), id);
 
         StatusDTOAssertion.from(statusAfterCapture)
-                .hasActivePlayer(PlayerColorDTO.WHITE)
-                .isInMovePhase()
-                .dontHaveSkipDecision()
-                .haveAllDecisionsWithActor("WP190(0,3)")
-                .havePyramidComposedBy(PlayerColorDTO.BLACK, "BS36")
-                .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
-                .havePyramidValue(PlayerColorDTO.BLACK, 36)
-                .hasNoReintroductionOptions()
-                .reserveDoesNotContain("BT16")
-                .reserveDoesNotContain("BC4")
-                .capturedContains("BT16", "BC4");
+                .status()
+                    .hasActivePlayer(PlayerColorDTO.WHITE)
+                    .isInMovePhase()
+                .board()
+                    .hasPyramidComposedBy(PlayerColorDTO.BLACK, "BS36")
+                    .hasPyramidValue(PlayerColorDTO.BLACK, 36)
+                .assets()
+                    .capturedContains("BT16", "BC4")
+                    .reserveDoesNotContain("BT16", "BC4")
+                .options()
+                    .hasNoReintroductionOptions()
+                .decisions()
+                    .hasOnlyMoveDecisions()
+                    .hasOnlyDecisionsFor("WP190(0,3)")
+                    .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)");
     }
 
     @Test
@@ -154,11 +165,14 @@ class GameFacadeE2ETest {
         GameStatusDTO statusDTO4 = gameFacade.play(gameId, reintroductionId);
 
         StatusDTOAssertion.from(statusDTO4)
-                .isInPostCapturePhase()
-                .hasActivePlayer(PlayerColorDTO.BLACK)
-                .reserveDoesNotContain("BT4")
-                .capturedContains("WT4")
-                .canCaptureInOneDecision("WC4(2,2)");
+                .status()
+                    .isInPostCapturePhase()
+                    .hasActivePlayer(PlayerColorDTO.BLACK)
+                .assets()
+                    .reserveDoesNotContain("BT4")
+                    .capturedContains("WT4")
+                .decisions()
+                    .canCaptureInOneDecision("WC4(2,2)");
 
         UUID captureAfterReintroductionId = FindDecisionHelper.findDecisionWithCaptures(statusDTO4, 1);
         assertThatThrownBy(() -> gameFacade.play(gameId, captureAfterReintroductionId))

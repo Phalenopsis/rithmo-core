@@ -58,6 +58,19 @@ public final class DecisionAssertions extends NestedStatusAssertions {
         return this;
     }
 
+    public DecisionAssertions hasOnlyDecisionsFor(String actorRepresentation) {
+        PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(
+                actual,
+                actorRepresentation
+        );
+
+        assertThat(actual.possibleDecisions())
+                .isNotEmpty()
+                .allMatch(d -> actor.id().equals(d.actorId()));
+
+        return this;
+    }
+
     public DecisionAssertions hasDecisionCountFor(
             String pieceRepresentation,
             int n
@@ -160,7 +173,7 @@ public final class DecisionAssertions extends NestedStatusAssertions {
                 });
 
         if (!found) {
-            throw new AssertionError(StatusAssertionMessages.noMatchCapture(expected,
+            throw new AssertionError(StatusAssertionMessages.missingCaptureDecision(expected,
                     support.formatPossibleDecisionsForError()));
         }
 

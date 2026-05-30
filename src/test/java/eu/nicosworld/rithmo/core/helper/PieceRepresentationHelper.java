@@ -3,6 +3,7 @@ package eu.nicosworld.rithmo.core.helper;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
 
 public final class PieceRepresentationHelper {
@@ -50,30 +51,21 @@ public final class PieceRepresentationHelper {
                 .id();
     }
 
-    public static boolean matches(
-            PieceDTO piece,
-            String representation
-    ) {
-
-        if (piece == null) {
-            return false;
-        }
-
-        return toRepresentation(piece)
-                .equals(representation);
+    public static PieceDTO findPyramidFor(GameStatusDTO statusDTO, PlayerColorDTO color) {
+        return statusDTO.board().pieces()
+                .stream()
+                .filter(p -> p.owner().equals(color))
+                .filter(p -> p.shape().equals(PieceShape.PYRAMID))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Aucune pyramide trouvée pour : " + color));
     }
 
-    public static boolean matchesInReserve(
-            PieceDTO piece,
-            String representation
-    ) {
+    public static boolean matches(PieceDTO piece, String representation) {
+        return toRepresentation(piece).equals(representation);
+    }
 
-        if (piece == null) {
-            return false;
-        }
-
-        return toShortRepresentation(piece)
-                .equals(representation);
+    public static boolean matchesInReserve(PieceDTO piece, String representation) {
+        return toShortRepresentation(piece).equals(representation);
     }
 
     /**

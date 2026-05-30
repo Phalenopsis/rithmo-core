@@ -20,14 +20,11 @@ public final class StatusAssertionSupport {
         return actual.board().pieces()
                 .stream()
                 .flatMap(piece -> {
-
                     List<PieceDTO> all = new ArrayList<>();
                     all.add(piece);
-
                     if (piece.shape() == PieceShape.PYRAMID) {
                         all.addAll(piece.components());
                     }
-
                     return all.stream();
                 })
                 .filter(piece -> id.equals(piece.id()))
@@ -36,17 +33,14 @@ public final class StatusAssertionSupport {
                 .orElse(null);
     }
 
-    String formatPossibleDecisionsForError() {
-
+    public String formatPossibleDecisionsForError() {
         return actual.possibleDecisions()
                 .stream()
                 .filter(d -> !d.skip())
                 .map(d -> {
-
                     if (d.capturedIdList() == null) {
                         return "";
                     }
-
                     return d.capturedIdList()
                             .stream()
                             .map(this::findPieceRepresentationById)
@@ -56,7 +50,7 @@ public final class StatusAssertionSupport {
                 .collect(Collectors.joining(" | "));
     }
 
-    String normalize(String value) {
+    public String normalize(String value) {
         return value.replace(" ", "");
     }
 }

@@ -4,15 +4,11 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.CaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.assertions.*;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,20 +110,11 @@ public class StatusDTOAssertion {
                 .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion haveAllDecisionsWithActor(String actorRepresentation) {
-
-        PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(
-                actual,
-                actorRepresentation
-        );
-
-        assertThat(
-                actual.possibleDecisions()
-                        .stream()
-                        .allMatch(d -> actor.id().equals(d.actorId()))
-        ).isTrue();
-
-        return this;
+        return decisions()
+                .hasOnlyDecisionsFor(actorRepresentation)
+                .and();
     }
 
     @Deprecated
@@ -167,48 +154,14 @@ public class StatusDTOAssertion {
                 .collect(Collectors.joining(" | "));
     }
 
+    @Deprecated
     public StatusDTOAssertion havePyramidComposedBy(
             PlayerColorDTO color,
             String... expectedComponents
     ) {
-
-        PieceDTO pyramid = actual.board().pieces()
-                .stream()
-                .filter(p -> p.owner().equals(color))
-                .filter(p -> p.shape().equals(PieceShape.PYRAMID))
-                .findFirst()
-                .orElseThrow(() ->
-                        new AssertionError(
-                                "Aucune pyramide trouvée pour : " + color
-                        )
-                );
-
-        List<String> actual = pyramid.components()
-                .stream()
-                .map(PieceRepresentationHelper::toShortRepresentation)
-                .sorted()
-                .toList();
-
-        List<String> expected = Arrays.stream(expectedComponents)
-                .sorted()
-                .toList();
-
-        if (!actual.equals(expected)) {
-
-            throw new AssertionError(String.format(
-                    """
-                    La pyramide %s n'a pas la composition attendue.
-
-                    Attendus : %s
-                    Actuels  : %s
-                    """,
-                    color,
-                    expected,
-                    actual
-            ));
-        }
-
-        return this;
+        return board()
+                .hasPyramidComposedBy(color, expectedComponents)
+                .and();
     }
 
     @Deprecated
@@ -229,40 +182,14 @@ public class StatusDTOAssertion {
                 .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion havePyramidValue(
             PlayerColorDTO color,
             int expectedValue
     ) {
-
-        PieceDTO pyramid = actual.board().pieces()
-                .stream()
-                .filter(p -> p.owner().equals(color))
-                .filter(p -> p.shape().equals(PieceShape.PYRAMID))
-                .findFirst()
-                .orElseThrow(() ->
-                        new AssertionError(
-                                "Aucune pyramide trouvée pour " + color
-                        )
-                );
-
-        int actualValue = pyramid.value();
-
-        if (actualValue != expectedValue) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Valeur incorrecte pour la pyramide %s
-
-                    Attendue : %d
-                    Actuelle : %d
-                    """,
-                    color,
-                    expectedValue,
-                    actualValue
-            ));
-        }
-
-        return this;
+        return board()
+                .hasPyramidValue(color, expectedValue)
+                .and();
     }
 
     public StatusDTOAssertion hasReintroductionOptionsForActivePlayer() {
@@ -354,26 +281,13 @@ public class StatusDTOAssertion {
         return hasPiece(expected);
     }
 
+    @Deprecated
     public StatusDTOAssertion reserveDoesNotContain(
             String pieceRepresentation
     ) {
-
-        boolean found = actual.assets()
-                .values()
-                .stream()
-                .flatMap(a -> a.reserve().stream())
-                .map(PieceRepresentationHelper::toShortRepresentation)
-                .anyMatch(pieceRepresentation::equals);
-
-        if (found) {
-
-            throw new AssertionError(
-                    "La réserve contient encore : "
-                            + pieceRepresentation
-            );
-        }
-
-        return this;
+        return assets()
+                .reserveDoesNotContain(pieceRepresentation)
+                .and();
     }
 
     @Deprecated
