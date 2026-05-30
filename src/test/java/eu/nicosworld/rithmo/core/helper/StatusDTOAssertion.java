@@ -8,7 +8,6 @@ import eu.nicosworld.rithmo.core.game.dto.option.CaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.assertions.*;
 
@@ -21,9 +20,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StatusDTOAssertion {
 
     private final GameStatusDTO actual;
+    private final StatusAssertionSupport support;
+
+    private final DecisionAssertions decisions;
+    private final OptionAssertions options;
+    private final AssetAssertions assets;
+    private final BoardAssertions board;
+    private final GlobalAssertions status;
 
     private StatusDTOAssertion(GameStatusDTO actual) {
         this.actual = actual;
+        this.support = new StatusAssertionSupport(actual);
+
+        this.decisions = new DecisionAssertions(actual, this);
+        this.options = new OptionAssertions(actual, this);
+        this.assets = new AssetAssertions(actual, this);
+        this.board = new BoardAssertions(actual, this);
+        this.status = new GlobalAssertions(actual, this);
     }
 
     public static StatusDTOAssertion from(GameStatusDTO statusDTO) {
@@ -31,23 +44,27 @@ public class StatusDTOAssertion {
     }
 
     public DecisionAssertions decisions() {
-        return new DecisionAssertions(actual, this);
+        return decisions;
     }
 
     public OptionAssertions options() {
-        return new OptionAssertions(actual, this);
+        return options;
     }
 
     public AssetAssertions assets() {
-        return new AssetAssertions(actual, this);
+        return assets;
     }
 
     public BoardAssertions board() {
-        return new BoardAssertions(actual, this);
+        return board;
     }
 
     public GlobalAssertions status() {
-        return new GlobalAssertions(actual, this);
+        return status;
+    }
+
+    public StatusAssertionSupport support() {
+        return support;
     }
 
     @Deprecated(forRemoval = false)
@@ -64,12 +81,11 @@ public class StatusDTOAssertion {
                 .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion isInPostCapturePhase() {
-
-        assertThat(actual.phase())
-                .isEqualTo(PhaseDTO.POST_CAPTURE);
-
-        return this;
+        return status()
+                .isInPostCapturePhase()
+                .and();
     }
 
     @Deprecated
@@ -121,51 +137,16 @@ public class StatusDTOAssertion {
                 .and();
     }
 
+    @Deprecated
     public StatusDTOAssertion canCaptureInOneDecision(
             String... pieceRepresentations
     ) {
-
-        List<String> expected = Arrays.stream(pieceRepresentations)
-                .sorted()
-                .toList();
-
-        boolean found = actual.possibleDecisions()
-                .stream()
-                .filter(d ->
-                        d.capturedIdList() != null
-                                && !d.capturedIdList().isEmpty()
-                )
-                .anyMatch(decision -> {
-
-                    List<String> captured = decision.capturedIdList()
-                            .stream()
-                            .map(this::findPieceRepresentationById)
-                            .filter(Objects::nonNull)
-                            .sorted()
-                            .toList();
-
-                    return captured.equals(expected);
-                });
-
-        if (!found) {
-
-            throw new AssertionError(String.format(
-                    """
-                    Aucune décision ne permet de capturer exactement :
-
-                    %s
-
-                    Décisions possibles :
-                    %s
-                    """,
-                    expected,
-                    formatPossibleDecisionsForError()
-            ));
-        }
-
-        return this;
+        return decisions()
+                .canCaptureInOneDecision(pieceRepresentations)
+                .and();
     }
 
+    @Deprecated
     private String formatPossibleDecisionsForError() {
 
         return actual.possibleDecisions()
@@ -479,8 +460,8 @@ public class StatusDTOAssertion {
         return this;
     }
 
+    @Deprecated
     private String findPieceRepresentationById(String id) {
-
         return actual.board().pieces()
                 .stream()
                 .flatMap(piece -> {
@@ -500,6 +481,7 @@ public class StatusDTOAssertion {
                 .orElse(null);
     }
 
+    @Deprecated
     private String normalize(String value) {
         return value.replace(" ", "");
     }

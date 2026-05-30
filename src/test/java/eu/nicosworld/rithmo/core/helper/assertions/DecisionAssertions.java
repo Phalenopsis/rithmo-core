@@ -7,10 +7,7 @@ import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 import eu.nicosworld.rithmo.engine.model.Position;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,11 +106,11 @@ public final class DecisionAssertions extends NestedStatusAssertions {
                 .map(DecisionDTO::landing)
                 .filter(Objects::nonNull)
                 .map(Position::toString)
-                .map(this::normalize)
+                .map(support::normalize)
                 .collect(Collectors.toSet());
 
         Set<String> expectedLandings = Arrays.stream(expectedLandingPositions)
-                .map(this::normalize)
+                .map(support::normalize)
                 .collect(Collectors.toSet());
 
         Set<String> missing = new HashSet<>(expectedLandings);
@@ -133,6 +130,40 @@ public final class DecisionAssertions extends NestedStatusAssertions {
             if (!extras.isEmpty()) {
                 throw new AssertionError(StatusAssertionMessages.unexpectedMoveDestinations(extras));
             }
+        }
+
+        return this;
+    }
+
+    public DecisionAssertions canCaptureInOneDecision(
+            String... pieceRepresentations
+    ) {
+
+        List<String> expected = Arrays.stream(pieceRepresentations)
+                .sorted()
+                .toList();
+
+        boolean found = actual.possibleDecisions()
+                .stream()
+                .filter(d ->
+                        d.capturedIdList() != null
+                                && !d.capturedIdList().isEmpty()
+                )
+                .anyMatch(decision -> {
+
+                    List<String> captured = decision.capturedIdList()
+                            .stream()
+                            .map(this.support::findPieceRepresentationById)
+                            .filter(Objects::nonNull)
+                            .sorted()
+                            .toList();
+
+                    return captured.equals(expected);
+                });
+
+        if (!found) {
+            throw new AssertionError(StatusAssertionMessages.noMatchCapture(expected,
+                    support.formatPossibleDecisionsForError()));
         }
 
         return this;

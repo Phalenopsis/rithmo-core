@@ -7,6 +7,7 @@ abstract class NestedStatusAssertions {
 
     protected final GameStatusDTO actual;
     protected final StatusDTOAssertion parent;
+    protected final StatusAssertionSupport support;
 
     protected NestedStatusAssertions(
             GameStatusDTO actual,
@@ -14,6 +15,7 @@ abstract class NestedStatusAssertions {
     ) {
         this.actual = actual;
         this.parent = parent;
+        this.support = parent.support();
     }
 
     public StatusDTOAssertion and() {
@@ -38,9 +40,5 @@ abstract class NestedStatusAssertions {
 
     public BoardAssertions board() {
         return parent.board();
-    }
-
-    protected final String normalize(String value) {
-        return value.replace(" ", "");
     }
 }

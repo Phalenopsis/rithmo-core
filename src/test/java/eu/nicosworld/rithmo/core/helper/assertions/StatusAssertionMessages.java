@@ -92,4 +92,17 @@ final class StatusAssertionMessages {
                         missing,
                         reserve);
     }
+
+    static String noMatchCapture(List<String> expected, String possiblesDecisions) {
+        return """
+                Aucune décision ne permet de capturer exactement :
+
+                %s
+
+                Décisions possibles :
+                %s
+                """.formatted(
+                    expected,
+                    possiblesDecisions);
+    }
 }

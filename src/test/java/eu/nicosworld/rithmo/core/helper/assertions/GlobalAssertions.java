@@ -29,4 +29,11 @@ public final class GlobalAssertions extends NestedStatusAssertions {
                 .isEqualTo(PhaseDTO.MOVE);
         return this;
     }
+
+    public GlobalAssertions isInPostCapturePhase() {
+        assertThat(actual.phase())
+                .isEqualTo(PhaseDTO.POST_CAPTURE);
+
+        return this;
+    }
 }
