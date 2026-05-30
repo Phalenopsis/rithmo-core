@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
 import eu.nicosworld.rithmo.core.turn.action.*;
-import eu.nicosworld.rithmo.engine.capture.justification.EncounterJustification;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
@@ -10,7 +9,6 @@ import eu.nicosworld.rithmo.engine.move.MoveNature;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.CaptureJustifications;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
-import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

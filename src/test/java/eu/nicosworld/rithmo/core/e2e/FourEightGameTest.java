@@ -6,11 +6,9 @@ import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
-import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,8 +33,6 @@ public class FourEightGameTest {
         Game game = PreDefinedGame.fourEightBoardGame();
         UUID gameId = game.getId();
         GameStatusDTO status = gameFacade.startGame(game);
-
-        TestDebugger.render(status);
 
         UUID firstMoveId = FindDecisionHelper.findMoveDecisionId(status, "BP91(0,0)", "(2,0)");
         GameStatusDTO statusDTO2 = gameFacade.play(gameId, firstMoveId);

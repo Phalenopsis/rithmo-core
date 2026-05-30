@@ -7,7 +7,6 @@ import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.CaptureJustifications;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
-import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -64,8 +63,6 @@ class CaptureApplierTest {
                 .build();
 
         GameState state = GameState.initial(board, Player.BLACK);
-
-        RithmoDebug.printBoardAfterArrange(state.board());
 
         Piece attackerPiece = board.getPieceAt(attackerPos);
         Piece targetPiece1 = board.getPieceAt(targetPos1);
