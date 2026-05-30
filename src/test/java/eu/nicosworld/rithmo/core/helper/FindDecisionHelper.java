@@ -22,9 +22,7 @@ public class FindDecisionHelper {
             GameStatusDTO statusDTO
     ) {
 
-        return statusDTO.possibleDecisions()
-                .stream()
-                .filter(decision -> !decision.skip())
+        return findNonSkipDecision(statusDTO)
                 .map(DecisionDTO::id)
                 .findFirst()
                 .orElse(null);
@@ -60,7 +58,7 @@ public class FindDecisionHelper {
 
     /**
      * Find a move decision by actor representation and landing position.
-     *
+     * <p>
      * Examples:
      * <pre>
      * findMoveDecisionId(status, "BP91(0,0)", "(2,0)");
@@ -427,8 +425,12 @@ public class FindDecisionHelper {
     }
 
     public static Stream<DecisionDTO> findDecisionsFor(GameStatusDTO statusDTO, String actorId) {
-        return statusDTO.possibleDecisions().stream()
-                .filter(d -> !d.skip())
+        return findNonSkipDecision(statusDTO)
                 .filter(d -> actorId.equals(d.actorId()));
+    }
+
+    public static Stream<DecisionDTO> findNonSkipDecision(GameStatusDTO statusDTO) {
+        return statusDTO.possibleDecisions().stream()
+                .filter(d -> !d.skip());
     }
 }
