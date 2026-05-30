@@ -5,15 +5,26 @@ echo "🧹 Automated import cleanup and validation tracking..."
 # 1. Get the list of currently staged files before Spotless runs
 STAGED_FILES=$(git diff --cached --name-only)
 
-# 2. Apply Spotless automatic cleanup
+# If no files are staged, we can exit early
+if [ -z "$STAGED_FILES" ]; then
+    exit 0
+fi
+
+# 2. Apply Spotless automatic cleanup (writes modifications to disk)
 mvn spotless:apply
 
-# 3. Check for TestDebugger placeholders in src/test, excluding TestDebugger.java itself
-if git diff --cached -- "src/test" ":(exclude)*TestDebugger.java" | grep -q "TODO: REMOVE DEBUGGER APPEL"; then
-    echo "❌ Error: You left a TestDebugger call in your code!"
-    echo "Please remove the debug line before committing."
-    exit 1
-fi
+# 3. Check for TestDebugger placeholders ONLY within the files targeted for this commit
+# We filter STAGED_FILES to only scan java files inside src/test, excluding TestDebugger itself
+for FILE in $STAGED_FILES; do
+    if [[ "$FILE" == src/test/* ]] && [[ "$FILE" != *TestDebugger.java ]] && [ -f "$FILE" ]; then
+        # Check if the TODO string is present in the current disk version of this specific staged file
+        if grep -q "TODO: REMOVE DEBUGGER APPEL" "$FILE"; then
+            echo "❌ Error: You left a TestDebugger call in your staged file: $FILE"
+            echo "Please remove the debug line before committing."
+            exit 1
+        fi
+    fi
+done
 
 # 4. Only re-stage files that were ALREADY staged and modified by Spotless
 for FILE in $STAGED_FILES; do
