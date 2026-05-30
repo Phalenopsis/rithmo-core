@@ -22,7 +22,7 @@ for FILE in $STAGED_FILES; do
 done
 
 # 3. Only run Spotless if there are staged Java files to clean
-if [ -not -z "$SPOTLESS_TARGETS" ]; then
+if [ ! -z "$SPOTLESS_TARGETS" ]; then
     echo "✨ Running Spotless on staged files only..."
     mvn spotless:apply -DspotlessFiles="$SPOTLESS_TARGETS"
 fi
