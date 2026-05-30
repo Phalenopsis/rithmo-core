@@ -28,7 +28,7 @@
         <maven.compiler.target>21</maven.compiler.target>
 
         <!-- Internal dependencies -->
-        <rithmo-engine.version>0.5.1-SNAPSHOT</rithmo-engine.version>
+        <rithmo-engine.version>0.5.1</rithmo-engine.version>
 
         <!-- Test dependencies -->
         <junit.version>5.10.0</junit.version>
