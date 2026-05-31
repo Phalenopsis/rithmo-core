@@ -15,9 +15,9 @@ import eu.nicosworld.rithmo.core.turn.resolver.CaptureResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.MoveResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
 import eu.nicosworld.rithmo.core.turn.resolver.ReintroductionResolver;
-import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.CaptureRule;
+import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MovementEngine;
@@ -25,7 +25,6 @@ import eu.nicosworld.rithmo.engine.reintroduction.ReintroductionEngine;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import eu.nicosworld.rithmo.engine.victory.VictoryRule;
-
 import java.util.List;
 
 public class TurnHelper {

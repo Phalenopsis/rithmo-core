@@ -8,7 +8,6 @@ import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.turn.option.TurnOption;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

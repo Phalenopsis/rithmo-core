@@ -1,11 +1,11 @@
 package eu.nicosworld.rithmo.core.helper.assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PhaseDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public final class GlobalAssertions extends NestedStatusAssertions {
     public GlobalAssertions(GameStatusDTO actual, StatusDTOAssertion parent) {

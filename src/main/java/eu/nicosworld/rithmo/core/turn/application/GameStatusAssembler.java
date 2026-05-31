@@ -8,10 +8,9 @@ import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.application.decision.DecisionRegistry;
-import eu.nicosworld.rithmo.core.turn.application.projection.TurnProjection;
 import eu.nicosworld.rithmo.core.turn.application.projection.ExecutableDecision;
+import eu.nicosworld.rithmo.core.turn.application.projection.TurnProjection;
 import eu.nicosworld.rithmo.core.turn.option.*;
-
 import java.util.*;
 
 /**

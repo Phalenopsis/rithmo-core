@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.turn.action;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.Position;
-
 import java.util.List;
 
 /**

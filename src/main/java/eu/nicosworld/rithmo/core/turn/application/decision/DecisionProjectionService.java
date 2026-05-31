@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.application.decision;
 
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
-
 import java.util.UUID;
 
 /**

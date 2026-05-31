@@ -1,5 +1,9 @@
 package eu.nicosworld.rithmo.core.turn;
 
+import static eu.nicosworld.rithmo.core.turn.testutils.TurnHelper.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
@@ -13,17 +17,11 @@ import eu.nicosworld.rithmo.engine.capture.capturerule.EncounterRule;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.move.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
-import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static eu.nicosworld.rithmo.core.turn.testutils.TurnHelper.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TurnProcessorIntegrationBeforeMoveTest {
 

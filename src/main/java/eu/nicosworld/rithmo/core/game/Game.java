@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core.game;
 
 import eu.nicosworld.rithmo.core.GameOptions;
 import eu.nicosworld.rithmo.core.turn.TurnState;
-
 import java.util.UUID;
 
 public class Game {

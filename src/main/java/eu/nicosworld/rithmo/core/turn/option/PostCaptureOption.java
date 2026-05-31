@@ -1,9 +1,7 @@
 package eu.nicosworld.rithmo.core.turn.option;
 
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
-import eu.nicosworld.rithmo.engine.model.Piece;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
-
 import java.util.List;
 
 /**

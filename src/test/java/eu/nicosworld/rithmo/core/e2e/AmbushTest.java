@@ -6,13 +6,13 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
 
 public class AmbushTest {
     private GameFacade gameFacade;
@@ -40,6 +40,7 @@ public class AmbushTest {
                     .canCaptureInOneDecision("WT12(2,1)")
                     .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
                     .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
+        TestDebugger.render(status);
     }
 
     @Test

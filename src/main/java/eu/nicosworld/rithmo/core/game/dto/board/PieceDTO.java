@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.game.dto.board;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
 import eu.nicosworld.rithmo.engine.model.*;
-
 import java.util.ArrayList;
 import java.util.List;
 

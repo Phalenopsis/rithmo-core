@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core.turn.applier;
 
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.model.*;
-
 import java.util.List;
 
 /**

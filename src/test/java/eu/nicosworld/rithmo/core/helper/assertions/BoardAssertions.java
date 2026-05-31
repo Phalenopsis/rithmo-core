@@ -5,7 +5,6 @@ import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-
 import java.util.Arrays;
 import java.util.List;
 

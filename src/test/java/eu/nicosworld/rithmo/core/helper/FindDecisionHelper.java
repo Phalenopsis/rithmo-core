@@ -7,7 +7,6 @@ import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.engine.model.Position;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;

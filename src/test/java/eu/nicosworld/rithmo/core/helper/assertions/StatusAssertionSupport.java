@@ -4,7 +4,6 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceShape;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

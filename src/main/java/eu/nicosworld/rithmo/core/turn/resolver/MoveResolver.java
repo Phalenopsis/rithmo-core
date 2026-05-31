@@ -4,7 +4,6 @@ import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MovementEngine;
-
 import java.util.List;
 
 public class MoveResolver {

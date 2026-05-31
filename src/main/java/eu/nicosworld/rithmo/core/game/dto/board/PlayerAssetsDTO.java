@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.game.dto.board;
 
 import eu.nicosworld.rithmo.engine.model.PlayerAssets;
-
 import java.util.List;
 
 public record PlayerAssetsDTO(

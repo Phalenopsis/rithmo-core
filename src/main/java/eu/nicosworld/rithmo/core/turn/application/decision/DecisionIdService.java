@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.turn.application.decision;
 
 import eu.nicosworld.rithmo.core.DecisionKey;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

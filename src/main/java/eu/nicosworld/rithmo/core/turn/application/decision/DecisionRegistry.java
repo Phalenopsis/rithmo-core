@@ -4,7 +4,6 @@ import eu.nicosworld.rithmo.core.DecisionKey;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.TurnAction;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;

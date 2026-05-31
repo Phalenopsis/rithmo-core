@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core.helper.persistence;
 
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.persistence.GameRepository;
-
 import java.util.*;
 
 public class InMemoryGameRepository implements GameRepository {

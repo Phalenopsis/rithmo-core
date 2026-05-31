@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.helper.assertions;
 
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
-
 import java.util.List;
 import java.util.Set;
 

@@ -7,9 +7,8 @@ import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.CaptureJustifications;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class CaptureApplierTest {
 

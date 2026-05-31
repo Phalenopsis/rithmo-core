@@ -1,28 +1,24 @@
 package eu.nicosworld.rithmo.core.turn.resolver;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
+import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
+import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AssaultRule;
+import eu.nicosworld.rithmo.engine.capture.capturerule.EncounterRule;
 import eu.nicosworld.rithmo.engine.capture.capturerule.PowerRule;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureContext;
-import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
-import eu.nicosworld.rithmo.engine.capture.capturerule.AmbushRule;
-import eu.nicosworld.rithmo.engine.capture.capturerule.EncounterRule;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.move.FreePathMovementValidator;
 import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
-import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class CaptureResolverTest {
 

@@ -6,7 +6,6 @@ import eu.nicosworld.rithmo.engine.capture.CaptureEngine;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureContext;
 import eu.nicosworld.rithmo.engine.model.*;
-
 import java.util.*;
 import java.util.stream.Collectors;
 

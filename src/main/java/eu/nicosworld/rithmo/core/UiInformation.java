@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
-
 import java.util.Map;
 import java.util.Set;
 

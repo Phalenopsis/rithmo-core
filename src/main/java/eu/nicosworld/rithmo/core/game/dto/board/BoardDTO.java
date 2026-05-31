@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core.game.dto.board;
 
 import eu.nicosworld.rithmo.engine.model.Board;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
-
 import java.util.List;
 
 public record BoardDTO(List<PieceDTO> pieces,

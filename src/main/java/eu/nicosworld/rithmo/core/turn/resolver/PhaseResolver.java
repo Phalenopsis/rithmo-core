@@ -7,7 +7,6 @@ import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.reintroduction.Reintroduction;
-
 import java.util.ArrayList;
 import java.util.List;
 

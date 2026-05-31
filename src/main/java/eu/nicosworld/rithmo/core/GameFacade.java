@@ -12,7 +12,6 @@ import eu.nicosworld.rithmo.core.turn.TurnProcessorFactory;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.application.GameStatusAssembler;
 import eu.nicosworld.rithmo.engine.model.*;
-
 import java.util.*;
 
 /**

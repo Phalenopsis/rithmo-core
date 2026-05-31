@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.helper.assertions;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

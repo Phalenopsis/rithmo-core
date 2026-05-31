@@ -1,5 +1,8 @@
 package eu.nicosworld.rithmo.core.turn.applier;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
 import eu.nicosworld.rithmo.engine.capture.model.InvolvedPiece;
@@ -9,13 +12,9 @@ import eu.nicosworld.rithmo.engine.move.MoveNature;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.testutils.CaptureJustifications;
 import eu.nicosworld.rithmo.engine.testutils.GameStateAssertion;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class ActionApplierTest {
 

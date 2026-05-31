@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core.turn.application.projection;
 
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PlayerOptionDTO;
-
 import java.util.List;
 
 /**

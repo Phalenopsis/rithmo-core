@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core;
 
 import eu.nicosworld.rithmo.core.game.CaptureRuleOption;
 import eu.nicosworld.rithmo.core.game.VictoryRuleOption;
-
 import java.util.Map;
 import java.util.Set;
 

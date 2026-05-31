@@ -10,7 +10,6 @@ import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
-
 import java.util.Map;
 import java.util.Set;
 

@@ -1,5 +1,7 @@
 package eu.nicosworld.rithmo.core.turn;
 
+import static eu.nicosworld.rithmo.core.turn.testutils.TurnHelper.setupProcessor;
+
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.turn.action.MoveAction;
@@ -14,14 +16,10 @@ import eu.nicosworld.rithmo.engine.move.FreePathMovementValidator;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
-import eu.nicosworld.rithmo.engine.testutils.RithmoDebug;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static eu.nicosworld.rithmo.core.turn.testutils.TurnHelper.setupProcessor;
 
 public class TurnProcessorIntegrationAfterMoveTest {
     private BoardBuilder builder;

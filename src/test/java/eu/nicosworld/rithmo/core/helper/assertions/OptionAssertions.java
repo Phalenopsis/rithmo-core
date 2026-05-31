@@ -1,5 +1,7 @@
 package eu.nicosworld.rithmo.core.helper.assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.CaptureOptionDTO;
@@ -9,11 +11,8 @@ import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-
 import java.util.Set;
 import java.util.function.Predicate;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public final class OptionAssertions extends NestedStatusAssertions {
     public OptionAssertions(GameStatusDTO actual, StatusDTOAssertion parent) {

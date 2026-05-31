@@ -1,7 +1,6 @@
 package eu.nicosworld.rithmo.core.persistence;
 
 import eu.nicosworld.rithmo.core.UiInformation;
-
 import java.util.List;
 import java.util.UUID;
 

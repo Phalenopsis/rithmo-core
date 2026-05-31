@@ -25,7 +25,6 @@ import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.GoodsVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import eu.nicosworld.rithmo.engine.victory.VictoryRule;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

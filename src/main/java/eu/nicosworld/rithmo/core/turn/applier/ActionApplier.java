@@ -8,7 +8,6 @@ import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.move.Move;
 import eu.nicosworld.rithmo.engine.move.MoveNature;
 import eu.nicosworld.rithmo.engine.reintroduction.Reintroduction;
-
 import java.util.Objects;
 
 /**

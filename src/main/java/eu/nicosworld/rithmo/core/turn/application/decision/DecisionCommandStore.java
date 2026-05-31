@@ -3,7 +3,6 @@ package eu.nicosworld.rithmo.core.turn.application.decision;
 import eu.nicosworld.rithmo.core.game.PendingAction;
 import eu.nicosworld.rithmo.core.persistence.OptionRepository;
 import eu.nicosworld.rithmo.core.turn.action.TurnAction;
-
 import java.util.UUID;
 
 /**
