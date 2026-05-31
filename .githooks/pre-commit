@@ -11,6 +11,7 @@ fi
 
 # 2. Build a comma-separated list of staged Java files for Spotless
 SPOTLESS_TARGETS=""
+
 for FILE in $STAGED_FILES; do
     if [[ "$FILE" == *.java ]] && [ -f "$FILE" ]; then
         if [ -z "$SPOTLESS_TARGETS" ]; then
@@ -21,10 +22,21 @@ for FILE in $STAGED_FILES; do
     fi
 done
 
-# 3. Only run Spotless if there are staged Java files to clean
-if [ ! -z "$SPOTLESS_TARGETS" ]; then
+# 3. Run Spotless only on staged Java files
+if [ -n "$SPOTLESS_TARGETS" ]; then
     echo "✨ Running Spotless on staged files only..."
-    mvn spotless:apply -DspotlessFiles="$SPOTLESS_TARGETS"
+
+    mvn spotless:apply || {
+        echo "❌ Spotless execution failed."
+        exit 1
+    }
+
+    # Re-stage immediately after formatting
+    for FILE in $STAGED_FILES; do
+        if [ -f "$FILE" ]; then
+            git add "$FILE"
+        fi
+    done
 fi
 
 # 4. Block commit if staged test files contain TestDebugger calls
@@ -43,23 +55,16 @@ if [ "$HAS_DEBUG" = true ]; then
     echo ""
     echo "Commit aborted."
     echo "Remove all TestDebugger calls before committing."
+    echo "⚠️  Reminder: remove the debug call, then re-stage the affected file(s) before committing again."
     exit 1
 fi
 
-# 5. Re-stage files that were ALREADY staged and modified by Spotless
-for FILE in $STAGED_FILES; do
-    if [ -f "$FILE" ]; then
-        git add "$FILE"
-    fi
-done
-
-# 6. WARNING: Check for active TestDebugger calls in modified but UNSTAGED files
+# 5. Warn about unstaged debug sessions
 UNSTAGED_FILES=$(git diff --name-only)
 HAS_UNSTAGED_DEBUG=false
 
 for FILE in $UNSTAGED_FILES; do
     if [[ "$FILE" == src/test/* ]] && [[ "$FILE" != *TestDebugger.java ]] && [ -f "$FILE" ]; then
-        # Here we look for the actual Java call since Spotless didn't touch these files
         if grep -E -q "TestDebugger\.(print|render)" "$FILE"; then
             if [ "$HAS_UNSTAGED_DEBUG" = false ]; then
                 echo "⚠️  Keep in mind: You have active debug sessions in unstaged files:"
