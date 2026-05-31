@@ -6,7 +6,6 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import eu.nicosworld.rithmo.core.helper.TestDebugger;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import java.util.UUID;
@@ -33,13 +32,16 @@ public class AmbushTest {
     UUID moveId = FindDecisionHelper.findMoveDecisionId(status, "BC4(0,3)", "(1,2)");
     GameStatusDTO nextStatus = gameFacade.play(status.gameId(), moveId);
 
+    // spotless:off
     StatusDTOAssertion.from(nextStatus)
         .status()
-        .isInPostCapturePhase()
+          .isInPostCapturePhase()
         .decisions()
-        .canCaptureInOneDecision("WT12(2,1)")
-        .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
-        .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
+          .canCaptureInOneDecision("WT12(2,1)")
+          .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
+          .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
+    // spotless:on
+
   }
 
   @Test
@@ -48,12 +50,14 @@ public class AmbushTest {
     Game game = PreDefinedTestGame.ambushPreCaptureTest_Case();
     GameStatusDTO status = gameFacade.startGame(game);
 
+    // spotless:off
     StatusDTOAssertion.from(status)
         .status()
-        .isInPreCapturePhase()
+          .isInPreCapturePhase()
         .decisions()
-        .canCaptureInOneDecision("WT12(2,1)")
-        .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
+          .canCaptureInOneDecision("WT12(2,1)")
+          .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
+    // spotless:on
   }
 
   @Test
@@ -62,19 +66,21 @@ public class AmbushTest {
     Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
     GameStatusDTO status = gameFacade.startGame(game);
 
+    // spotless:off
     StatusDTOAssertion.from(status)
         .status()
-        .isInPreCapturePhase()
+          .isInPreCapturePhase()
         .options()
-        .hasOptionCount(7)
-        .hasSkipOption()
-        .canPreCaptureWithByAmbush("BT16(1,0)", "WS64(2,1)")
-        .canPreCaptureWithByAmbush("BT9(1,0)", "WT36(2,1)")
-        .canPreCaptureWithByAmbush("BC4(1,0)", "WC16(2,1)")
-        .canPreCaptureWithByAmbush("BC4(1,2)", "WC16(2,1)", "WT36(2,1)", "WS64(2,1)")
+          .hasOptionCount(7)
+          .hasSkipOption()
+          .canPreCaptureWithByAmbush("BT16(1,0)", "WS64(2,1)")
+          .canPreCaptureWithByAmbush("BT9(1,0)", "WT36(2,1)")
+          .canPreCaptureWithByAmbush("BC4(1,0)", "WC16(2,1)")
+          .canPreCaptureWithByAmbush("BC4(1,2)", "WC16(2,1)", "WT36(2,1)", "WS64(2,1)")
         .decisions()
-        .hasDecisionCount(11)
-        .hasSkipDecision()
-        .canCaptureInOneDecision("WC16(2,1)", "WT36(2,1)", "WS64(2,1)");
+          .hasDecisionCount(11)
+          .hasSkipDecision()
+          .canCaptureInOneDecision("WC16(2,1)", "WT36(2,1)", "WS64(2,1)");
+    // spotless:on
   }
 }

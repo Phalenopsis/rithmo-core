@@ -57,12 +57,14 @@ class AssaultTest {
     // --- ÉTAPE 2 : MOVE -> Vers la position (2,2) ---
     UUID moveId = FindDecisionHelper.findMoveDecisionId(statusAfterPreCapture, "BC4(3,1)", "(2,2)");
     GameStatusDTO statusAfterMove = gameFacade.play(gameId, moveId);
+    // spotless:off
     StatusDTOAssertion.from(statusAfterMove)
         .status()
-        .isInPostCapturePhase()
+          .isInPostCapturePhase()
         .decisions()
-        .hasSkipDecision()
-        .canCaptureInOneDecision("WC4(3,3)");
+          .hasSkipDecision()
+          .canCaptureInOneDecision("WC4(3,3)");
+    // spotless:on
 
     UUID captureId =
         FindDecisionHelper.findCaptureDecisionId(statusAfterMove, "BC4(2,2)", "WC4(3,3)");

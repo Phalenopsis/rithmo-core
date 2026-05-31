@@ -79,27 +79,31 @@ class GameFacadeE2ETest {
     Game initialGame = PreDefinedTestGame.pyramidVsPyramid();
     GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
 
+    // spotless:off
     StatusDTOAssertion.from(statusAfterStart)
         .status()
-        .isInPreCapturePhase()
+          .isInPreCapturePhase()
         .decisions()
-        .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
+          .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
+    // spotless:on
 
     UUID id =
         FindDecisionHelper.findCaptureDecisionId(
             statusAfterStart, "WC16(0,3)", "BT16(0,0)", "BC4(0,0)");
     GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), id);
 
+    // spotless:off
     StatusDTOAssertion.from(statusAfterCapture)
         .status()
-        .isInMovePhase()
+          .isInMovePhase()
         .board()
-        .hasPyramidValue(PlayerColorDTO.BLACK, 71)
-        .hasPyramidComposedBy(PlayerColorDTO.BLACK, "BS36", "BS25", "BT9", "BC1")
+          .hasPyramidValue(PlayerColorDTO.BLACK, 71)
+          .hasPyramidComposedBy(PlayerColorDTO.BLACK, "BS36", "BS25", "BT9", "BC1")
         .decisions()
-        .hasOnlyMoveDecisions()
-        .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
-        .hasOnlyDecisionsFor("WP190(0,3)");
+          .hasOnlyMoveDecisions()
+          .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)")
+          .hasOnlyDecisionsFor("WP190(0,3)");
+    // spotless:on
   }
 
   @Test
@@ -108,11 +112,13 @@ class GameFacadeE2ETest {
     Game initialGame = PreDefinedTestGame.pyramidVsIncompleteBlackPyramid();
     GameStatusDTO statusAfterStart = gameFacade.startGame(initialGame);
 
+    // spotless:off
     StatusDTOAssertion.from(statusAfterStart)
         .status()
-        .isInPreCapturePhase()
+          .isInPreCapturePhase()
         .decisions()
-        .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
+          .canCaptureInOneDecision("BT16(0,0)", "BC4(0,0)");
+    // spotless:on
 
     UUID id =
         FindDecisionHelper.findCaptureDecisionId(
@@ -120,22 +126,24 @@ class GameFacadeE2ETest {
 
     GameStatusDTO statusAfterCapture = gameFacade.play(initialGame.getId(), id);
 
+    // spotless:off
     StatusDTOAssertion.from(statusAfterCapture)
         .status()
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .isInMovePhase()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInMovePhase()
         .board()
-        .hasPyramidComposedBy(PlayerColorDTO.BLACK, "BS36")
-        .hasPyramidValue(PlayerColorDTO.BLACK, 36)
+          .hasPyramidComposedBy(PlayerColorDTO.BLACK, "BS36")
+          .hasPyramidValue(PlayerColorDTO.BLACK, 36)
         .assets()
-        .capturedContains("BT16", "BC4")
-        .reserveDoesNotContain("BT16", "BC4")
+          .capturedContains("BT16", "BC4")
+          .reserveDoesNotContain("BT16", "BC4")
         .options()
-        .hasNoReintroductionOptions()
+          .hasNoReintroductionOptions()
         .decisions()
-        .hasOnlyMoveDecisions()
-        .hasOnlyDecisionsFor("WP190(0,3)")
-        .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)");
+          .hasOnlyMoveDecisions()
+          .hasOnlyDecisionsFor("WP190(0,3)")
+          .hasStrictMoveDecisionTo("(3,3)", "(1,2)", "(0,1)", "(2,3)");
+    // spotless:on
   }
 
   @Test
@@ -158,15 +166,17 @@ class GameFacadeE2ETest {
         FindDecisionHelper.findReintroductionIdByDestination(statusDTO3, "BT4", new Position(0, 2));
     GameStatusDTO statusDTO4 = gameFacade.play(gameId, reintroductionId);
 
+    // spotless:off
     StatusDTOAssertion.from(statusDTO4)
         .status()
-        .isInPostCapturePhase()
-        .hasActivePlayer(PlayerColorDTO.BLACK)
+          .isInPostCapturePhase()
+          .hasActivePlayer(PlayerColorDTO.BLACK)
         .assets()
-        .reserveDoesNotContain("BT4")
-        .capturedContains("WT4")
+          .reserveDoesNotContain("BT4")
+          .capturedContains("WT4")
         .decisions()
-        .canCaptureInOneDecision("WC4(2,2)");
+          .canCaptureInOneDecision("WC4(2,2)");
+    // spotless:on
 
     UUID captureAfterReintroductionId = FindDecisionHelper.findDecisionWithCaptures(statusDTO4, 1);
     assertThatThrownBy(() -> gameFacade.play(gameId, captureAfterReintroductionId))

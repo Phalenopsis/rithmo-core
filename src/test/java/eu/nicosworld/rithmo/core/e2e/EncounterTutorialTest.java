@@ -39,7 +39,13 @@ class EncounterTutorialTest {
 
     GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
-    StatusDTOAssertion.from(nextStatus).status().isInMovePhase().decisions().hasOnlyMoveDecisions();
+    // spotless:off
+    StatusDTOAssertion.from(nextStatus)
+            .status()
+              .isInMovePhase()
+            .decisions()
+              .hasOnlyMoveDecisions();
+    // spotless:on
   }
 
   @Test
@@ -51,7 +57,13 @@ class EncounterTutorialTest {
     UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status, 1);
     GameStatusDTO nextStatus = gameFacade.play(game.getId(), landingId);
 
-    StatusDTOAssertion.from(nextStatus).status().isInMovePhase().decisions().hasOnlyMoveDecisions();
+    // spotless:off
+    StatusDTOAssertion.from(nextStatus)
+            .status()
+              .isInMovePhase()
+            .decisions()
+              .hasOnlyMoveDecisions();
+    // spotless:on
   }
 
   @Test
@@ -72,15 +84,17 @@ class EncounterTutorialTest {
     Game game = PreDefinedTestGame.encounterPreCaptureTestCase_WhitePlayer();
     GameStatusDTO status = gameFacade.startGame(game);
 
+    // spotless:off
     StatusDTOAssertion.from(status)
         .status()
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .isInPreCapturePhase()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInPreCapturePhase()
         .options()
-        .hasOptionCount(3)
+          .hasOptionCount(3)
         .decisions()
-        .hasSkipDecision()
-        .hasCaptureDecisionCount(2);
+          .hasSkipDecision()
+          .hasCaptureDecisionCount(2);
+    // spotless:on
   }
 
   @Test
