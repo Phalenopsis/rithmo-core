@@ -6,15 +6,13 @@ import eu.nicosworld.rithmo.engine.model.PlayerAssets;
 import eu.nicosworld.rithmo.engine.reintroduction.Reintroduction;
 
 public class ReintroductionApplier {
-    public GameState applyReintroduction(GameState state, Reintroduction action) {
-        Board board = state.board();
-        Board newBoard = board.addPiece(action.piece(), action.position());
+  public GameState applyReintroduction(GameState state, Reintroduction action) {
+    Board board = state.board();
+    Board newBoard = board.addPiece(action.piece(), action.position());
 
-        PlayerAssets assets = state.assetsOfCurrentPlayer();
-        PlayerAssets updatedAssets = assets.removeFromReserve(action.piece());
+    PlayerAssets assets = state.assetsOfCurrentPlayer();
+    PlayerAssets updatedAssets = assets.removeFromReserve(action.piece());
 
-        return state.withBoard(newBoard)
-                .withAssets(state.currentPlayer().getColor(), updatedAssets);
-
-    }
+    return state.withBoard(newBoard).withAssets(state.currentPlayer().getColor(), updatedAssets);
+  }
 }

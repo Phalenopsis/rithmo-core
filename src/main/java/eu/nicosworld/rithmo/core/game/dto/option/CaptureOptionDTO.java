@@ -4,53 +4,40 @@ import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
-
 import java.util.List;
 
 /**
  * UI-facing representation of a single capture possibility within a post-capture option.
- * <p>
- * A {@code CaptureOptionDTO} is derived from a {@link PostCaptureOption} and represents
- * one atomic capture action that the player may select as part of a larger decision.
- * <p>
- * Unlike other {@link PlayerOptionDTO}s, capture options are typically grouped:
- * a single post-capture phase may expose multiple capture possibilities, each
- * represented by its own {@code CaptureOptionDTO}.
  *
- * <p>
- * Each capture option contains:
+ * <p>A {@code CaptureOptionDTO} is derived from a {@link PostCaptureOption} and represents one
+ * atomic capture action that the player may select as part of a larger decision.
+ *
+ * <p>Unlike other {@link PlayerOptionDTO}s, capture options are typically grouped: a single
+ * post-capture phase may expose multiple capture possibilities, each represented by its own {@code
+ * CaptureOptionDTO}.
+ *
+ * <p>Each capture option contains:
+ *
  * <ul>
- *     <li>the target piece being captured</li>
- *     <li>the type of capture (rule-based semantic classification)</li>
- *     <li>the supporting pieces involved in the capture (if any)</li>
+ *   <li>the target piece being captured
+ *   <li>the type of capture (rule-based semantic classification)
+ *   <li>the supporting pieces involved in the capture (if any)
  * </ul>
  *
- * <p>
- * This DTO is strictly a presentation model. It is not executable and must be
- * converted into a {@link eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO}
- * via the associated selection mechanism.
+ * <p>This DTO is strictly a presentation model. It is not executable and must be converted into a
+ * {@link eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO} via the associated selection
+ * mechanism.
  */
-public record CaptureOptionDTO(
-        PieceDTO target,
-        CaptureTypeDTO type,
-        List<PieceDTO> ally
-) implements PlayerOptionDTO {
-    public static List<CaptureOptionDTO> from(PostCaptureOption option) {
-        return option.captures()
-                        .stream()
-                        .map(CaptureOptionDTO::from)
-                        .toList();
-    }
+public record CaptureOptionDTO(PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally)
+    implements PlayerOptionDTO {
+  public static List<CaptureOptionDTO> from(PostCaptureOption option) {
+    return option.captures().stream().map(CaptureOptionDTO::from).toList();
+  }
 
-    public static CaptureOptionDTO from(CaptureAction action) {
-        return new CaptureOptionDTO(
-                PieceDTO.from(
-                        action.target().specificComponent(),
-                        action.targetPosition()),
-                CaptureTypeDTO.from(action.type()),
-                action.supporters().stream()
-                        .map(PieceDTO::from)
-                        .toList()
-                );
-    }
+  public static CaptureOptionDTO from(CaptureAction action) {
+    return new CaptureOptionDTO(
+        PieceDTO.from(action.target().specificComponent(), action.targetPosition()),
+        CaptureTypeDTO.from(action.type()),
+        action.supporters().stream().map(PieceDTO::from).toList());
+  }
 }

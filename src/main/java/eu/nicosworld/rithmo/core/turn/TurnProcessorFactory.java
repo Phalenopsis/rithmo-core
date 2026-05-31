@@ -25,104 +25,70 @@ import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.GoodsVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import eu.nicosworld.rithmo.engine.victory.VictoryRule;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class TurnProcessorFactory {
 
-    private final MoveResolver moveResolver;
-    private final ReintroductionResolver reintroductionResolver;
-    private final ActionApplier actionApplier;
+  private final MoveResolver moveResolver;
+  private final ReintroductionResolver reintroductionResolver;
+  private final ActionApplier actionApplier;
 
-    private final Map<CaptureRuleOption, CaptureRule> captureRegistry;
+  private final Map<CaptureRuleOption, CaptureRule> captureRegistry;
 
-    public TurnProcessorFactory() {
+  public TurnProcessorFactory() {
 
-        MovementEngine movementEngine = new MovementEngine();
-        this.moveResolver = new MoveResolver(movementEngine);
+    MovementEngine movementEngine = new MovementEngine();
+    this.moveResolver = new MoveResolver(movementEngine);
 
-        ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
-        this.reintroductionResolver = new ReintroductionResolver(reintroductionEngine);
+    ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
+    this.reintroductionResolver = new ReintroductionResolver(reintroductionEngine);
 
-        MoveApplier moveApplier = new MoveApplier();
-        CaptureApplier captureApplier = new CaptureApplier();
-        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
+    MoveApplier moveApplier = new MoveApplier();
+    CaptureApplier captureApplier = new CaptureApplier();
+    ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
 
-        this.actionApplier =
-                new ActionApplier(
-                        captureApplier,
-                        moveApplier,
-                        reintroductionApplier
-                );
+    this.actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
 
-        RegularMoveGenerator regularGenerator =
-                new RegularMoveGenerator();
-        FreePathMovementValidator pathValidator =
-                new FreePathMovementValidator();
+    RegularMoveGenerator regularGenerator = new RegularMoveGenerator();
+    FreePathMovementValidator pathValidator = new FreePathMovementValidator();
 
-        this.captureRegistry = Map.of(
-                CaptureRuleOption.ENCOUNTER,
-                new EncounterRule(
-                        regularGenerator,
-                        pathValidator
-                ),
-                CaptureRuleOption.AMBUSH,
-                new AmbushRule(
-                        regularGenerator,
-                        pathValidator
-                ),
-                CaptureRuleOption.ASSAULT,
-                new AssaultRule(
-                        regularGenerator,
-                        pathValidator
-                ),
-                CaptureRuleOption.POWER,
-                new PowerRule(
-                        regularGenerator,
-                        pathValidator
-                )
-        );
-    }
+    this.captureRegistry =
+        Map.of(
+            CaptureRuleOption.ENCOUNTER,
+            new EncounterRule(regularGenerator, pathValidator),
+            CaptureRuleOption.AMBUSH,
+            new AmbushRule(regularGenerator, pathValidator),
+            CaptureRuleOption.ASSAULT,
+            new AssaultRule(regularGenerator, pathValidator),
+            CaptureRuleOption.POWER,
+            new PowerRule(regularGenerator, pathValidator));
+  }
 
-    public TurnProcessor create(GameOptions options) {
+  public TurnProcessor create(GameOptions options) {
 
-        List<CaptureRule> rules =
-                options.captureRules().stream()
-                        .map(captureRegistry::get)
-                        .filter(Objects::nonNull)
-                        .toList();
+    List<CaptureRule> rules =
+        options.captureRules().stream().map(captureRegistry::get).filter(Objects::nonNull).toList();
 
-        CaptureEngine captureEngine = new CaptureEngine(rules);
-        CaptureResolver captureResolver = new CaptureResolver(captureEngine);
-        PhaseResolver phaseResolver =
-                new PhaseResolver(
-                        captureResolver,
-                        moveResolver,
-                        reintroductionResolver
-                );
+    CaptureEngine captureEngine = new CaptureEngine(rules);
+    CaptureResolver captureResolver = new CaptureResolver(captureEngine);
+    PhaseResolver phaseResolver =
+        new PhaseResolver(captureResolver, moveResolver, reintroductionResolver);
 
-        VictoryEngine victoryEngine =
-                new VictoryEngine(
-                        resolveVictoryRules(options.victoryRules())
-                );
+    VictoryEngine victoryEngine = new VictoryEngine(resolveVictoryRules(options.victoryRules()));
 
-        return new TurnProcessor(
-                actionApplier,
-                phaseResolver,
-                victoryEngine
-        );
-    }
+    return new TurnProcessor(actionApplier, phaseResolver, victoryEngine);
+  }
 
-    private List<VictoryRule> resolveVictoryRules(
-            Map<VictoryRuleOption, Integer> options
-    ) {
-        return options.entrySet().stream()
-                .map(entry -> switch (entry.getKey()) {
-                    case GOODS -> new GoodsVictoryRule(entry.getValue());
-                    case BODY ->  new BodyVictoryRule(entry.getValue());
+  private List<VictoryRule> resolveVictoryRules(Map<VictoryRuleOption, Integer> options) {
+    return options.entrySet().stream()
+        .map(
+            entry ->
+                switch (entry.getKey()) {
+                  case GOODS -> new GoodsVictoryRule(entry.getValue());
+                  case BODY -> new BodyVictoryRule(entry.getValue());
                 })
-                .toList();
-    }
+        .toList();
+  }
 }

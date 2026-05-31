@@ -5,15 +5,12 @@ import eu.nicosworld.rithmo.engine.reintroduction.Reintroduction;
 /**
  * Represents a single executable piece reintroduction possibility.
  *
- * <p>A {@code ReintroductionOption} is an atomic turn option produced by the engine
- * when a captured piece may legally be reintroduced onto the board.</p>
+ * <p>A {@code ReintroductionOption} is an atomic turn option produced by the engine when a captured
+ * piece may legally be reintroduced onto the board.
  *
- * <p>The acting piece and placement information are fully carried
- * by the underlying {@link Reintroduction} object.</p>
+ * <p>The acting piece and placement information are fully carried by the underlying {@link
+ * Reintroduction} object.
  *
- * @param reintroduction
- *         The engine-level reintroduction description.
+ * @param reintroduction The engine-level reintroduction description.
  */
-public record ReintroductionOption(
-        Reintroduction reintroduction
-) implements TurnOption {}
+public record ReintroductionOption(Reintroduction reintroduction) implements TurnOption {}
