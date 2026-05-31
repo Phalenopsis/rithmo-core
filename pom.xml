@@ -184,13 +184,10 @@
                 <version>${spotless.plugin.version}</version>
                 <configuration>
                     <java>
+                        <toggleOffOn />
                         <removeUnusedImports />
                         <importOrder />
-                        <replaceRegex>
-                            <name>Forbidden TestDebugger left in code</name>
-                            <searchRegex>TestDebugger\.(print|render)[a-zA-Z]*\(.*?\);</searchRegex>
-                            <replacement>/* TODO: REMOVE DEBUGGER APPEL */</replacement>
-                        </replaceRegex>
+                        <googleJavaFormat />
                     </java>
                 </configuration>
             </plugin>

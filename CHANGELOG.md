@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Assertion DSL**: introduced dedicated nested assertion scopes for decision, option, asset, board and global status validation
 * **Assertion Messaging**: added centralized status assertion failure message helpers
 * **Assertion Support**: introduced shared internal status assertion support utilities for normalization, piece resolution and decision formatting
+* **Code Formatting**: integrated Spotless with Google Java Format and local formatting toggle support (`spotless:off/on`)
+* **Git Hooks**: introduced repository-managed pre-commit hooks for automatic formatting and debug statement protection
 
 ### Changed
 
@@ -29,16 +31,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Tests (Appliers)**: updated `CaptureAction` factory usage to align with the new justification engine feature
 * **CaptureResolver Tests**: refreshed legacy comments for consistency
 * **EncounterTutorial Tests**: migrated end-to-end assertions to the new fluent nested assertion DSL
+* **Build Tooling**: standardized project-wide formatting enforcement through Spotless and pre-commit integration
 
 ### Tests
 
 * Added tests for multiple captures within the same decision
 * Extended option assertion DSL with helper methods for pre/post capture option verification
 * Validated incremental migration of the assertion DSL through full `EncounterTutorial` end-to-end coverage
+* Validated formatter exclusion support for semantically aligned assertion blocks
 
 ### Documentation
 
 * **Architecture Tooling**: added project dependency graph generation for structural analysis and refactoring guidance
+* **Developer Experience**: documented Spotless usage, formatting conventions and local Git hook setup
+
+
+
 
 ## [0.2.3] - 2026-05-23
 

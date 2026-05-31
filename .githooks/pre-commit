@@ -27,16 +27,24 @@ if [ ! -z "$SPOTLESS_TARGETS" ]; then
     mvn spotless:apply -DspotlessFiles="$SPOTLESS_TARGETS"
 fi
 
-# 4. Check for TestDebugger placeholders ONLY within the staged files
+# 4. Block commit if staged test files contain TestDebugger calls
+HAS_DEBUG=false
+
 for FILE in $STAGED_FILES; do
     if [[ "$FILE" == src/test/* ]] && [[ "$FILE" != *TestDebugger.java ]] && [ -f "$FILE" ]; then
-        if grep -q "TODO: REMOVE DEBUGGER APPEL" "$FILE"; then
-            echo "❌ Error: You left a TestDebugger call in your staged file: $FILE"
-            echo "Please remove the debug line before committing."
-            exit 1
+        if grep -E -q "TestDebugger\.(print|render)[a-zA-Z]*\(" "$FILE"; then
+            echo "❌ TestDebugger call detected in: $FILE"
+            HAS_DEBUG=true
         fi
     fi
 done
+
+if [ "$HAS_DEBUG" = true ]; then
+    echo ""
+    echo "Commit aborted."
+    echo "Remove all TestDebugger calls before committing."
+    exit 1
+fi
 
 # 5. Re-stage files that were ALREADY staged and modified by Spotless
 for FILE in $STAGED_FILES; do
