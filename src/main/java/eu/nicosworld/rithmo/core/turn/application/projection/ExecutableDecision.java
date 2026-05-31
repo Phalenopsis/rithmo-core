@@ -7,24 +7,19 @@ import eu.nicosworld.rithmo.core.turn.action.TurnAction;
  * Binds a UI decision to a single executable engine action.
  *
  * <p>This record represents the execution bridge between:
+ *
  * <ul>
- *     <li>the UI-facing decision ({@link DecisionDTO})</li>
- *     <li>the engine-level action ({@link TurnAction})</li>
+ *   <li>the UI-facing decision ({@link DecisionDTO})
+ *   <li>the engine-level action ({@link TurnAction})
  * </ul>
- * </p>
  *
- * <p>The UI only manipulates decision identifiers.
- * The engine is responsible for resolving those identifiers
- * into executable actions.</p>
+ * <p>The UI only manipulates decision identifiers. The engine is responsible for resolving those
+ * identifiers into executable actions.
  *
- * <p>This abstraction removes any need for index-based or positional correlation
- * between UI decisions and engine actions.</p>
+ * <p>This abstraction removes any need for index-based or positional correlation between UI
+ * decisions and engine actions.
  *
- * <p>Note: while currently 1-to-1, this structure allows future extension
- * toward composite or multi-action decisions without breaking the API.</p>
+ * <p>Note: while currently 1-to-1, this structure allows future extension toward composite or
+ * multi-action decisions without breaking the API.
  */
-public record ExecutableDecision(
-        DecisionDTO decision,
-        TurnAction action
-) {
-}
+public record ExecutableDecision(DecisionDTO decision, TurnAction action) {}

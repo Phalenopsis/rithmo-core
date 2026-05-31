@@ -9,63 +9,52 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class BoardAssertions extends NestedStatusAssertions {
-    public BoardAssertions(GameStatusDTO actual, StatusDTOAssertion parent) {
-        super(actual, parent);
+  public BoardAssertions(GameStatusDTO actual, StatusDTOAssertion parent) {
+    super(actual, parent);
+  }
+
+  public BoardAssertions hasPiece(String pieceRepresentation) {
+    boolean found =
+        actual.board().pieces().stream()
+            .map(PieceRepresentationHelper::toRepresentation)
+            .anyMatch(pieceRepresentation::equals);
+
+    if (!found) {
+      throw new AssertionError(StatusAssertionMessages.pieceNotFound(pieceRepresentation));
     }
 
-    public BoardAssertions hasPiece(
-            String pieceRepresentation
-    ) {
-        boolean found = actual.board().pieces()
-                .stream()
-                .map(PieceRepresentationHelper::toRepresentation)
-                .anyMatch(pieceRepresentation::equals);
+    return this;
+  }
 
-        if (!found) {
-            throw new AssertionError(StatusAssertionMessages.pieceNotFound(pieceRepresentation));
-        }
+  public BoardAssertions hasPyramidComposedBy(PlayerColorDTO color, String... expectedComponents) {
 
-        return this;
+    PieceDTO pyramid = PieceRepresentationHelper.findPyramidFor(actual, color);
+
+    List<String> actualComponents =
+        pyramid.components().stream()
+            .map(PieceRepresentationHelper::toShortRepresentation)
+            .sorted()
+            .toList();
+
+    List<String> expectedComponentsList = Arrays.stream(expectedComponents).sorted().toList();
+
+    if (!actualComponents.equals(expectedComponentsList)) {
+      throw new AssertionError(
+          StatusAssertionMessages.pyramidCompositionMismatch(
+              color, expectedComponentsList, actualComponents));
     }
 
-    public BoardAssertions hasPyramidComposedBy(
-            PlayerColorDTO color,
-            String... expectedComponents
-    ) {
+    return this;
+  }
 
-        PieceDTO pyramid = PieceRepresentationHelper.findPyramidFor(actual, color);
-
-        List<String> actualComponents = pyramid.components()
-                .stream()
-                .map(PieceRepresentationHelper::toShortRepresentation)
-                .sorted()
-                .toList();
-
-        List<String> expectedComponentsList = Arrays.stream(expectedComponents)
-                .sorted()
-                .toList();
-
-        if (!actualComponents.equals(expectedComponentsList)) {
-            throw new AssertionError(StatusAssertionMessages.pyramidCompositionMismatch(
-                    color,
-                    expectedComponentsList,
-                    actualComponents
-            ));
-        }
-
-        return this;
+  public BoardAssertions hasPyramidValue(PlayerColorDTO color, int expectedValue) {
+    PieceDTO pyramid = PieceRepresentationHelper.findPyramidFor(actual, color);
+    int actualValue = pyramid.value();
+    if (actualValue != expectedValue) {
+      throw new AssertionError(
+          StatusAssertionMessages.incorrectPyramidValue(color, expectedValue, actualValue));
     }
 
-    public BoardAssertions hasPyramidValue(
-            PlayerColorDTO color,
-            int expectedValue
-    ) {
-        PieceDTO pyramid = PieceRepresentationHelper.findPyramidFor(actual, color);
-        int actualValue = pyramid.value();
-        if (actualValue != expectedValue) {
-            throw new AssertionError(StatusAssertionMessages.incorrectPyramidValue(color, expectedValue,actualValue));
-        }
-
-        return this;
-    }
+    return this;
+  }
 }

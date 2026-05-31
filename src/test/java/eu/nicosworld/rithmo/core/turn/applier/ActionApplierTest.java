@@ -18,287 +18,271 @@ import org.junit.jupiter.api.Test;
 
 class ActionApplierTest {
 
-    Board board;
-    CaptureAction blackCircleCaptureWhiteAt22;
-    CaptureAction blackCircleCaptureWhiteAt00;
-    Piece blackCircle;
-    Position blackCirclePosition;
-    Piece whiteCircle;
-    Position whiteCirclePosition;
-    Piece whiteTriangle;
-    Position whiteTrianglePosition;
+  Board board;
+  CaptureAction blackCircleCaptureWhiteAt22;
+  CaptureAction blackCircleCaptureWhiteAt00;
+  Piece blackCircle;
+  Position blackCirclePosition;
+  Piece whiteCircle;
+  Position whiteCirclePosition;
+  Piece whiteTriangle;
+  Position whiteTrianglePosition;
 
-    ActionApplier actionApplier;
+  ActionApplier actionApplier;
 
-    void setupApplier() {
-        CaptureApplier captureApplier = new CaptureApplier();
-        MoveApplier moveApplier = new MoveApplier();
-        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
+  void setupApplier() {
+    CaptureApplier captureApplier = new CaptureApplier();
+    MoveApplier moveApplier = new MoveApplier();
+    ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
 
-        actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
-    }
+    actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
+  }
 
-    @BeforeEach
-    void setup() {
-        setupApplier();
+  @BeforeEach
+  void setup() {
+    setupApplier();
 
-        blackCirclePosition = new Position(1, 1);
-        whiteCirclePosition = new Position(2, 2);
-        whiteTrianglePosition = new Position(0, 0);
+    blackCirclePosition = new Position(1, 1);
+    whiteCirclePosition = new Position(2, 2);
+    whiteTrianglePosition = new Position(0, 0);
 
-        board = new BoardBuilder(4,4)
-                .blackCircle(4).at(1,1)
-                .whiteCircle(4).at(2,2)
-                .whiteTriangle(4).at(0,0)
-                .build();
-        blackCircle = board.getPieceAt(blackCirclePosition);
-        whiteCircle = board.getPieceAt(whiteCirclePosition);
-        whiteTriangle = board.getPieceAt(whiteTrianglePosition);
+    board =
+        new BoardBuilder(4, 4)
+            .blackCircle(4)
+            .at(1, 1)
+            .whiteCircle(4)
+            .at(2, 2)
+            .whiteTriangle(4)
+            .at(0, 0)
+            .build();
+    blackCircle = board.getPieceAt(blackCirclePosition);
+    whiteCircle = board.getPieceAt(whiteCirclePosition);
+    whiteTriangle = board.getPieceAt(whiteTrianglePosition);
 
-        InvolvedPiece actor = InvolvedPiece.whole(blackCircle, blackCirclePosition);
-        InvolvedPiece target22 = InvolvedPiece.whole(whiteCircle, whiteCirclePosition);
-        InvolvedPiece target00 = InvolvedPiece.whole(whiteTriangle, whiteTrianglePosition);
+    InvolvedPiece actor = InvolvedPiece.whole(blackCircle, blackCirclePosition);
+    InvolvedPiece target22 = InvolvedPiece.whole(whiteCircle, whiteCirclePosition);
+    InvolvedPiece target00 = InvolvedPiece.whole(whiteTriangle, whiteTrianglePosition);
 
-        blackCircleCaptureWhiteAt22 = CaptureAction.encounter(actor, target22, CaptureJustifications.encounter(4));
-        blackCircleCaptureWhiteAt00 = CaptureAction.encounter(actor, target00, CaptureJustifications.encounter(4));
-    }
+    blackCircleCaptureWhiteAt22 =
+        CaptureAction.encounter(actor, target22, CaptureJustifications.encounter(4));
+    blackCircleCaptureWhiteAt00 =
+        CaptureAction.encounter(actor, target00, CaptureJustifications.encounter(4));
+  }
 
-    @Test
-    void apply_applyPreCaptureAction_with2CapturesAndLanding() {
-        GameState state = GameState.initial(board, Player.BLACK);
+  @Test
+  void apply_applyPreCaptureAction_with2CapturesAndLanding() {
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        PreCaptureAction action = new PreCaptureAction(
-                List.of(blackCircleCaptureWhiteAt22, blackCircleCaptureWhiteAt00),
-                whiteTrianglePosition
-        );
+    PreCaptureAction action =
+        new PreCaptureAction(
+            List.of(blackCircleCaptureWhiteAt22, blackCircleCaptureWhiteAt00),
+            whiteTrianglePosition);
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        // Immutability test
-        assertThat(newGameState).isNotSameAs(state);
-        assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
+    // Immutability test
+    assertThat(newGameState).isNotSameAs(state);
+    assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
 
-        // functional test
-        assertThat(result.landingPosition())
-                .isEqualTo(whiteTrianglePosition);
-        assertFalse(result.wasMoveIrregular());
+    // functional test
+    assertThat(result.landingPosition()).isEqualTo(whiteTrianglePosition);
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasCapturedEquivalentInReserve(whiteCircle)
-                .hasCapturedEquivalentInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(whiteTrianglePosition)
-                .isNotAt(blackCirclePosition)
-                .isNotAt(whiteCirclePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasCapturedEquivalentInReserve(whiteCircle)
+        .hasCapturedEquivalentInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(whiteTrianglePosition)
+        .isNotAt(blackCirclePosition)
+        .isNotAt(whiteCirclePosition);
+  }
 
-    @Test
-    void apply_applyPreCaptureAction_with1CaptureAndLanding() {
-        GameState state = GameState.initial(board, Player.BLACK);
+  @Test
+  void apply_applyPreCaptureAction_with1CaptureAndLanding() {
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        PreCaptureAction action = new PreCaptureAction(
-                List.of(blackCircleCaptureWhiteAt22),
-                whiteCirclePosition
-        );
+    PreCaptureAction action =
+        new PreCaptureAction(List.of(blackCircleCaptureWhiteAt22), whiteCirclePosition);
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        assertThat(result.landingPosition())
-                .isEqualTo(whiteCirclePosition);
-        assertFalse(result.wasMoveIrregular());
+    assertThat(result.landingPosition()).isEqualTo(whiteCirclePosition);
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasCapturedEquivalentInReserve(whiteCircle)
-                .hasNotInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(whiteCirclePosition)
-                .isNotAt(blackCirclePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasCapturedEquivalentInReserve(whiteCircle)
+        .hasNotInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(whiteCirclePosition)
+        .isNotAt(blackCirclePosition);
+  }
 
-    @Test
-    void apply_applySkipPreCaptureAction_with2CapturesAndLanding() {
-        GameState state = GameState.initial(board, Player.BLACK);
+  @Test
+  void apply_applySkipPreCaptureAction_with2CapturesAndLanding() {
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        SkipPreCaptureAction action = new SkipPreCaptureAction();
+    SkipPreCaptureAction action = new SkipPreCaptureAction();
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        assertThat(result.landingPosition())
-                .isNull();
-        assertFalse(result.wasMoveIrregular());
+    assertThat(result.landingPosition()).isNull();
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasNotInReserve(whiteCircle)
-                .hasNotInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(blackCirclePosition)
-                .player(Player.WHITE)
-                .hasOnBoard(whiteTriangle)
-                .at(whiteTrianglePosition)
-                .hasOnBoard(whiteCircle)
-                .at(whiteCirclePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasNotInReserve(whiteCircle)
+        .hasNotInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(blackCirclePosition)
+        .player(Player.WHITE)
+        .hasOnBoard(whiteTriangle)
+        .at(whiteTrianglePosition)
+        .hasOnBoard(whiteCircle)
+        .at(whiteCirclePosition);
+  }
 
-    @Test
-    void apply_applyMoveAction_Regular() {
-        Position blackCirclePositionAfterMove = new Position(0, 1);
+  @Test
+  void apply_applyMoveAction_Regular() {
+    Position blackCirclePositionAfterMove = new Position(0, 1);
 
-        GameState state = GameState.initial(board, Player.BLACK);
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        MoveAction action = new MoveAction(
-                blackCircle,
-                new Move(blackCirclePosition,
-                        blackCirclePositionAfterMove,
-                        MoveNature.REGULAR)
-        );
+    MoveAction action =
+        new MoveAction(
+            blackCircle,
+            new Move(blackCirclePosition, blackCirclePositionAfterMove, MoveNature.REGULAR));
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        assertThat(result.landingPosition())
-                .isEqualTo(blackCirclePositionAfterMove);
-        assertFalse(result.wasMoveIrregular());
+    assertThat(result.landingPosition()).isEqualTo(blackCirclePositionAfterMove);
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasNotInReserve(whiteCircle)
-                .hasNotInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(blackCirclePositionAfterMove)
-                .isNotAt(blackCirclePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasNotInReserve(whiteCircle)
+        .hasNotInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(blackCirclePositionAfterMove)
+        .isNotAt(blackCirclePosition);
+  }
 
-    @Test
-    void apply_applyMoveAction_Irregular() {
-        Position whiteTrianglePositionAfterMove = new Position(1, 2);
+  @Test
+  void apply_applyMoveAction_Irregular() {
+    Position whiteTrianglePositionAfterMove = new Position(1, 2);
 
-        GameState state = GameState.initial(board, Player.WHITE);
+    GameState state = GameState.initial(board, Player.WHITE);
 
-        MoveAction action = new MoveAction(
-                whiteTriangle,
-                new Move(whiteTrianglePosition,
-                        whiteTrianglePositionAfterMove,
-                        MoveNature.IRREGULAR)
-        );
+    MoveAction action =
+        new MoveAction(
+            whiteTriangle,
+            new Move(whiteTrianglePosition, whiteTrianglePositionAfterMove, MoveNature.IRREGULAR));
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        assertThat(result.landingPosition())
-                .isEqualTo(whiteTrianglePositionAfterMove);
-        assertTrue(result.wasMoveIrregular());
+    assertThat(result.landingPosition()).isEqualTo(whiteTrianglePositionAfterMove);
+    assertTrue(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasNotInReserve(whiteCircle)
-                .hasNotInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(blackCirclePosition)
-                .player(Player.WHITE)
-                .hasOnBoard(whiteTriangle)
-                .isNotAt(whiteTrianglePosition)
-                .at(whiteTrianglePositionAfterMove);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasNotInReserve(whiteCircle)
+        .hasNotInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(blackCirclePosition)
+        .player(Player.WHITE)
+        .hasOnBoard(whiteTriangle)
+        .isNotAt(whiteTrianglePosition)
+        .at(whiteTrianglePositionAfterMove);
+  }
 
-    @Test
-    void apply_applyPostCaptureAction_2Captures() {
-        GameState state = GameState.initial(board, Player.BLACK);
+  @Test
+  void apply_applyPostCaptureAction_2Captures() {
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        PostCaptureAction action = new PostCaptureAction(
-                List.of(
-                        blackCircleCaptureWhiteAt22,
-                        blackCircleCaptureWhiteAt00
-                )
-        );
+    PostCaptureAction action =
+        new PostCaptureAction(List.of(blackCircleCaptureWhiteAt22, blackCircleCaptureWhiteAt00));
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        // Immutability test
-        assertThat(newGameState).isNotSameAs(state);
-        assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
+    // Immutability test
+    assertThat(newGameState).isNotSameAs(state);
+    assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
 
-        // functional test
-        assertThat(result.landingPosition())
-                .isNull();
-        assertFalse(result.wasMoveIrregular());
+    // functional test
+    assertThat(result.landingPosition()).isNull();
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasCapturedEquivalentInReserve(whiteCircle)
-                .hasCapturedEquivalentInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(blackCirclePosition)
-                .isEmpty(whiteTrianglePosition)
-                .isEmpty(whiteCirclePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasCapturedEquivalentInReserve(whiteCircle)
+        .hasCapturedEquivalentInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(blackCirclePosition)
+        .isEmpty(whiteTrianglePosition)
+        .isEmpty(whiteCirclePosition);
+  }
 
-    @Test
-    void apply_applyPostCaptureAction_1Captures() {
-        GameState state = GameState.initial(board, Player.BLACK);
+  @Test
+  void apply_applyPostCaptureAction_1Captures() {
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        PostCaptureAction action = new PostCaptureAction(
-                List.of(
-                        blackCircleCaptureWhiteAt00
-                )
-        );
+    PostCaptureAction action = new PostCaptureAction(List.of(blackCircleCaptureWhiteAt00));
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        // Immutability test
-        assertThat(newGameState).isNotSameAs(state);
-        assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
+    // Immutability test
+    assertThat(newGameState).isNotSameAs(state);
+    assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
 
-        // functional test
-        assertThat(result.landingPosition())
-                .isNull();
-        assertFalse(result.wasMoveIrregular());
+    // functional test
+    assertThat(result.landingPosition()).isNull();
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasCapturedEquivalentInReserve(whiteTriangle)
-                .hasOnBoard(blackCircle)
-                .at(blackCirclePosition)
-                .isEmpty(whiteTrianglePosition)
-                .player(Player.WHITE)
-                .hasOnBoard(whiteCircle)
-                .at(whiteCirclePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasCapturedEquivalentInReserve(whiteTriangle)
+        .hasOnBoard(blackCircle)
+        .at(blackCirclePosition)
+        .isEmpty(whiteTrianglePosition)
+        .player(Player.WHITE)
+        .hasOnBoard(whiteCircle)
+        .at(whiteCirclePosition);
+  }
 
-    @Test
-    void apply_applySkipPostCaptureAction() {
-        GameState state = GameState.initial(board, Player.BLACK);
+  @Test
+  void apply_applySkipPostCaptureAction() {
+    GameState state = GameState.initial(board, Player.BLACK);
 
-        SkipPostCaptureAction action = new SkipPostCaptureAction();
+    SkipPostCaptureAction action = new SkipPostCaptureAction();
 
-        AppliedResult result = actionApplier.apply(state, action);
-        GameState newGameState = result.gameState();
+    AppliedResult result = actionApplier.apply(state, action);
+    GameState newGameState = result.gameState();
 
-        // Immutability test
-        assertThat(newGameState).isSameAs(state);
-        assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
+    // Immutability test
+    assertThat(newGameState).isSameAs(state);
+    assertThat(state.board().getPieceAt(blackCirclePosition)).isNotNull();
 
-        // functional test
-        assertThat(result.landingPosition())
-                .isNull();
-        assertFalse(result.wasMoveIrregular());
+    // functional test
+    assertThat(result.landingPosition()).isNull();
+    assertFalse(result.wasMoveIrregular());
 
-        GameStateAssertion.assertThis(newGameState)
-                .player(Player.BLACK)
-                .hasEmptyReserve()
-                .hasOnBoard(blackCircle)
-                .at(blackCirclePosition)
-                .player(Player.WHITE)
-                .hasOnBoard(whiteCircle)
-                .at(whiteCirclePosition)
-                .hasOnBoard(whiteTriangle)
-                .at(whiteTrianglePosition);
-    }
+    GameStateAssertion.assertThis(newGameState)
+        .player(Player.BLACK)
+        .hasEmptyReserve()
+        .hasOnBoard(blackCircle)
+        .at(blackCirclePosition)
+        .player(Player.WHITE)
+        .hasOnBoard(whiteCircle)
+        .at(whiteCirclePosition)
+        .hasOnBoard(whiteTriangle)
+        .at(whiteTrianglePosition);
+  }
 }

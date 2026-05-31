@@ -20,113 +20,107 @@ import org.junit.jupiter.api.Test;
 
 class EncounterTutorialTest {
 
-    private GameFacade gameFacade;
+  private GameFacade gameFacade;
 
-    @BeforeEach
-    void setUp() {
-        InMemoryGameRepository gameRepository = new InMemoryGameRepository();
-        InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
-        gameFacade = new GameFacade(gameRepository, optionRepository);
-    }
+  @BeforeEach
+  void setUp() {
+    InMemoryGameRepository gameRepository = new InMemoryGameRepository();
+    InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
+    gameFacade = new GameFacade(gameRepository, optionRepository);
+  }
 
-    @Test
-    @DisplayName("1. Choisir SKIP doit mener à une phase de MOVE")
-    void shouldLeadToMovesWhenSkipIsChosen() throws Exception {
-        Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("1. Choisir SKIP doit mener à une phase de MOVE")
+  void shouldLeadToMovesWhenSkipIsChosen() throws Exception {
+    Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID skipId = FindDecisionHelper.findSkipDecision(status);
+    UUID skipId = FindDecisionHelper.findSkipDecision(status);
 
-        GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
+    GameStatusDTO nextStatus = gameFacade.play(game.getId(), skipId);
 
-        StatusDTOAssertion.from(nextStatus)
-                .status()
-                    .isInMovePhase()
-                .decisions()
-                    .hasOnlyMoveDecisions();
-    }
+    StatusDTOAssertion.from(nextStatus).status().isInMovePhase().decisions().hasOnlyMoveDecisions();
+  }
 
-    @Test
-    @DisplayName("2. Choisir une capture simple (1 cible) doit mener à une phase de MOVE")
-    void shouldLeadToMovesWhenSingleCaptureIsChosen() throws Exception {
-        Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("2. Choisir une capture simple (1 cible) doit mener à une phase de MOVE")
+  void shouldLeadToMovesWhenSingleCaptureIsChosen() throws Exception {
+    Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status,1);
-        GameStatusDTO nextStatus = gameFacade.play(game.getId(), landingId);
+    UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status, 1);
+    GameStatusDTO nextStatus = gameFacade.play(game.getId(), landingId);
 
-        StatusDTOAssertion.from(nextStatus)
-                .status()
-                    .isInMovePhase()
-                .decisions()
-                    .hasOnlyMoveDecisions();
-    }
+    StatusDTOAssertion.from(nextStatus).status().isInMovePhase().decisions().hasOnlyMoveDecisions();
+  }
 
-    @Test
-    @DisplayName("3. Choisir la double capture doit lever une VictoryException")
-    void shouldThrowVictoryExceptionWhenDoubleCaptureIsChosen() throws Exception {
-        Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("3. Choisir la double capture doit lever une VictoryException")
+  void shouldThrowVictoryExceptionWhenDoubleCaptureIsChosen() throws Exception {
+    Game game = PreDefinedTestGame.encounterPreCaptureTestCase();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status, 2);
+    UUID landingId = FindDecisionHelper.findDecisionWithCaptures(status, 2);
 
-        assertThatThrownBy(() -> gameFacade.play(game.getId(), landingId))
-                .isInstanceOf(VictoryException.class);
-    }
+    assertThatThrownBy(() -> gameFacade.play(game.getId(), landingId))
+        .isInstanceOf(VictoryException.class);
+  }
 
-    @Test
-    @DisplayName("4. Il doit y avoir 3 options")
-    void shouldExposeSkipAndTwoCaptureOptionsWhenTwoPiecesTargetSameEnemy() throws Exception {
-        Game game = PreDefinedTestGame.encounterPreCaptureTestCase_WhitePlayer();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("4. Il doit y avoir 3 options")
+  void shouldExposeSkipAndTwoCaptureOptionsWhenTwoPiecesTargetSameEnemy() throws Exception {
+    Game game = PreDefinedTestGame.encounterPreCaptureTestCase_WhitePlayer();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        StatusDTOAssertion.from(status)
-                .status()
-                    .hasActivePlayer(PlayerColorDTO.WHITE)
-                    .isInPreCapturePhase()
-                .options()
-                    .hasOptionCount(3)
-                .decisions()
-                    .hasSkipDecision()
-                    .hasCaptureDecisionCount(2);
-    }
+    StatusDTOAssertion.from(status)
+        .status()
+        .hasActivePlayer(PlayerColorDTO.WHITE)
+        .isInPreCapturePhase()
+        .options()
+        .hasOptionCount(3)
+        .decisions()
+        .hasSkipDecision()
+        .hasCaptureDecisionCount(2);
+  }
 
-    @Test
-    @DisplayName("5. on doit avoir une option de pre capture en ambush")
-    void shouldResolveAmbushPreCaptureAndTransitionToMovePhase() throws Exception {
+  @Test
+  @DisplayName("5. on doit avoir une option de pre capture en ambush")
+  void shouldResolveAmbushPreCaptureAndTransitionToMovePhase() throws Exception {
 
-        Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
-        GameStatusDTO status = gameFacade.startGame(game);
+    Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        StatusDTOAssertion.from(status)
-                .status()
-                    .isInPreCapturePhase()
-                .options()
-                    .hasOptionCount(4)
-                    .hasOptionCountFor("WC5(2,0)", 2)
-                    .hasOptionCountFor("WC4(2,0)", 1)
-                .decisions()
-                    .hasDecisionCount(5)
-                    .hasDecisionCountFor("WC5(2,0)", 3)
-                    .hasDecisionCountFor("WC4(2,0)", 1);
+    StatusDTOAssertion.from(status)
+        .status()
+        .isInPreCapturePhase()
+        .options()
+        .hasOptionCount(4)
+        .hasOptionCountFor("WC5(2,0)", 2)
+        .hasOptionCountFor("WC4(2,0)", 1)
+        .decisions()
+        .hasDecisionCount(5)
+        .hasDecisionCountFor("WC5(2,0)", 3)
+        .hasDecisionCountFor("WC4(2,0)", 1);
 
-        UUID id = FindDecisionHelper.findCaptureDecisionId(status, "WC5(2,0)", new Position(3,1), "BC5(3,1)", "BC5(1,1)");
+    UUID id =
+        FindDecisionHelper.findCaptureDecisionId(
+            status, "WC5(2,0)", new Position(3, 1), "BC5(3,1)", "BC5(1,1)");
 
-        GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), id);
+    GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), id);
 
-        StatusDTOAssertion.from(statusAfterPreCapture)
-                .status()
-                    .hasActivePlayer(PlayerColorDTO.WHITE)
-                    .isInMovePhase()
-                .board()
-                    .hasPiece("WP9(3,1)")
-                .assets()
-                    .capturedContains("BC5", "BC5")
-                    .hasInReserve("WC5")
-                .options()
-                    .hasNoReintroductionOptions()
-                .decisions()
-                    .hasOnlyMoveDecisions()
-                    .hasStrictMoveDecisionTo("(2,0)", "(2,2)");
-    }
+    StatusDTOAssertion.from(statusAfterPreCapture)
+        .status()
+        .hasActivePlayer(PlayerColorDTO.WHITE)
+        .isInMovePhase()
+        .board()
+        .hasPiece("WP9(3,1)")
+        .assets()
+        .capturedContains("BC5", "BC5")
+        .hasInReserve("WC5")
+        .options()
+        .hasNoReintroductionOptions()
+        .decisions()
+        .hasOnlyMoveDecisions()
+        .hasStrictMoveDecisionTo("(2,0)", "(2,2)");
+  }
 }

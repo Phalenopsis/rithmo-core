@@ -14,187 +14,164 @@ import java.util.Set;
 
 public class TestDebugger {
 
-    public static void print(List<? extends PlayerOptionDTO> list) {
+  public static void print(List<? extends PlayerOptionDTO> list) {
 
-        for (PlayerOptionDTO op : list) {
-            System.out.println(op);
-        }
+    for (PlayerOptionDTO op : list) {
+      System.out.println(op);
+    }
+  }
+
+  public static void print(Set<DecisionDTO> decisions) {
+
+    System.out.println("PRINT POSSIBLE DECISIONS");
+
+    for (DecisionDTO decision : decisions) {
+      System.out.println(decision);
     }
 
-    public static void print(Set<DecisionDTO> decisions) {
+    System.out.println("END PRINT POSSIBLE DECISIONS");
+  }
 
-        System.out.println("PRINT POSSIBLE DECISIONS");
+  public static void printTurnOption(List<? extends TurnOption> list) {
 
-        for (DecisionDTO decision : decisions) {
-            System.out.println(decision);
-        }
+    for (TurnOption op : list) {
+      System.out.println(op);
+    }
+  }
 
-        System.out.println("END PRINT POSSIBLE DECISIONS");
+  public static void print(Map<PieceDTO, Set<PlayerOptionDTO>> possibleOptions) {
+
+    System.out.println("** PRINT POSSIBLES OPTIONS **");
+
+    for (Map.Entry<PieceDTO, Set<PlayerOptionDTO>> entry : possibleOptions.entrySet()) {
+
+      PieceDTO piece = entry.getKey();
+
+      for (PlayerOptionDTO option : entry.getValue()) {
+        System.out.println(PieceRepresentationHelper.toRepresentation(piece) + " : " + option);
+      }
     }
 
-    public static void printTurnOption(List<? extends TurnOption> list) {
+    System.out.println("**** END PRINT POSSIBLES OPTIONS ****");
+  }
 
-        for (TurnOption op : list) {
-            System.out.println(op);
-        }
+  public static void render(GameStatusDTO status) {
+
+    BoardDTO board = status.board();
+
+    int width = board.width();
+    int height = board.height();
+
+    String whitePyramid = "";
+    String blackPyramid = "";
+
+    String[][] grid = new String[height][width];
+
+    // init grid
+    for (int y = 0; y < height; y++) {
+
+      for (int x = 0; x < width; x++) {
+        grid[y][x] = "  .  ";
+      }
     }
 
-    public static void print(Map<PieceDTO, Set<PlayerOptionDTO>> possibleOptions) {
+    // fill grid
+    for (PieceDTO piece : board.pieces()) {
 
-        System.out.println("** PRINT POSSIBLES OPTIONS **");
+      int x = piece.position().getX();
+      int y = piece.position().getY();
 
-        for (Map.Entry<PieceDTO, Set<PlayerOptionDTO>> entry : possibleOptions.entrySet()) {
+      String content = PieceRepresentationHelper.toShortRepresentation(piece);
 
-            PieceDTO piece = entry.getKey();
+      grid[y][x] = String.format("%-5s", content);
 
-            for (PlayerOptionDTO option : entry.getValue()) {
-                System.out.println(
-                        PieceRepresentationHelper.toRepresentation(piece)
-                                + " : "
-                                + option
-                );
-            }
+      if (piece.shape().equals(PieceShape.PYRAMID)) {
+
+        if (piece.owner().equals(PlayerColorDTO.BLACK)) {
+
+          blackPyramid = getPyramidDetailsStringRepresentation(piece);
+
+        } else {
+
+          whitePyramid = getPyramidDetailsStringRepresentation(piece);
         }
-
-        System.out.println("**** END PRINT POSSIBLES OPTIONS ****");
+      }
     }
 
-    public static void render(GameStatusDTO status) {
+    // render
+    System.out.println("\n--- PLATEAU DE RITHMOMACHIE ---");
+    System.out.println("Active player : " + status.currentPlayer());
+    System.out.println("Phase :" + status.phase());
 
-        BoardDTO board = status.board();
-
-        int width = board.width();
-        int height = board.height();
-
-        String whitePyramid = "";
-        String blackPyramid = "";
-
-        String[][] grid = new String[height][width];
-
-        // init grid
-        for (int y = 0; y < height; y++) {
-
-            for (int x = 0; x < width; x++) {
-                grid[y][x] = "  .  ";
-            }
-        }
-
-        // fill grid
-        for (PieceDTO piece : board.pieces()) {
-
-            int x = piece.position().getX();
-            int y = piece.position().getY();
-
-            String content =
-                    PieceRepresentationHelper.toShortRepresentation(piece);
-
-            grid[y][x] =
-                    String.format("%-5s", content);
-
-            if (piece.shape().equals(PieceShape.PYRAMID)) {
-
-                if (piece.owner().equals(PlayerColorDTO.BLACK)) {
-
-                    blackPyramid =
-                            getPyramidDetailsStringRepresentation(piece);
-
-                } else {
-
-                    whitePyramid =
-                            getPyramidDetailsStringRepresentation(piece);
-                }
-            }
-        }
-
-        // render
-        System.out.println("\n--- PLATEAU DE RITHMOMACHIE ---");
-        System.out.println("Active player : " + status.currentPlayer());
-        System.out.println("Phase :" + status.phase());
-
-        if (!whitePyramid.isBlank()) {
-            System.out.println(whitePyramid);
-        }
-
-        if (!blackPyramid.isBlank()) {
-            System.out.println(blackPyramid);
-        }
-
-        // x axis
-        System.out.print("     ");
-
-        for (int x = 0; x < width; x++) {
-            System.out.printf("%-7d", x);
-        }
-
-        System.out.println();
-
-        // board
-        for (int y = 0; y < height; y++) {
-
-            System.out.printf("%-4d", y);
-
-            for (int x = 0; x < width; x++) {
-                System.out.print("[" + grid[y][x] + "]");
-            }
-
-            System.out.println();
-        }
-
-        System.out.println("-------------------------------\n");
+    if (!whitePyramid.isBlank()) {
+      System.out.println(whitePyramid);
     }
 
-    private static String getPyramidDetailsStringRepresentation(
-            PieceDTO pieceDTO
-    ) {
+    if (!blackPyramid.isBlank()) {
+      System.out.println(blackPyramid);
+    }
 
-        StringBuilder sb = new StringBuilder(
-                PieceRepresentationHelper.toShortRepresentation(pieceDTO)
-        );
+    // x axis
+    System.out.print("     ");
 
-        sb.append(" :");
+    for (int x = 0; x < width; x++) {
+      System.out.printf("%-7d", x);
+    }
+
+    System.out.println();
+
+    // board
+    for (int y = 0; y < height; y++) {
+
+      System.out.printf("%-4d", y);
+
+      for (int x = 0; x < width; x++) {
+        System.out.print("[" + grid[y][x] + "]");
+      }
+
+      System.out.println();
+    }
+
+    System.out.println("-------------------------------\n");
+  }
+
+  private static String getPyramidDetailsStringRepresentation(PieceDTO pieceDTO) {
+
+    StringBuilder sb = new StringBuilder(PieceRepresentationHelper.toShortRepresentation(pieceDTO));
+
+    sb.append(" :");
+
+    for (PieceDTO component : pieceDTO.components()) {
+
+      sb.append(" ");
+      sb.append(PieceRepresentationHelper.toShortRepresentation(component));
+    }
+
+    return sb.toString();
+  }
+
+  public static void printCapturedPieces(GameStatusDTO gameStatusDTO, DecisionDTO decisionDTO) {
+
+    Set<String> capturedIds = decisionDTO.capturedIdList();
+
+    for (PieceDTO pieceDTO : gameStatusDTO.board().pieces()) {
+
+      if (capturedIds.contains(pieceDTO.id())) {
+
+        System.out.println(PieceRepresentationHelper.toRepresentation(pieceDTO));
+      }
+
+      if (pieceDTO.shape().equals(PieceShape.PYRAMID)) {
 
         for (PieceDTO component : pieceDTO.components()) {
 
-            sb.append(" ");
-            sb.append(
-                    PieceRepresentationHelper.toShortRepresentation(component)
-            );
+          if (capturedIds.contains(component.id())) {
+
+            System.out.println(
+                "Component : " + PieceRepresentationHelper.toRepresentation(component));
+          }
         }
-
-        return sb.toString();
+      }
     }
-
-    public static void printCapturedPieces(
-            GameStatusDTO gameStatusDTO,
-            DecisionDTO decisionDTO
-    ) {
-
-        Set<String> capturedIds =
-                decisionDTO.capturedIdList();
-
-        for (PieceDTO pieceDTO : gameStatusDTO.board().pieces()) {
-
-            if (capturedIds.contains(pieceDTO.id())) {
-
-                System.out.println(
-                        PieceRepresentationHelper.toRepresentation(pieceDTO)
-                );
-            }
-
-            if (pieceDTO.shape().equals(PieceShape.PYRAMID)) {
-
-                for (PieceDTO component : pieceDTO.components()) {
-
-                    if (capturedIds.contains(component.id())) {
-
-                        System.out.println(
-                                "Component : "
-                                        + PieceRepresentationHelper
-                                        .toRepresentation(component)
-                        );
-                    }
-                }
-            }
-        }
-    }
+  }
 }

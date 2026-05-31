@@ -16,251 +16,178 @@ import java.util.*;
 /**
  * Orchestrates the projection of the current game state into a UI-consumable structure.
  *
- * <p>This class is responsible for transforming engine-generated {@link TurnOption}s
- * into a structured representation of:
+ * <p>This class is responsible for transforming engine-generated {@link TurnOption}s into a
+ * structured representation of:
+ *
  * <ul>
- *     <li>visible player options</li>
- *     <li>executable decisions bound to engine actions</li>
+ *   <li>visible player options
+ *   <li>executable decisions bound to engine actions
  * </ul>
- * </p>
  *
- * <p>It acts as the boundary between the engine layer and the external UI layer
- * (web, JavaFX, AI clients, etc.), ensuring that no engine-specific logic leaks
- * into UI consumption models.</p>
+ * <p>It acts as the boundary between the engine layer and the external UI layer (web, JavaFX, AI
+ * clients, etc.), ensuring that no engine-specific logic leaks into UI consumption models.
  *
- * <p>The assembly process follows a two-step pipeline:</p>
+ * <p>The assembly process follows a two-step pipeline:
+ *
  * <ol>
- *     <li>Each {@link TurnOption} is projected into a {@link TurnProjection}</li>
- *     <li>Projections are aggregated into a final {@link UiInformation} object</li>
+ *   <li>Each {@link TurnOption} is projected into a {@link TurnProjection}
+ *   <li>Projections are aggregated into a final {@link UiInformation} object
  * </ol>
  *
- * <p>This design removes all index-based coupling between actions and decisions
- * by relying on explicit {@link ExecutableDecision} bindings.</p>
+ * <p>This design removes all index-based coupling between actions and decisions by relying on
+ * explicit {@link ExecutableDecision} bindings.
  *
  * <p>Internally, a {@link DecisionRegistry} is used to:
- * <ul>
- *     <li>ensure stable decision identity across the game session</li>
- *     <li>persist executable actions associated with decisions</li>
- *     <li>deduplicate equivalent decision structures</li>
- * </ul>
- * </p>
  *
- * <p>This class is intentionally stateless with respect to game logic,
- * and only performs projection and orchestration responsibilities.</p>
+ * <ul>
+ *   <li>ensure stable decision identity across the game session
+ *   <li>persist executable actions associated with decisions
+ *   <li>deduplicate equivalent decision structures
+ * </ul>
+ *
+ * <p>This class is intentionally stateless with respect to game logic, and only performs projection
+ * and orchestration responsibilities.
  */
 public class GameStatusAssembler {
 
-    private final OptionRepository optionRepository;
+  private final OptionRepository optionRepository;
 
-    public GameStatusAssembler(
-            OptionRepository optionRepository
-    ) {
-        this.optionRepository = optionRepository;
+  public GameStatusAssembler(OptionRepository optionRepository) {
+    this.optionRepository = optionRepository;
+  }
+
+  public UiInformation assemble(Game game) {
+
+    Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece = new HashMap<>();
+
+    DecisionRegistry decisionRegistry = new DecisionRegistry(optionRepository);
+
+    for (TurnOption option : game.getCurrentState().options()) {
+
+      TurnProjection projection = presentOption(option);
+
+      addOptions(playerOptionPerPiece, projection.piece(), projection.options());
+
+      for (ExecutableDecision executable : projection.executableDecisions()) {
+
+        decisionRegistry.register(game.getId(), executable.action(), executable.decision());
+      }
     }
 
-    public UiInformation assemble(Game game) {
+    return new UiInformation(playerOptionPerPiece, decisionRegistry.getDecisions());
+  }
 
-        Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece =
-                new HashMap<>();
+  private TurnProjection presentOption(TurnOption option) {
 
-        DecisionRegistry decisionRegistry =
-                new DecisionRegistry(optionRepository);
+    return switch (option) {
+      case MoveOption moveOption -> presentMoveOption(moveOption);
 
-        for (TurnOption option : game.getCurrentState().options()) {
+      case PostCaptureOption postCaptureOption -> presentPostCaptureOption(postCaptureOption);
 
-            TurnProjection projection = presentOption(option);
+      case PreCaptureOption preCaptureOption -> presentPreCaptureOption(preCaptureOption);
 
-            addOptions(
-                    playerOptionPerPiece,
-                    projection.piece(),
-                    projection.options()
-            );
+      case ReintroductionOption reintroductionOption ->
+          presentReintroductionOption(reintroductionOption);
 
-            for (ExecutableDecision executable : projection.executableDecisions()) {
+      case SkipPreCaptureOption skipPreCaptureOption -> presentSkipOption(skipPreCaptureOption);
 
-                decisionRegistry.register(
-                        game.getId(),
-                        executable.action(),
-                        executable.decision()
-                );
-            }
-        }
+      case SkipPostCaptureOption skipPostCaptureOption -> presentSkipOption(skipPostCaptureOption);
+    };
+  }
 
-        return new UiInformation(
-                playerOptionPerPiece,
-                decisionRegistry.getDecisions()
-        );
-    }
+  private TurnProjection presentMoveOption(MoveOption moveOption) {
 
-    private TurnProjection presentOption(TurnOption option) {
+    MoveAction action = MoveAction.from(moveOption);
 
-        return switch (option) {
+    DecisionDTO decision = DecisionDTO.from(UUID.randomUUID(), action);
 
-            case MoveOption moveOption ->
-                    presentMoveOption(moveOption);
+    MoveOptionDTO optionDTO = MoveOptionDTO.from(moveOption);
 
-            case PostCaptureOption postCaptureOption ->
-                    presentPostCaptureOption(postCaptureOption);
+    ExecutableDecision executable = new ExecutableDecision(decision, action);
 
-            case PreCaptureOption preCaptureOption ->
-                    presentPreCaptureOption(preCaptureOption);
+    return new TurnProjection(optionDTO.actor(), List.of(optionDTO), List.of(executable));
+  }
 
-            case ReintroductionOption reintroductionOption ->
-                    presentReintroductionOption(reintroductionOption);
+  private TurnProjection presentPostCaptureOption(PostCaptureOption postCaptureOption) {
 
-            case SkipPreCaptureOption skipPreCaptureOption ->
-                    presentSkipOption(skipPreCaptureOption);
+    PostCaptureAction action = PostCaptureAction.from(postCaptureOption);
 
-            case SkipPostCaptureOption skipPostCaptureOption ->
-                    presentSkipOption(skipPostCaptureOption);
-        };
-    }
+    PieceDTO actorDTO = PieceDTO.from(postCaptureOption.actor());
 
-    private TurnProjection presentMoveOption(MoveOption moveOption) {
+    DecisionDTO rawDecision = DecisionDTO.from(UUID.randomUUID(), action);
 
-        MoveAction action = MoveAction.from(moveOption);
+    List<PlayerOptionDTO> optionDTOs = new ArrayList<>(CaptureOptionDTO.from(postCaptureOption));
 
-        DecisionDTO decision =
-                DecisionDTO.from(UUID.randomUUID(), action);
+    return new TurnProjection(
+        actorDTO, optionDTOs, List.of(new ExecutableDecision(rawDecision, action)));
+  }
 
-        MoveOptionDTO optionDTO =
-                MoveOptionDTO.from(moveOption);
+  private TurnProjection presentPreCaptureOption(PreCaptureOption option) {
 
-        ExecutableDecision executable =
-                new ExecutableDecision(decision, action);
+    List<PreCaptureAction> actions = PreCaptureAction.from(option);
 
-        return new TurnProjection(
-                optionDTO.actor(),
-                List.of(optionDTO),
-                List.of(executable)
-        );
-    }
+    PieceDTO actorDTO = PieceDTO.from(option.actor());
 
-    private TurnProjection presentPostCaptureOption(
-            PostCaptureOption postCaptureOption
-    ) {
+    List<PlayerOptionDTO> optionDTOs = new ArrayList<>(PreCaptureOptionDTO.from(option));
 
-        PostCaptureAction action =
-                PostCaptureAction.from(postCaptureOption);
+    List<ExecutableDecision> executableDecisions =
+        actions.stream()
+            .map(
+                action -> {
+                  DecisionDTO decision = DecisionDTO.from(UUID.randomUUID(), action);
 
-        PieceDTO actorDTO =
-                PieceDTO.from(postCaptureOption.actor());
+                  return new ExecutableDecision(decision, action);
+                })
+            .toList();
 
-        DecisionDTO rawDecision =
-                DecisionDTO.from(
-                        UUID.randomUUID(),
-                        action
-                );
+    return new TurnProjection(actorDTO, optionDTOs, executableDecisions);
+  }
 
-        List<PlayerOptionDTO> optionDTOs =
-                new ArrayList<>(
-                        CaptureOptionDTO.from(postCaptureOption)
-                );
+  private TurnProjection presentReintroductionOption(ReintroductionOption reintroductionOption) {
 
-        return new TurnProjection(
-                actorDTO,
-                optionDTOs,
-                List.of(new ExecutableDecision(rawDecision, action))
-        );
-    }
+    ReintroductionAction action = ReintroductionAction.from(reintroductionOption);
 
-    private TurnProjection presentPreCaptureOption(PreCaptureOption option) {
+    ReintroductionOptionDTO optionDTO = ReintroductionOptionDTO.from(reintroductionOption);
 
-        List<PreCaptureAction> actions =
-                PreCaptureAction.from(option);
+    DecisionDTO rawDecision = DecisionDTO.from(UUID.randomUUID(), action);
 
-        PieceDTO actorDTO =
-                PieceDTO.from(option.actor());
+    return new TurnProjection(
+        optionDTO.pieceDTO(),
+        List.of(optionDTO),
+        List.of(new ExecutableDecision(rawDecision, action)));
+  }
 
-        List<PlayerOptionDTO> optionDTOs =
-                new ArrayList<>(PreCaptureOptionDTO.from(option));
+  private TurnProjection presentSkipOption(TurnOption option) {
 
-        List<ExecutableDecision> executableDecisions =
-                actions.stream()
-                        .map(action -> {
-                            DecisionDTO decision =
-                                    DecisionDTO.from(UUID.randomUUID(), action);
+    TurnAction action = mapToSkipTurnAction(option);
 
-                            return new ExecutableDecision(decision, action);
-                        })
-                        .toList();
+    DecisionDTO decision = DecisionDTO.skipFrom(UUID.randomUUID());
 
-        return new TurnProjection(
-                actorDTO,
-                optionDTOs,
-                executableDecisions
-        );
-    }
+    return new TurnProjection(
+        PieceDTO.GLOBAL_OPTION,
+        List.of(new SkipOptionDTO()),
+        List.of(new ExecutableDecision(decision, action)));
+  }
 
-    private TurnProjection presentReintroductionOption(
-            ReintroductionOption reintroductionOption
-    ) {
+  private void addOptions(
+      Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
+      PieceDTO pieceDTO,
+      List<PlayerOptionDTO> optionDTOs) {
 
-        ReintroductionAction action =
-                ReintroductionAction.from(reintroductionOption);
+    playerOptions.computeIfAbsent(pieceDTO, k -> new HashSet<>()).addAll(optionDTOs);
+  }
 
-        ReintroductionOptionDTO optionDTO =
-                ReintroductionOptionDTO.from(reintroductionOption);
+  /** Maps a selection option to its corresponding executable action. */
+  private TurnAction mapToSkipTurnAction(TurnOption option) {
 
-        DecisionDTO rawDecision =
-                DecisionDTO.from(
-                        UUID.randomUUID(),
-                        action
-                );
+    return switch (option) {
+      case SkipPreCaptureOption skipPreCaptureOption ->
+          SkipPreCaptureAction.from(skipPreCaptureOption);
 
-        return new TurnProjection(
-                optionDTO.pieceDTO(),
-                List.of(optionDTO),
-                List.of(
-                new ExecutableDecision(
-                        rawDecision,
-                        action
-                )
-        ));
-    }
+      case SkipPostCaptureOption skipPostCaptureOption ->
+          SkipPostCaptureAction.from(skipPostCaptureOption);
 
-    private TurnProjection presentSkipOption(TurnOption option) {
-
-        TurnAction action = mapToSkipTurnAction(option);
-
-        DecisionDTO decision =
-                DecisionDTO.skipFrom(UUID.randomUUID());
-
-        return new TurnProjection(
-                PieceDTO.GLOBAL_OPTION,
-                List.of(new SkipOptionDTO()),
-                List.of(new ExecutableDecision(decision, action))
-        );
-    }
-
-    private void addOptions(
-            Map<PieceDTO, Set<PlayerOptionDTO>> playerOptions,
-            PieceDTO pieceDTO,
-            List<PlayerOptionDTO> optionDTOs
-    ) {
-
-        playerOptions
-                .computeIfAbsent(pieceDTO, k -> new HashSet<>())
-                .addAll(optionDTOs);
-    }
-
-    /**
-     * Maps a selection option
-     * to its corresponding executable action.
-     */
-    private TurnAction mapToSkipTurnAction(
-            TurnOption option
-    ) {
-
-        return switch (option) {
-            case SkipPreCaptureOption skipPreCaptureOption ->
-                    SkipPreCaptureAction.from(skipPreCaptureOption);
-
-            case SkipPostCaptureOption skipPostCaptureOption ->
-                    SkipPostCaptureAction.from(skipPostCaptureOption);
-
-            default ->
-                    throw new RuntimeException("Bad Turn Option");
-        };
-    }
+      default -> throw new RuntimeException("Bad Turn Option");
+    };
+  }
 }

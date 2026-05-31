@@ -8,19 +8,14 @@ import java.util.Set;
 
 /**
  * Represents:
+ *
  * <ul>
- *     <li>the options that the UI can display to the player, including all required information</li>
- *     <li>a collection of possible simplified decisions associated with persisted game actions</li>
+ *   <li>the options that the UI can display to the player, including all required information
+ *   <li>a collection of possible simplified decisions associated with persisted game actions
  * </ul>
  *
- * @param playerOptionPerPiece
- *         maps each piece to the set of available player options
- *
- * @param possibleDecisions
- *         the set of simplified decisions available to the player
+ * @param playerOptionPerPiece maps each piece to the set of available player options
+ * @param possibleDecisions the set of simplified decisions available to the player
  */
 public record UiInformation(
-        Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece,
-        Set<DecisionDTO> possibleDecisions
-) {
-}
+    Map<PieceDTO, Set<PlayerOptionDTO>> playerOptionPerPiece, Set<DecisionDTO> possibleDecisions) {}

@@ -6,6 +6,4 @@ import java.util.Map;
 import java.util.Set;
 
 public record GameOptions(
-    Set<CaptureRuleOption> captureRules,
-    Map<VictoryRuleOption, Integer> victoryRules
-) { }
+    Set<CaptureRuleOption> captureRules, Map<VictoryRuleOption, Integer> victoryRules) {}

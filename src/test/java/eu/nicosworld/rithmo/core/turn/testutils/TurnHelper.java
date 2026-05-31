@@ -28,163 +28,161 @@ import eu.nicosworld.rithmo.engine.victory.VictoryRule;
 import java.util.List;
 
 public class TurnHelper {
-    public static TurnProcessor setupProcessor(List<CaptureRule> captureRules) {
-        BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
+  public static TurnProcessor setupProcessor(List<CaptureRule> captureRules) {
+    BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
 
-        return setupProcessor(captureRules, List.of(bodyVictoryRule));
+    return setupProcessor(captureRules, List.of(bodyVictoryRule));
+  }
+
+  public static TurnProcessor setupProcessor(
+      List<CaptureRule> captureRules, List<VictoryRule> victoryRules) {
+    CaptureApplier captureApplier = new CaptureApplier();
+    MoveApplier moveApplier = new MoveApplier();
+    ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
+    ActionApplier actionApplier =
+        new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
+
+    PhaseResolver phaseResolver = setupPhaseResolver(captureRules);
+
+    VictoryEngine victoryEngine = new VictoryEngine(victoryRules);
+
+    return new TurnProcessor(actionApplier, phaseResolver, victoryEngine);
+  }
+
+  private static PhaseResolver setupPhaseResolver(List<CaptureRule> captureRules) {
+    CaptureEngine captureEngine = new CaptureEngine(captureRules);
+    CaptureResolver captureResolver = new CaptureResolver(captureEngine);
+
+    MovementEngine movementEngine = new MovementEngine();
+    MoveResolver moveResolver = new MoveResolver(movementEngine);
+
+    ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
+    ReintroductionResolver reintroductionResolver =
+        new ReintroductionResolver(reintroductionEngine);
+
+    return new PhaseResolver(captureResolver, moveResolver, reintroductionResolver);
+  }
+
+  public static void showOptions(TurnState turnState) {
+    System.out.println("***SHOW OPTIONS***");
+    for (TurnOption option : turnState.options()) {
+      System.out.println(option);
     }
+    ;
+    System.out.println("*** ***");
+  }
 
-    public static TurnProcessor setupProcessor(List<CaptureRule> captureRules, List<VictoryRule> victoryRules) {
-        CaptureApplier captureApplier = new CaptureApplier();
-        MoveApplier moveApplier = new MoveApplier();
-        ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
-        ActionApplier actionApplier = new ActionApplier(captureApplier, moveApplier, reintroductionApplier);
+  public static PreCaptureOption findPreCaptureOption(
+      List<TurnOption> options,
+      Position attackerPos,
+      Position landingPos,
+      List<Position> targetPositions) {
+    return options.stream()
+        .filter(PreCaptureOption.class::isInstance)
+        .map(PreCaptureOption.class::cast)
+        .filter(
+            opt -> {
 
-        PhaseResolver phaseResolver = setupPhaseResolver(captureRules);
+              // 1. Check Landing
+              if (!opt.possibleLandings().contains(landingPos)) {
+                return false;
+              }
 
-        VictoryEngine victoryEngine = new VictoryEngine(victoryRules);
+              // 2. Extract targets from captures
+              List<Position> targetsInOption =
+                  opt.captures().stream().map(CaptureAction::targetPosition).toList();
 
-        return new TurnProcessor(actionApplier,
-                phaseResolver,
-                victoryEngine);
-    }
+              // 3. Check Attacker
+              boolean sameAttacker =
+                  opt.captures().stream().anyMatch(a -> a.actor().position().equals(attackerPos));
 
-    private static PhaseResolver setupPhaseResolver(List<CaptureRule> captureRules) {
-        CaptureEngine captureEngine = new CaptureEngine(captureRules);
-        CaptureResolver captureResolver = new CaptureResolver(captureEngine);
+              // 4. Compare target lists
+              return sameAttacker
+                  && targetsInOption.size() == targetPositions.size()
+                  && targetsInOption.containsAll(targetPositions);
+            })
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new AssertionError(
+                    String.format(
+                        "No PreCaptureOption found for attacker at %s, landing at %s, targeting %s",
+                        attackerPos, landingPos, targetPositions)));
+  }
 
-        MovementEngine movementEngine = new MovementEngine();
-        MoveResolver moveResolver = new MoveResolver(movementEngine);
+  /** Convenience overload using varargs for targets. */
+  public static PreCaptureOption findPreCaptureOption(
+      List<TurnOption> options,
+      Position attackerPos,
+      Position landingPos,
+      Position... targetPositions) {
+    return findPreCaptureOption(options, attackerPos, landingPos, List.of(targetPositions));
+  }
 
-        ReintroductionEngine reintroductionEngine = new ReintroductionEngine();
-        ReintroductionResolver reintroductionResolver = new ReintroductionResolver(reintroductionEngine);
+  public static List<Move> getAllMoves(TurnState turnState, Position attackerPos) {
+    return turnState.options().stream()
+        .filter(MoveOption.class::isInstance)
+        .map(o -> ((MoveOption) o).move())
+        .filter(m -> m.from().equals(attackerPos))
+        .toList();
+  }
 
-        return new PhaseResolver(captureResolver, moveResolver, reintroductionResolver);
-    }
+  public static Move getMove(TurnState turnState, Position attackerPos, Position landing) {
+    return turnState.options().stream()
+        .filter(MoveOption.class::isInstance)
+        .map(o -> ((MoveOption) o).move())
+        .filter(m -> m.from().equals(attackerPos) && m.to().equals(landing))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new AssertionError(
+                    String.format(
+                        "Aucun choix de Move trouvé pour l'attaquant en %s vers la case %s",
+                        attackerPos, landing)));
+  }
 
-    public static void showOptions(TurnState turnState) {
-        System.out.println("***SHOW OPTIONS***");
-        for(TurnOption option : turnState.options()) {
-            System.out.println(option);
-        };
-        System.out.println("*** ***");
-    }
+  public static PostCaptureOption findPostCaptureOption(
+      List<TurnOption> options, List<Position> targetPositions) {
+    return options.stream()
+        .filter(PostCaptureOption.class::isInstance)
+        .map(PostCaptureOption.class::cast)
+        .filter(
+            option -> {
+              // On extrait les positions cibles de cette option post-capture
+              List<Position> targetsInOption =
+                  option.captures().stream().map(CaptureAction::targetPosition).toList();
 
-    public static PreCaptureOption findPreCaptureOption(
-            List<TurnOption> options,
-            Position attackerPos,
-            Position landingPos,
-            List<Position> targetPositions
-    ) {
-        return options.stream()
-                .filter(PreCaptureOption.class::isInstance)
-                .map(PreCaptureOption.class::cast)
-                .filter(opt -> {
+              // On vérifie que toutes les cibles attendues sont là et qu'il n'y en a pas d'autres
+              return targetsInOption.size() == targetPositions.size()
+                  && targetsInOption.containsAll(targetPositions);
+            })
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new AssertionError(
+                    String.format(
+                        "Aucune option de capture post-mouvement trouvée pour les cibles %s",
+                        targetPositions)));
+  }
 
-                    // 1. Check Landing
-                    if (!opt.possibleLandings().contains(landingPos)) {
-                        return false;
-                    }
+  /** Surcharge pratique pour passer les positions directement (varargs) */
+  public static PostCaptureOption findPostCaptureOption(
+      List<TurnOption> options, Position... targetPositions) {
+    return findPostCaptureOption(options, List.of(targetPositions));
+  }
 
-                    // 2. Extract targets from captures
-                    List<Position> targetsInOption = opt.captures().stream()
-                            .map(CaptureAction::targetPosition)
-                            .toList();
+  public static PreCaptureAction findPreCaptureAction(
+      List<TurnOption> options,
+      Position attackerPos,
+      Position landingPos,
+      Position... targetPositions) {
+    PreCaptureOption option =
+        findPreCaptureOption(options, attackerPos, landingPos, List.of(targetPositions));
 
-                    // 3. Check Attacker
-                    boolean sameAttacker = opt.captures().stream()
-                            .anyMatch(a -> a.actor().position().equals(attackerPos));
-
-                    // 4. Compare target lists
-                    return sameAttacker
-                            && targetsInOption.size() == targetPositions.size()
-                            && targetsInOption.containsAll(targetPositions);
-                })
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        String.format(
-                                "No PreCaptureOption found for attacker at %s, landing at %s, targeting %s",
-                                attackerPos,
-                                landingPos,
-                                targetPositions
-                        )));
-    }
-
-    /**
-     * Convenience overload using varargs for targets.
-     */
-    public static PreCaptureOption findPreCaptureOption(
-            List<TurnOption> options,
-            Position attackerPos,
-            Position landingPos,
-            Position... targetPositions
-    ) {
-        return findPreCaptureOption(options, attackerPos, landingPos, List.of(targetPositions));
-    }
-
-    public static List<Move> getAllMoves(TurnState turnState, Position attackerPos) {
-        return turnState.options().stream()
-                .filter(MoveOption.class::isInstance)
-                .map(o -> ((MoveOption) o).move())
-                .filter(m -> m.from().equals(attackerPos))
-                .toList();
-    }
-
-    public static Move getMove(TurnState turnState, Position attackerPos, Position landing) {
-        return turnState.options().stream()
-                .filter(MoveOption.class::isInstance)
-                .map(o -> ((MoveOption) o).move())
-                .filter(m -> m.from().equals(attackerPos) && m.to().equals(landing))
-                .findFirst().orElseThrow(() -> new AssertionError(
-                        String.format("Aucun choix de Move trouvé pour l'attaquant en %s vers la case %s",
-                                attackerPos, landing)));
-    }
-
-    public static PostCaptureOption findPostCaptureOption(List<TurnOption> options, List<Position> targetPositions) {
-        return options.stream()
-                .filter(PostCaptureOption.class::isInstance)
-                .map(PostCaptureOption.class::cast)
-                .filter(option -> {
-                    // On extrait les positions cibles de cette option post-capture
-                    List<Position> targetsInOption = option.captures().stream()
-                            .map(CaptureAction::targetPosition)
-                            .toList();
-
-                    // On vérifie que toutes les cibles attendues sont là et qu'il n'y en a pas d'autres
-                    return targetsInOption.size() == targetPositions.size()
-                            && targetsInOption.containsAll(targetPositions);
-                })
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        String.format("Aucune option de capture post-mouvement trouvée pour les cibles %s",
-                                targetPositions)));
-    }
-
-    /**
-     * Surcharge pratique pour passer les positions directement (varargs)
-     */
-    public static PostCaptureOption findPostCaptureOption(List<TurnOption> options, Position... targetPositions) {
-        return findPostCaptureOption(options, List.of(targetPositions));
-    }
-
-    public static PreCaptureAction findPreCaptureAction(
-            List<TurnOption> options,
-            Position attackerPos,
-            Position landingPos,
-            Position... targetPositions
-    ) {
-        PreCaptureOption option = findPreCaptureOption(
-                options,
-                attackerPos,
-                landingPos,
-                List.of(targetPositions)
-        );
-
-        return PreCaptureAction.from(option).stream()
-                .filter(action -> action.landing().equals(landingPos))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        "No PreCaptureAction found for landing " + landingPos
-                ));
-    }
+    return PreCaptureAction.from(option).stream()
+        .filter(action -> action.landing().equals(landingPos))
+        .findFirst()
+        .orElseThrow(
+            () -> new AssertionError("No PreCaptureAction found for landing " + landingPos));
+  }
 }

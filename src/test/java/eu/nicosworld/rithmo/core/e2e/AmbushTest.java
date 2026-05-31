@@ -15,67 +15,66 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class AmbushTest {
-    private GameFacade gameFacade;
+  private GameFacade gameFacade;
 
-    @BeforeEach
-    void setUp() {
-        InMemoryGameRepository gameRepository = new InMemoryGameRepository();
-        InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
-        gameFacade = new GameFacade(gameRepository, optionRepository);
-    }
+  @BeforeEach
+  void setUp() {
+    InMemoryGameRepository gameRepository = new InMemoryGameRepository();
+    InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
+    gameFacade = new GameFacade(gameRepository, optionRepository);
+  }
 
-    @Test
-    @DisplayName("1. Après le move, on doit avoir une option de post capture en ambush")
-    void shouldProposeAPostCaptureOption() throws Exception {
-        Game game = PreDefinedTestGame.ambushPostCaptureTest_Case();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("1. Après le move, on doit avoir une option de post capture en ambush")
+  void shouldProposeAPostCaptureOption() throws Exception {
+    Game game = PreDefinedTestGame.ambushPostCaptureTest_Case();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        UUID moveId = FindDecisionHelper.findMoveDecisionId(status, "BC4(0,3)", "(1,2)");
-        GameStatusDTO nextStatus = gameFacade.play(status.gameId(), moveId);
+    UUID moveId = FindDecisionHelper.findMoveDecisionId(status, "BC4(0,3)", "(1,2)");
+    GameStatusDTO nextStatus = gameFacade.play(status.gameId(), moveId);
 
-        StatusDTOAssertion.from(nextStatus)
-                .status()
-                    .isInPostCapturePhase()
-                .decisions()
-                    .canCaptureInOneDecision("WT12(2,1)")
-                    .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
-                    .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
-        TestDebugger.render(status);
-    }
+    StatusDTOAssertion.from(nextStatus)
+        .status()
+        .isInPostCapturePhase()
+        .decisions()
+        .canCaptureInOneDecision("WT12(2,1)")
+        .hasCaptureCiblesFor("BC4(1,2)", "WT12(2,1)")
+        .cannotCaptureWith("BC8(1,0)", "WT12(2,1)");
+  }
 
-    @Test
-    @DisplayName("2. on doit avoir une option de pre capture en ambush")
-    void shouldProposeAPreCaptureOption() throws Exception {
-        Game game = PreDefinedTestGame.ambushPreCaptureTest_Case();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("2. on doit avoir une option de pre capture en ambush")
+  void shouldProposeAPreCaptureOption() throws Exception {
+    Game game = PreDefinedTestGame.ambushPreCaptureTest_Case();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        StatusDTOAssertion.from(status)
-                .status()
-                    .isInPreCapturePhase()
-                .decisions()
-                    .canCaptureInOneDecision("WT12(2,1)")
-                    .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
-    }
+    StatusDTOAssertion.from(status)
+        .status()
+        .isInPreCapturePhase()
+        .decisions()
+        .canCaptureInOneDecision("WT12(2,1)")
+        .hasCaptureSourcesFor("WT12(2,1)", "BC8(1,0)", "BC4(1,2)");
+  }
 
-    @Test
-    @DisplayName("3. on doit avoir 6 options de pre capture en ambush")
-    void shouldProposeAPreCaptureOption_With2fullPyramid() throws Exception {
-        Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  @DisplayName("3. on doit avoir 6 options de pre capture en ambush")
+  void shouldProposeAPreCaptureOption_With2fullPyramid() throws Exception {
+    Game game = PreDefinedTestGame.ambushPreCaptureTest_BlackAndWhitePyramidCase();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        StatusDTOAssertion.from(status)
-                .status()
-                    .isInPreCapturePhase()
-                .options()
-                    .hasOptionCount(7)
-                    .hasSkipOption()
-                    .canPreCaptureWithByAmbush("BT16(1,0)", "WS64(2,1)")
-                    .canPreCaptureWithByAmbush("BT9(1,0)", "WT36(2,1)")
-                    .canPreCaptureWithByAmbush("BC4(1,0)", "WC16(2,1)")
-                    .canPreCaptureWithByAmbush("BC4(1,2)", "WC16(2,1)", "WT36(2,1)", "WS64(2,1)")
-                .decisions()
-                    .hasDecisionCount(11)
-                    .hasSkipDecision()
-                    .canCaptureInOneDecision("WC16(2,1)", "WT36(2,1)", "WS64(2,1)");
-    }
+    StatusDTOAssertion.from(status)
+        .status()
+        .isInPreCapturePhase()
+        .options()
+        .hasOptionCount(7)
+        .hasSkipOption()
+        .canPreCaptureWithByAmbush("BT16(1,0)", "WS64(2,1)")
+        .canPreCaptureWithByAmbush("BT9(1,0)", "WT36(2,1)")
+        .canPreCaptureWithByAmbush("BC4(1,0)", "WC16(2,1)")
+        .canPreCaptureWithByAmbush("BC4(1,2)", "WC16(2,1)", "WT36(2,1)", "WS64(2,1)")
+        .decisions()
+        .hasDecisionCount(11)
+        .hasSkipDecision()
+        .canCaptureInOneDecision("WC16(2,1)", "WT36(2,1)", "WS64(2,1)");
+  }
 }

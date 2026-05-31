@@ -8,68 +8,55 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-
 /**
  * Orchestrates the full lifecycle of a UI decision.
  *
- * <p>This includes:</p>
+ * <p>This includes:
+ *
  * <ul>
- *     <li>Resolving stable decision identity</li>
- *     <li>Projecting raw engine output into UI DTOs</li>
- *     <li>Persisting executable actions for later execution</li>
- *     <li>Maintaining an in-memory set of active UI decisions</li>
+ *   <li>Resolving stable decision identity
+ *   <li>Projecting raw engine output into UI DTOs
+ *   <li>Persisting executable actions for later execution
+ *   <li>Maintaining an in-memory set of active UI decisions
  * </ul>
  *
- * <p>This class does not contain domain logic itself.
- * It delegates responsibilities to specialized services.</p>
+ * <p>This class does not contain domain logic itself. It delegates responsibilities to specialized
+ * services.
  *
- * <p>It acts as the coordination layer between engine output
- * and UI-facing decision representation.</p>
+ * <p>It acts as the coordination layer between engine output and UI-facing decision representation.
  */
 public class DecisionRegistry {
 
-    private final DecisionIdService idService;
-    private final DecisionProjectionService projectionService;
-    private final DecisionCommandStore commandStore;
+  private final DecisionIdService idService;
+  private final DecisionProjectionService projectionService;
+  private final DecisionCommandStore commandStore;
 
-    private final Set<DecisionDTO> decisions = new HashSet<>();
+  private final Set<DecisionDTO> decisions = new HashSet<>();
 
-    public DecisionRegistry(
-            OptionRepository optionRepository
-    ) {
-        this.idService = new DecisionIdService();
-        this.projectionService = new DecisionProjectionService();
-        this.commandStore = new DecisionCommandStore(optionRepository);
-    }
+  public DecisionRegistry(OptionRepository optionRepository) {
+    this.idService = new DecisionIdService();
+    this.projectionService = new DecisionProjectionService();
+    this.commandStore = new DecisionCommandStore(optionRepository);
+  }
 
-    public void register(
-            UUID gameId,
-            TurnAction action,
-            DecisionDTO rawDecision
-    ) {
+  public void register(UUID gameId, TurnAction action, DecisionDTO rawDecision) {
 
-        DecisionKey key = buildKey(rawDecision);
+    DecisionKey key = buildKey(rawDecision);
 
-        UUID id = idService.resolve(key);
+    UUID id = idService.resolve(key);
 
-        DecisionDTO finalDecision =
-                projectionService.build(id, rawDecision);
+    DecisionDTO finalDecision = projectionService.build(id, rawDecision);
 
-        decisions.add(finalDecision);
+    decisions.add(finalDecision);
 
-        commandStore.store(gameId, id, action);
-    }
+    commandStore.store(gameId, id, action);
+  }
 
-    public Set<DecisionDTO> getDecisions() {
-        return Set.copyOf(decisions);
-    }
+  public Set<DecisionDTO> getDecisions() {
+    return Set.copyOf(decisions);
+  }
 
-    private DecisionKey buildKey(DecisionDTO dto) {
-        return new DecisionKey(
-                dto.actorId(),
-                dto.capturedIdList(),
-                dto.landing(),
-                dto.skip()
-        );
-    }
+  private DecisionKey buildKey(DecisionDTO dto) {
+    return new DecisionKey(dto.actorId(), dto.capturedIdList(), dto.landing(), dto.skip());
+  }
 }

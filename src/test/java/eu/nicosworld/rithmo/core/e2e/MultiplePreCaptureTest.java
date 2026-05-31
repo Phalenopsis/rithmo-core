@@ -13,28 +13,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class MultiplePreCaptureTest {
-    private GameFacade gameFacade;
+  private GameFacade gameFacade;
 
-    @BeforeEach
-    void setUp() {
-        InMemoryGameRepository gameRepository = new InMemoryGameRepository();
-        InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
-        gameFacade = new GameFacade(gameRepository, optionRepository);
-    }
+  @BeforeEach
+  void setUp() {
+    InMemoryGameRepository gameRepository = new InMemoryGameRepository();
+    InMemoryOptionRepository optionRepository = new InMemoryOptionRepository();
+    gameFacade = new GameFacade(gameRepository, optionRepository);
+  }
 
-    @Test
-    void testMultiplePreCaptures() throws VictoryException, PatException {
-        Game game = PreDefinedTestGame.gameTestWithMultiplePreCaptures();
-        GameStatusDTO status = gameFacade.startGame(game);
-    }
+  @Test
+  void testMultiplePreCaptures() throws VictoryException, PatException {
+    Game game = PreDefinedTestGame.gameTestWithMultiplePreCaptures();
+    GameStatusDTO status = gameFacade.startGame(game);
+  }
 
-    @Test
-    void test4Rules() throws VictoryException, PatException {
-        Game game = PreDefinedTestGame.gameWithMultiCaptures_FourRules();
-        GameStatusDTO status = gameFacade.startGame(game);
+  @Test
+  void test4Rules() throws VictoryException, PatException {
+    Game game = PreDefinedTestGame.gameWithMultiCaptures_FourRules();
+    GameStatusDTO status = gameFacade.startGame(game);
 
-        StatusDTOAssertion.from(status)
-                .isInPreCapturePhase();
-
-    }
+    StatusDTOAssertion.from(status).isInPreCapturePhase();
+  }
 }

@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface UiInformationRepository {
-    void clearForGame(UUID gameId);
+  void clearForGame(UUID gameId);
 
-    void save(UiInformation uiInformation);
+  void save(UiInformation uiInformation);
 
-    List<UiInformation> findAllForGame(UUID gameId);
+  List<UiInformation> findAllForGame(UUID gameId);
 }

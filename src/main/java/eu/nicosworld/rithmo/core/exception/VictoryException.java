@@ -3,7 +3,7 @@ package eu.nicosworld.rithmo.core.exception;
 import eu.nicosworld.rithmo.engine.model.Player;
 
 public class VictoryException extends Exception {
-    public VictoryException(Player player) {
-        super(player.getColor() + " is winner");
-    }
+  public VictoryException(Player player) {
+    super(player.getColor() + " is winner");
+  }
 }
