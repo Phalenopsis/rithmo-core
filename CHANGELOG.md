@@ -11,33 +11,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **PreDefinedGame**: added a predefined test game with 4 rules
 * **Build**: added a filtered test JAR to expose reusable test helpers to downstream test suites
-* **StatusDTOAssertion**: added assertion helpers for capture option validation
 * **FourEightGame Tests**: added tests covering available player options
-* **Assertion DSL**: introduced dedicated nested assertion scopes for decision, option, asset, board and global status validation
+* **Assertion DSL**:
+  * introduced nested specialized assertion scopes for decision, option, asset, board and global status validation
+  * introduced capture option assertion helpers
 * **Assertion Messaging**: added centralized status assertion failure message helpers
 * **Assertion Support**: introduced shared internal status assertion support utilities for normalization, piece resolution and decision formatting
 * **Code Formatting**: integrated Spotless with Google Java Format and local formatting toggle support (`spotless:off/on`)
 * **Git Hooks**: introduced repository-managed pre-commit hooks for automatic formatting and debug statement protection
 
 ### Changed
-
-* **GameFacade E2E Tests**: migrated gameplay scenarios to the new fluent nested assertion DSL across specialized scopes and integrated pyramid validation helpers
+* **E2E Tests**: completed migration of end-to-end scenarios to the fluent nested assertion DSL
 * **StatusAssertionMessages**: harmonized error message naming conventions into semantic families (missing, unexpected, incorrect, notFound) and adjusted method visibilities
-* **Assault Test**: migrated end-to-end scenarios to the new fluent nested assertion DSL and removed legacy AssertJ phase validations
-* **Ambush Test**: migrated end-to-end scenarios to the new fluent nested assertion DSL
-* **StatusDTOAssertion**: refactored assertion DSL into pre-instantiated nested specialized scopes (`status`, `decisions`, `options`, `assets`, `board`) and enhanced capture option helpers to support multi-target varargs matching
+* **StatusDTOAssertion**:
+  * refactored into pre-instantiated nested specialized scopes (`status`, `decisions`, `options`, `assets`, `board`)
+  * migrated remaining assertion helpers into specialized scope implementations
+  * enhanced capture option helpers to support multi-target varargs matching
+  * simplified into a pure DSL entry point by removing legacy flat assertion methods
 * **FindDecisionHelper**: extracted `findNonSkipDecision` stream utility, reused it in `findDecisionsFor`, and simplified `findReintroductionIdByDestination` by removing legacy `possibleOptions()` manipulation
 * **PieceRepresentationHelper**: refactored piece resolution to explicitly distinguish between board pieces (full representation) and reserve pieces (short representation)
 * **Tests (Appliers)**: updated `CaptureAction` factory usage to align with the new justification engine feature
 * **CaptureResolver Tests**: refreshed legacy comments for consistency
-* **EncounterTutorial Tests**: migrated end-to-end assertions to the new fluent nested assertion DSL
 * **Build Tooling**: standardized project-wide formatting enforcement through Spotless and pre-commit integration
 
 ### Tests
 
 * Added tests for multiple captures within the same decision
 * Extended option assertion DSL with helper methods for pre/post capture option verification
-* Validated incremental migration of the assertion DSL through full `EncounterTutorial` end-to-end coverage
+* Validated complete assertion DSL migration across end-to-end gameplay coverage
 * Validated formatter exclusion support for semantically aligned assertion blocks
 
 ### Documentation
