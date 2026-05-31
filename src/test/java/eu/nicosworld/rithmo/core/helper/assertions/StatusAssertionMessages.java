@@ -1,6 +1,8 @@
 package eu.nicosworld.rithmo.core.helper.assertions;
 
+import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
+import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import java.util.List;
 import java.util.Set;
 
@@ -65,6 +67,10 @@ final class StatusAssertionMessages {
                 %s
                 """
         .formatted(expected, possiblesDecisions);
+  }
+
+  static String missingReintroductionOption(PlayerColorDTO color) {
+    return "Aucune option de réintroduction pour " + color;
   }
 
   // --- Famille UNEXPECTED / FORBIDDEN (Éléments en trop ou interdits) ---
@@ -163,5 +169,10 @@ final class StatusAssertionMessages {
                Actuels  : %s
                """
         .formatted(color, expected, actual);
+  }
+
+  static String invalidReintroduction(ReintroductionOptionDTO option) {
+    return "Réintroduction invalide : "
+        + PieceRepresentationHelper.toRepresentation(option.pieceDTO());
   }
 }

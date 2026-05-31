@@ -48,19 +48,25 @@ public class FourEightGameTest {
         FindDecisionHelper.findMoveDecisionId(statusDTO4, "WP174(7,0)", "(4,0)");
     GameStatusDTO statusDTO5 = gameFacade.play(gameId, secondTurnMoveId);
 
+    // spotless:off
     StatusDTOAssertion.from(statusDTO5)
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .isInPostCapturePhase()
-        .haveSkipDecision()
-        .hasCaptureDecisionCount(3)
-        .hasNOptions(6)
-        .canPostCaptureWithByEncounter("WT25(4,0)", "BS25(2,0)")
-        .canPostCaptureWithByAssault("WT25(4,0)", "BS25(2,0)")
-        .canPostCaptureWithByEncounter("WT36(4,0)", "BS36(2,0)")
-        .canPostCaptureWithByAssault("WT36(4,0)", "BS36(2,0)")
-        .canPostCaptureWithByPower("WS64(4,0)", "BC4(2,0)")
-        .hasCaptureCiblesFor("WT25(4,0)", "BS25(2,0)")
-        .hasCaptureCiblesFor("WS64(4,0)", "BC4(2,0)")
-        .hasCaptureCiblesFor("WT36(4,0)", "BS36(2,0)");
+        .status()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInPostCapturePhase()
+        .decisions()
+          .hasSkipDecision()
+          .hasCaptureDecisionCount(3)
+        .options()
+          .hasOptionCount(6)
+          .canPostCaptureWithByEncounter("WT25(4,0)", "BS25(2,0)")
+          .canPostCaptureWithByAssault("WT25(4,0)", "BS25(2,0)")
+          .canPostCaptureWithByEncounter("WT36(4,0)", "BS36(2,0)")
+          .canPostCaptureWithByAssault("WT36(4,0)", "BS36(2,0)")
+          .canPostCaptureWithByPower("WS64(4,0)", "BC4(2,0)")
+        .decisions()
+          .hasCaptureCiblesFor("WT25(4,0)", "BS25(2,0)")
+          .hasCaptureCiblesFor("WS64(4,0)", "BC4(2,0)")
+          .hasCaptureCiblesFor("WT36(4,0)", "BS36(2,0)");
+    // spotless:on
   }
 }

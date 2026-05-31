@@ -27,7 +27,6 @@ public final class BoardAssertions extends NestedStatusAssertions {
   }
 
   public BoardAssertions hasPyramidComposedBy(PlayerColorDTO color, String... expectedComponents) {
-
     PieceDTO pyramid = PieceRepresentationHelper.findPyramidFor(actual, color);
 
     List<String> actualComponents =

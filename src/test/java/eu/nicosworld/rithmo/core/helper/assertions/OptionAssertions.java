@@ -9,10 +9,13 @@ import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public final class OptionAssertions extends NestedStatusAssertions {
   public OptionAssertions(GameStatusDTO actual, StatusDTOAssertion parent) {
@@ -50,6 +53,53 @@ public final class OptionAssertions extends NestedStatusAssertions {
     if (exists) {
       throw new AssertionError(StatusAssertionMessages.unexpectedReintroductionOptions());
     }
+
+    return this;
+  }
+
+  public OptionAssertions hasReintroductionOptionsForActivePlayer() {
+    PlayerColorDTO color = actual.currentPlayer();
+
+    boolean exists =
+        actual.possibleOptions().values().stream()
+            .flatMap(Set::stream)
+            .anyMatch(
+                option ->
+                    option instanceof ReintroductionOptionDTO ro
+                        && ro.pieceDTO().owner().equals(color));
+
+    if (!exists) {
+      throw new AssertionError(StatusAssertionMessages.missingReintroductionOption(color));
+    }
+
+    return this;
+  }
+
+  public OptionAssertions allReintroductionOptionsComeFromReserve() {
+    Map<String, Set<String>> reserveByPlayer =
+        actual.assets().entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey().name(),
+                    e ->
+                        e.getValue().reserve().stream()
+                            .map(PieceDTO::id)
+                            .collect(Collectors.toSet())));
+
+    actual.possibleOptions().values().stream()
+        .flatMap(Set::stream)
+        .filter(ReintroductionOptionDTO.class::isInstance)
+        .map(ReintroductionOptionDTO.class::cast)
+        .forEach(
+            option -> {
+              String owner = option.pieceDTO().owner().name();
+              String pieceId = option.pieceDTO().id();
+              Set<String> reserveIds = reserveByPlayer.get(owner);
+
+              if (reserveIds == null || !reserveIds.contains(pieceId)) {
+                throw new AssertionError(StatusAssertionMessages.invalidReintroduction(option));
+              }
+            });
 
     return this;
   }

@@ -33,6 +33,6 @@ public class MultiplePreCaptureTest {
     Game game = PreDefinedTestGame.gameWithMultiCaptures_FourRules();
     GameStatusDTO status = gameFacade.startGame(game);
 
-    StatusDTOAssertion.from(status).isInPreCapturePhase();
+    StatusDTOAssertion.from(status).status().isInPreCapturePhase();
   }
 }

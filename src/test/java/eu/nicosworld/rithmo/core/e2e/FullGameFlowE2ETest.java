@@ -39,10 +39,14 @@ class FullGameFlowE2ETest {
 
     // 1. BLACK déplace son cercle (0,0) -> (1,1)
     GameStatusDTO status1 = gameFacade.startGame(game);
+    // spotless:off
     StatusDTOAssertion.from(status1)
-        .hasActivePlayer(PlayerColorDTO.BLACK)
-        .isInMovePhase()
-        .hasStrictMoveDecisionTo("(1,1)");
+        .status()
+          .hasActivePlayer(PlayerColorDTO.BLACK)
+          .isInMovePhase()
+        .decisions()
+          .hasStrictMoveDecisionTo("(1,1)");
+    // spotless:on
 
     // Comme pas de PreCapture possible au début, on devrait être en MOVE
     UUID moveBlackId = FindDecisionHelper.findMoveDecisionId(status1, new Position(1, 1));
@@ -50,12 +54,17 @@ class FullGameFlowE2ETest {
 
     // 2. WHITE prend la main (Switch automatique car BLACK a fini son tour)
     // On vérifie que WHITE est maintenant le joueur actif
+    // spotless:off
     StatusDTOAssertion.from(statusAfterBlackMove)
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .isInMovePhase()
-        .hasNDecisions(1)
-        .hasNOptions(1)
-        .hasStrictMoveDecisionTo("(2,2)");
+        .status()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInMovePhase()
+        .options()
+          .hasOptionCount(1)
+        .decisions()
+          .hasDecisionCount(1)
+          .hasStrictMoveDecisionTo("(2,2)");
+    // spotless:on
 
     // WHITE se déplace en (2,2)
     UUID moveWhiteId =
@@ -64,22 +73,29 @@ class FullGameFlowE2ETest {
 
     // 3. WHITE est en phase POST_CAPTURE (ou l'UI propose le choix après le move)
     // On vérifie que WHITE peut choisir de skipper la post-capture
+    // spotless:off
     StatusDTOAssertion.from(statusAfterWhiteMove)
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .haveSkipDecision()
-        .canCaptureInOneDecision("BC4(1,1)");
+        .status()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+        .decisions()
+          .hasSkipDecision()
+          .canCaptureInOneDecision("BC4(1,1)");
+    // spotless:on
 
     UUID skipPostId = FindDecisionHelper.findSkipDecision(statusAfterWhiteMove);
 
     // WHITE skip la post-capture -> Main repasse à BLACK
     GameStatusDTO statusAfterWhiteSkip = gameFacade.play(gameId, skipPostId);
+    // spotless:off
     StatusDTOAssertion.from(statusAfterWhiteSkip)
-        .hasActivePlayer(PlayerColorDTO.BLACK)
-        .isInPreCapturePhase()
-        .canCaptureInOneDecision("WC4(2,2)")
-        .haveSkipDecision()
-        .hasNDecisionsFor("BC4(1,1)", 1);
-
+        .status()
+          .hasActivePlayer(PlayerColorDTO.BLACK)
+          .isInPreCapturePhase()
+        .decisions()
+          .canCaptureInOneDecision("WC4(2,2)")
+          .hasSkipDecision()
+          .hasDecisionCountFor("BC4(1,1)", 1);
+    // spotless:on
     // 4. BLACK a maintenant une opportunité de capture (Encounter)
     // Le processeur s'arrête en PRE_CAPTURE car une action est requise
     UUID landingId =
@@ -114,34 +130,53 @@ class FullGameFlowE2ETest {
     UUID moveTo20Id = FindDecisionHelper.findMoveDecisionId(status2, new Position(2, 0));
     GameStatusDTO status3 = gameFacade.play(gameId, moveTo20Id);
 
+    // spotless:off
     StatusDTOAssertion.from(status3)
-        .isInMovePhase()
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .dontHaveSkipDecision()
-        .hasStrictMoveDecisionTo("(2,2)")
-        .hasNoReintroductionOptions();
+        .status()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInMovePhase()
+        .options()
+          .hasNoReintroductionOptions()
+        .decisions()
+          .hasOnlyMoveDecisions()
+          .hasStrictMoveDecisionTo("(2,2)");
+    // spotless:on
 
     // White move to 2,2
     UUID moveTo22Id = FindDecisionHelper.findMoveDecisionId(status3, new Position(2, 2));
     GameStatusDTO status4 = gameFacade.play(gameId, moveTo22Id);
 
+    // spotless:off
     StatusDTOAssertion.from(status4)
-        .hasActivePlayer(PlayerColorDTO.BLACK)
-        .isInMovePhase()
-        .hasReintroductionOptionsForActivePlayer()
-        .allReintroductionOptionsComeFromReserve();
+        .status()
+          .hasActivePlayer(PlayerColorDTO.BLACK)
+          .isInMovePhase()
+        .options()
+          .hasReintroductionOptionsForActivePlayer()
+          .allReintroductionOptionsComeFromReserve();
+    // spotless:on
 
     UUID reintroductionID =
         FindDecisionHelper.findReintroductionIdByDestination(status4, "BC4", new Position(0, 2));
 
     GameStatusDTO status5 = gameFacade.play(gameId, reintroductionID);
 
-    StatusDTOAssertion.from(status5).hasActivePlayer(PlayerColorDTO.WHITE).isInMovePhase();
+    // spotless:off
+    StatusDTOAssertion.from(status5)
+        .status()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInMovePhase();
+    // spotless:on
 
     UUID moveTo11Id = FindDecisionHelper.findMoveDecisionId(status5, new Position(1, 1));
     GameStatusDTO status6 = gameFacade.play(gameId, moveTo11Id);
 
-    StatusDTOAssertion.from(status6).hasActivePlayer(PlayerColorDTO.WHITE).isInPostCapturePhase();
+    // spotless:off
+    StatusDTOAssertion.from(status6)
+        .status()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInPostCapturePhase();
+    // spotless:on
 
     UUID whiteCaptureId = FindDecisionHelper.findDecisionWithCaptures(status6, 2);
 
