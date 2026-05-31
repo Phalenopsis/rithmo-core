@@ -19,7 +19,7 @@ package eu.nicosworld.rithmo.core.game.dto.option;
  * <p>Concrete implementations map directly from engine-level TurnOptions.
  */
 public sealed interface PlayerOptionDTO
-    permits CaptureOptionDTO,
+    permits PostCaptureOptionDTO,
         MoveOptionDTO,
         PreCaptureOptionDTO,
         ReintroductionOptionDTO,

@@ -116,7 +116,8 @@ public class GameStatusAssembler {
 
     DecisionDTO rawDecision = DecisionDTO.from(UUID.randomUUID(), action);
 
-    List<PlayerOptionDTO> optionDTOs = new ArrayList<>(CaptureOptionDTO.from(postCaptureOption));
+    List<PlayerOptionDTO> optionDTOs =
+        new ArrayList<>(PostCaptureOptionDTO.from(postCaptureOption));
 
     return new TurnProjection(
         actorDTO, optionDTOs, List.of(new ExecutableDecision(rawDecision, action)));

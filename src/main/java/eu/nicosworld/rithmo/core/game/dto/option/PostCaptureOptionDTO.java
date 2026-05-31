@@ -28,14 +28,14 @@ import java.util.List;
  * {@link eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO} via the associated selection
  * mechanism.
  */
-public record CaptureOptionDTO(PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally)
+public record PostCaptureOptionDTO(PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally)
     implements PlayerOptionDTO {
-  public static List<CaptureOptionDTO> from(PostCaptureOption option) {
-    return option.captures().stream().map(CaptureOptionDTO::from).toList();
+  public static List<PostCaptureOptionDTO> from(PostCaptureOption option) {
+    return option.captures().stream().map(PostCaptureOptionDTO::from).toList();
   }
 
-  public static CaptureOptionDTO from(CaptureAction action) {
-    return new CaptureOptionDTO(
+  public static PostCaptureOptionDTO from(CaptureAction action) {
+    return new PostCaptureOptionDTO(
         PieceDTO.from(action.target().specificComponent(), action.targetPosition()),
         CaptureTypeDTO.from(action.type()),
         action.supporters().stream().map(PieceDTO::from).toList());

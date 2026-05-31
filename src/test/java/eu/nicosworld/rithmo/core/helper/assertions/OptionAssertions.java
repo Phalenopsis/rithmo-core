@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.CaptureOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.PostCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
@@ -148,7 +148,7 @@ public final class OptionAssertions extends NestedStatusAssertions {
       checkOption(
           actor,
           targetId,
-          CaptureOptionDTO.class,
+          PostCaptureOptionDTO.class,
           o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
     }
     return this;
