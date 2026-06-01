@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PostCaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.PreCaptureOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.ReintroductionOptionDTO;
-import eu.nicosworld.rithmo.core.game.dto.option.SkipOptionDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
@@ -124,7 +121,7 @@ public final class OptionAssertions extends NestedStatusAssertions {
     }
   }
 
-  private OptionAssertions canPreCaptureWithBy(
+  private OptionAssertions canCaptureWithBy(
       String actorRepresentation, CaptureTypeDTO captureTypeDTO, String... targetRepresentations) {
     PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(actual, actorRepresentation);
 
@@ -133,66 +130,29 @@ public final class OptionAssertions extends NestedStatusAssertions {
       checkOption(
           actor,
           targetId,
-          PreCaptureOptionDTO.class,
+          CaptureOptionDTO.class,
           o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
     }
     return this;
   }
 
-  private OptionAssertions canPostCaptureWithBy(
-      String actorRepresentation, CaptureTypeDTO captureTypeDTO, String... targetRepresentations) {
-    PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(actual, actorRepresentation);
-
-    for (String targetRep : targetRepresentations) {
-      String targetId = PieceRepresentationHelper.findId(actual, targetRep);
-      checkOption(
-          actor,
-          targetId,
-          PostCaptureOptionDTO.class,
-          o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
-    }
-    return this;
+  public OptionAssertions canCaptureWithByEncounter(
+      String actorRepresentation, String... targetRepresentations) {
+    return canCaptureWithBy(actorRepresentation, CaptureTypeDTO.ENCOUNTER, targetRepresentations);
   }
 
-  public OptionAssertions canPostCaptureWithByEncounter(
+  public OptionAssertions canCaptureWithByAssault(
       String actorRepresentation, String... targetRepresentations) {
-    return canPostCaptureWithBy(
-        actorRepresentation, CaptureTypeDTO.ENCOUNTER, targetRepresentations);
+    return canCaptureWithBy(actorRepresentation, CaptureTypeDTO.ASSAULT, targetRepresentations);
   }
 
-  public OptionAssertions canPostCaptureWithByAssault(
+  public OptionAssertions canCaptureWithByPower(
       String actorRepresentation, String... targetRepresentations) {
-    return canPostCaptureWithBy(actorRepresentation, CaptureTypeDTO.ASSAULT, targetRepresentations);
+    return canCaptureWithBy(actorRepresentation, CaptureTypeDTO.POWER, targetRepresentations);
   }
 
-  public OptionAssertions canPostCaptureWithByPower(
+  public OptionAssertions canCaptureWithByAmbush(
       String actorRepresentation, String... targetRepresentations) {
-    return canPostCaptureWithBy(actorRepresentation, CaptureTypeDTO.POWER, targetRepresentations);
-  }
-
-  public OptionAssertions canPostCaptureWithByAmbush(
-      String actorRepresentation, String... targetRepresentations) {
-    return canPostCaptureWithBy(actorRepresentation, CaptureTypeDTO.AMBUSH, targetRepresentations);
-  }
-
-  public OptionAssertions canPreCaptureWithByEncounter(
-      String actorRepresentation, String... targetRepresentations) {
-    return canPreCaptureWithBy(
-        actorRepresentation, CaptureTypeDTO.ENCOUNTER, targetRepresentations);
-  }
-
-  public OptionAssertions canPreCaptureWithByAssault(
-      String actorRepresentation, String... targetRepresentations) {
-    return canPreCaptureWithBy(actorRepresentation, CaptureTypeDTO.ASSAULT, targetRepresentations);
-  }
-
-  public OptionAssertions canPreCaptureWithByPower(
-      String actorRepresentation, String... targetRepresentations) {
-    return canPreCaptureWithBy(actorRepresentation, CaptureTypeDTO.POWER, targetRepresentations);
-  }
-
-  public OptionAssertions canPreCaptureWithByAmbush(
-      String actorRepresentation, String... targetRepresentations) {
-    return canPreCaptureWithBy(actorRepresentation, CaptureTypeDTO.AMBUSH, targetRepresentations);
+    return canCaptureWithBy(actorRepresentation, CaptureTypeDTO.AMBUSH, targetRepresentations);
   }
 }
