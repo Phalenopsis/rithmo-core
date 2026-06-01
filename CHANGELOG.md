@@ -5,7 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4-SNAPSHOT] - in progress
+## [0.3.0-SNAPSHOT] - in progress
+
+### Breaking Changes
+
+* `CaptureOptionDTO` is now the shared capture option abstraction.
+* The former concrete post-capture `CaptureOptionDTO` has been renamed to `PostCaptureOptionDTO`.
+* `CaptureOptionDTO` is now implemented by:
+
+  * `PreCaptureOptionDTO`
+  * `PostCaptureOptionDTO`
+
+This change clarifies the capture DTO hierarchy and enables unified handling of pre- and post-capture options.
+
+#### Migration
+
+If your code previously referenced:
+
+```java
+CaptureOptionDTO
+````
+
+for concrete post-capture options, replace it with:
+
+```java
+PostCaptureOptionDTO
+```
+
+If your code only relies on shared capture metadata (`target`, `type`, `ally`), prefer depending on:
+
+```java
+CaptureOptionDTO
+```
+
 
 ### Added
 
@@ -14,19 +46,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **FourEightGame Tests**: added tests covering available player options
 * **Assertion DSL**:
   * introduced nested specialized assertion scopes for decision, option, asset, board and global status validation
-  * introduced capture option assertion helpers
+  * introduced unified capture option assertion helpers
 * **Assertion Messaging**: added centralized status assertion failure message helpers
 * **Assertion Support**: introduced shared internal status assertion support utilities for normalization, piece resolution and decision formatting
 * **Code Formatting**: integrated Spotless with Google Java Format and local formatting toggle support (`spotless:off/on`)
 * **Git Hooks**: introduced repository-managed pre-commit hooks for automatic formatting and debug statement protection
 
 ### Changed
+* **Capture DTO Model**:
+  * introduced shared `CaptureOptionDTO` abstraction
+  * renamed concrete post-capture DTO to `PostCaptureOptionDTO`
+  * aligned capture DTO documentation with the new hierarchy
 * **E2E Tests**: completed migration of end-to-end scenarios to the fluent nested assertion DSL
+* **OptionAssertions**:
+  * merged duplicated pre/post capture assertion helpers into unified capture assertions
+  * simplified option matching by leveraging shared capture DTO polymorphism
+  * removed duplicated capture assertion hierarchy from the DSL
 * **StatusAssertionMessages**: harmonized error message naming conventions into semantic families (missing, unexpected, incorrect, notFound) and adjusted method visibilities
 * **StatusDTOAssertion**:
   * refactored into pre-instantiated nested specialized scopes (`status`, `decisions`, `options`, `assets`, `board`)
   * migrated remaining assertion helpers into specialized scope implementations
-  * enhanced capture option helpers to support multi-target varargs matching
   * simplified into a pure DSL entry point by removing legacy flat assertion methods
 * **FindDecisionHelper**: extracted `findNonSkipDecision` stream utility, reused it in `findDecisionsFor`, and simplified `findReintroductionIdByDestination` by removing legacy `possibleOptions()` manipulation
 * **PieceRepresentationHelper**: refactored piece resolution to explicitly distinguish between board pieces (full representation) and reserve pieces (short representation)
@@ -37,16 +76,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Tests
 
 * Added tests for multiple captures within the same decision
-* Extended option assertion DSL with helper methods for pre/post capture option verification
+* Simplified capture option assertions through unified capture DSL helpers
+* Updated E2E test suites to use merged capture assertion APIs
 * Validated complete assertion DSL migration across end-to-end gameplay coverage
 * Validated formatter exclusion support for semantically aligned assertion blocks
 
 ### Documentation
 
+* **Capture DTO API**: documented the new capture option abstraction hierarchy and migration path
 * **Architecture Tooling**: added project dependency graph generation for structural analysis and refactoring guidance
 * **Developer Experience**: documented Spotless usage, formatting conventions and local Git hook setup
-
-
 
 
 ## [0.2.3] - 2026-05-23
