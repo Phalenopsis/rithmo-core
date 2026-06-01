@@ -9,12 +9,12 @@ import java.util.List;
 /**
  * UI-facing representation of a single capture possibility within a post-capture option.
  *
- * <p>A {@code CaptureOptionDTO} is derived from a {@link PostCaptureOption} and represents one
+ * <p>A {@code PostCaptureOptionDTO} is derived from a {@link PostCaptureOption} and represents one
  * atomic capture action that the player may select as part of a larger decision.
  *
  * <p>Unlike other {@link PlayerOptionDTO}s, capture options are typically grouped: a single
  * post-capture phase may expose multiple capture possibilities, each represented by its own {@code
- * CaptureOptionDTO}.
+ * PostCaptureOptionDTO}.
  *
  * <p>Each capture option contains:
  *
@@ -29,7 +29,7 @@ import java.util.List;
  * mechanism.
  */
 public record PostCaptureOptionDTO(PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally)
-    implements PlayerOptionDTO {
+    implements CaptureOptionDTO {
   public static List<PostCaptureOptionDTO> from(PostCaptureOption option) {
     return option.captures().stream().map(PostCaptureOptionDTO::from).toList();
   }

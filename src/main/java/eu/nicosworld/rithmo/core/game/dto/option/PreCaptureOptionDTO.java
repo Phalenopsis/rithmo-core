@@ -10,8 +10,8 @@ import java.util.List;
 /**
  * UI-facing representation of an atomic pre-movement capture option.
  *
- * <p>A {@code PreCaptureOptionDTO} is derived from a {@link PreCaptureOption} and represents a
- * single capture possibility available before the main movement phase.
+ * <p>{@code PreCaptureOptionDTO} is the pre-movement specialization of {@link CaptureOptionDTO} and
+ * represents a single capture possibility available before the main movement phase.
  *
  * <p>Each instance corresponds to one atomic {@link CaptureAction} that the player may select.
  * Multiple pre-capture options can be selected together to form a composite decision.
@@ -35,7 +35,7 @@ import java.util.List;
  */
 public record PreCaptureOptionDTO(
     PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally, Position landing)
-    implements PlayerOptionDTO {
+    implements CaptureOptionDTO {
   public static List<PreCaptureOptionDTO> from(PreCaptureOption option) {
     return option.captures().stream().map(PreCaptureOptionDTO::from).toList();
   }

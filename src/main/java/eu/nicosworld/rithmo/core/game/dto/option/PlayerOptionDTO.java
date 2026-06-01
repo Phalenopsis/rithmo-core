@@ -16,11 +16,10 @@ package eu.nicosworld.rithmo.core.game.dto.option;
  * <p>Each option is immutable and purely descriptive. It does not contain any executable behavior
  * or side-effect.
  *
+ * <p>Some option families expose specialized sub-hierarchies, such as {@link CaptureOptionDTO},
+ * which groups phase-specific capture option variants.
+ *
  * <p>Concrete implementations map directly from engine-level TurnOptions.
  */
 public sealed interface PlayerOptionDTO
-    permits PostCaptureOptionDTO,
-        MoveOptionDTO,
-        PreCaptureOptionDTO,
-        ReintroductionOptionDTO,
-        SkipOptionDTO {}
+    permits CaptureOptionDTO, MoveOptionDTO, ReintroductionOptionDTO, SkipOptionDTO {}
