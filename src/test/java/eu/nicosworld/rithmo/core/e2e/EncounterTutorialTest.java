@@ -91,6 +91,11 @@ class EncounterTutorialTest {
           .isInPreCapturePhase()
         .options()
           .hasOptionCount(3)
+          .hasSkipOption()
+          .canCaptureWithByEncounter("WC4(3,1)", "BC4(2,2)")
+          .because("4 = 4")
+          .canCaptureWithByEncounter("WC4(3,3)", "BC4(2,2)")
+          .because("4 = 4")
         .decisions()
           .hasSkipDecision()
           .hasCaptureDecisionCount(2);
@@ -104,6 +109,7 @@ class EncounterTutorialTest {
     Game game = PreDefinedTestGame.encounterPreCaptureTest_WhiteAttacker2PyramidsAndAnotherTarget();
     GameStatusDTO status = gameFacade.startGame(game);
 
+    // spotless:off
     StatusDTOAssertion.from(status)
         .status()
         .isInPreCapturePhase()
@@ -115,6 +121,7 @@ class EncounterTutorialTest {
         .hasDecisionCount(5)
         .hasDecisionCountFor("WC5(2,0)", 3)
         .hasDecisionCountFor("WC4(2,0)", 1);
+    // spotless:on
 
     UUID id =
         FindDecisionHelper.findCaptureDecisionId(
@@ -122,19 +129,21 @@ class EncounterTutorialTest {
 
     GameStatusDTO statusAfterPreCapture = gameFacade.play(game.getId(), id);
 
+    // spotless:off
     StatusDTOAssertion.from(statusAfterPreCapture)
         .status()
-        .hasActivePlayer(PlayerColorDTO.WHITE)
-        .isInMovePhase()
+          .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInMovePhase()
         .board()
-        .hasPiece("WP9(3,1)")
+          .hasPiece("WP9(3,1)")
         .assets()
-        .capturedContains("BC5", "BC5")
-        .hasInReserve("WC5")
+          .capturedContains("BC5", "BC5")
+          .hasInReserve("WC5")
         .options()
-        .hasNoReintroductionOptions()
+          .hasNoReintroductionOptions()
         .decisions()
-        .hasOnlyMoveDecisions()
-        .hasStrictMoveDecisionTo("(2,0)", "(2,2)");
+          .hasOnlyMoveDecisions()
+          .hasStrictMoveDecisionTo("(2,0)", "(2,2)");
+    // spotless:on
   }
 }

@@ -77,6 +77,11 @@ class FullGameFlowE2ETest {
     StatusDTOAssertion.from(statusAfterWhiteMove)
         .status()
           .hasActivePlayer(PlayerColorDTO.WHITE)
+          .isInPostCapturePhase()
+        .options()
+          .hasSkipOption()
+          .canCaptureWithByEncounter("WC4(2,2)", "BC4(1,1)")
+          .because("4 = 4")
         .decisions()
           .hasSkipDecision()
           .canCaptureInOneDecision("BC4(1,1)");
