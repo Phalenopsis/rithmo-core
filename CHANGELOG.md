@@ -32,7 +32,7 @@ for concrete post-capture options, replace it with:
 PostCaptureOptionDTO
 ```
 
-If your code only relies on shared capture metadata (`target`, `type`, `ally`), prefer depending on:
+If your code only relies on shared capture metadata (`target`, `type`, `ally`, `justification`), prefer depending on:
 
 ```java
 CaptureOptionDTO
@@ -51,17 +51,27 @@ CaptureOptionDTO
 * **Assertion Support**: introduced shared internal status assertion support utilities for normalization, piece resolution and decision formatting
 * **Code Formatting**: integrated Spotless with Google Java Format and local formatting toggle support (`spotless:off/on`)
 * **Git Hooks**: introduced repository-managed pre-commit hooks for automatic formatting and debug statement protection
+* **Capture Justification DTOs**:
+  * introduced UI-facing capture justification projection model
+  * added dedicated DTOs for Encounter, Ambush, Assault and Power capture explanations
+  * added framework-agnostic operator and relation DTO enums for client consumption
+
 
 ### Changed
 * **Capture DTO Model**:
   * introduced shared `CaptureOptionDTO` abstraction
   * renamed concrete post-capture DTO to `PostCaptureOptionDTO`
   * aligned capture DTO documentation with the new hierarchy
+* **Capture Options**:
+  * added capture justification metadata to all capture option DTOs
+  * exposed rule-specific capture explanations through a shared `CaptureJustificationDTO` hierarchy
+  * decoupled client-facing justification contracts from Engine justification implementations
 * **E2E Tests**: completed migration of end-to-end scenarios to the fluent nested assertion DSL
 * **OptionAssertions**:
   * merged duplicated pre/post capture assertion helpers into unified capture assertions
   * simplified option matching by leveraging shared capture DTO polymorphism
   * removed duplicated capture assertion hierarchy from the DSL
+  * added justification assertions through fluent `.because(...)` helpers
 * **StatusAssertionMessages**: harmonized error message naming conventions into semantic families (missing, unexpected, incorrect, notFound) and adjusted method visibilities
 * **StatusDTOAssertion**:
   * refactored into pre-instantiated nested specialized scopes (`status`, `decisions`, `options`, `assets`, `board`)
@@ -77,7 +87,9 @@ CaptureOptionDTO
 
 * Added tests for multiple captures within the same decision
 * Simplified capture option assertions through unified capture DSL helpers
-* Updated E2E test suites to use merged capture assertion APIs
+* Added fluent justification assertions for capture option validation
+* Validated capture justification propagation from Engine actions to exposed DTO projections
+* Updated E2E scenarios to verify mathematical capture explanations through the assertion DSL
 * Validated complete assertion DSL migration across end-to-end gameplay coverage
 * Validated formatter exclusion support for semantically aligned assertion blocks
 
@@ -86,7 +98,7 @@ CaptureOptionDTO
 * **Capture DTO API**: documented the new capture option abstraction hierarchy and migration path
 * **Architecture Tooling**: added project dependency graph generation for structural analysis and refactoring guidance
 * **Developer Experience**: documented Spotless usage, formatting conventions and local Git hook setup
-
+* **Capture Justifications**: documented the client-facing justification projection model and capture explanation hierarchy
 
 ## [0.2.3] - 2026-05-23
 
