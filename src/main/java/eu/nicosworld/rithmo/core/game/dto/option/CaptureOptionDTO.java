@@ -1,6 +1,7 @@
 package eu.nicosworld.rithmo.core.game.dto.option;
 
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.justification.CaptureJustificationDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import java.util.List;
 
@@ -35,4 +36,6 @@ public sealed interface CaptureOptionDTO extends PlayerOptionDTO
   CaptureTypeDTO type();
 
   List<PieceDTO> ally();
+
+  CaptureJustificationDTO justification();
 }
