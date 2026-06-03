@@ -7,14 +7,17 @@ import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
 import eu.nicosworld.rithmo.core.game.dto.option.*;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
+import eu.nicosworld.rithmo.core.helper.JustificationStringMapper;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class OptionAssertions extends NestedStatusAssertions {
+  private List<CaptureOptionDTO> optionList = new ArrayList<>();
+
   public OptionAssertions(GameStatusDTO actual, StatusDTOAssertion parent) {
     super(actual, parent);
   }
@@ -108,31 +111,48 @@ public final class OptionAssertions extends NestedStatusAssertions {
     return this;
   }
 
-  private <T> void checkOption(
+  private <T> T checkOption(
       PieceDTO actor, String targetId, Class<T> optionClass, Predicate<T> matcher) {
-    boolean exists =
-        actual.possibleOptions().get(actor).stream()
-            .filter(optionClass::isInstance)
-            .map(optionClass::cast)
-            .anyMatch(matcher);
-
-    if (!exists) {
-      throw new AssertionError(StatusAssertionMessages.optionNotFound(actor.id(), targetId));
-    }
+    return actual.possibleOptions().get(actor).stream()
+        .filter(optionClass::isInstance)
+        .map(optionClass::cast)
+        .filter(matcher)
+        .findFirst()
+        .orElseThrow(
+            () -> new AssertionError(StatusAssertionMessages.optionNotFound(actor.id(), targetId)));
   }
 
   private OptionAssertions canCaptureWithBy(
       String actorRepresentation, CaptureTypeDTO captureTypeDTO, String... targetRepresentations) {
     PieceDTO actor = PieceRepresentationHelper.findPieceOrComponent(actual, actorRepresentation);
+    optionList.clear();
 
     for (String targetRep : targetRepresentations) {
       String targetId = PieceRepresentationHelper.findId(actual, targetRep);
-      checkOption(
-          actor,
-          targetId,
-          CaptureOptionDTO.class,
-          o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
+      CaptureOptionDTO option =
+          checkOption(
+              actor,
+              targetId,
+              CaptureOptionDTO.class,
+              o -> o.target().id().equals(targetId) && o.type().equals(captureTypeDTO));
+      optionList.add(option);
     }
+    return this;
+  }
+
+  public OptionAssertions because(String... justifications) {
+    if (optionList.isEmpty())
+      throw new AssertionError(
+          "Justification can only be tested with a previous capture option assertion");
+    List<String> expected = Stream.of(justifications).sorted().toList();
+    List<String> actualJustifications =
+        optionList.stream()
+            .map(CaptureOptionDTO::justification)
+            .map(JustificationStringMapper::mapJustification)
+            .sorted()
+            .toList();
+    assertThat(actualJustifications).isEqualTo(expected);
+    optionList.clear();
     return this;
   }
 
