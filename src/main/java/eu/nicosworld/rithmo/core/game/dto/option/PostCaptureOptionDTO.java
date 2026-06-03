@@ -1,6 +1,7 @@
 package eu.nicosworld.rithmo.core.game.dto.option;
 
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.justification.CaptureJustificationDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
@@ -28,7 +29,11 @@ import java.util.List;
  * {@link eu.nicosworld.rithmo.core.game.dto.decision.DecisionDTO} via the associated selection
  * mechanism.
  */
-public record PostCaptureOptionDTO(PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally)
+public record PostCaptureOptionDTO(
+    PieceDTO target,
+    CaptureTypeDTO type,
+    CaptureJustificationDTO justification,
+    List<PieceDTO> ally)
     implements CaptureOptionDTO {
   public static List<PostCaptureOptionDTO> from(PostCaptureOption option) {
     return option.captures().stream().map(PostCaptureOptionDTO::from).toList();
@@ -38,6 +43,7 @@ public record PostCaptureOptionDTO(PieceDTO target, CaptureTypeDTO type, List<Pi
     return new PostCaptureOptionDTO(
         PieceDTO.from(action.target().specificComponent(), action.targetPosition()),
         CaptureTypeDTO.from(action.type()),
+        CaptureJustificationDTO.from(action.justification()),
         action.supporters().stream().map(PieceDTO::from).toList());
   }
 }

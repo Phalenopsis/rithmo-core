@@ -1,6 +1,7 @@
 package eu.nicosworld.rithmo.core.game.dto.option;
 
 import eu.nicosworld.rithmo.core.game.dto.board.PieceDTO;
+import eu.nicosworld.rithmo.core.game.dto.option.justification.CaptureJustificationDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.CaptureTypeDTO;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
 import eu.nicosworld.rithmo.engine.capture.model.CaptureAction;
@@ -34,7 +35,11 @@ import java.util.List;
  * multiple options may contribute to a single decision.
  */
 public record PreCaptureOptionDTO(
-    PieceDTO target, CaptureTypeDTO type, List<PieceDTO> ally, Position landing)
+    PieceDTO target,
+    CaptureTypeDTO type,
+    CaptureJustificationDTO justification,
+    List<PieceDTO> ally,
+    Position landing)
     implements CaptureOptionDTO {
   public static List<PreCaptureOptionDTO> from(PreCaptureOption option) {
     return option.captures().stream().map(PreCaptureOptionDTO::from).toList();
@@ -44,6 +49,7 @@ public record PreCaptureOptionDTO(
     return new PreCaptureOptionDTO(
         PieceDTO.from(action.target().specificComponent(), action.targetPosition()),
         CaptureTypeDTO.from(action.type()),
+        CaptureJustificationDTO.from(action.justification()),
         action.supporters().stream().map(PieceDTO::from).toList(),
         action.targetPosition());
   }
