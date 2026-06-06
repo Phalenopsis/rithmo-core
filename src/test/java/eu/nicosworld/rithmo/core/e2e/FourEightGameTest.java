@@ -1,5 +1,7 @@
 package eu.nicosworld.rithmo.core.e2e;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.PreDefinedGame;
 import eu.nicosworld.rithmo.core.exception.PatException;
@@ -72,5 +74,10 @@ public class FourEightGameTest {
           .hasCaptureCiblesFor("WS64(4,0)", "BC4(2,0)")
           .hasCaptureCiblesFor("WT36(4,0)", "BS36(2,0)");
     // spotless:on
+    UUID captureId = FindDecisionHelper.findCaptureDecisionId(statusDTO5, "WT36(4,0)", "BS36(2,0)");
+
+    assertThatThrownBy(() -> gameFacade.play(gameId, captureId))
+        .isInstanceOf(VictoryException.class)
+        .hasMessage("WHITE is winner");
   }
 }
