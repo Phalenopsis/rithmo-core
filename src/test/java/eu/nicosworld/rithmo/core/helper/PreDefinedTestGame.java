@@ -3,11 +3,11 @@ package eu.nicosworld.rithmo.core.helper;
 import eu.nicosworld.rithmo.core.GameOptions;
 import eu.nicosworld.rithmo.core.game.CaptureRuleOption;
 import eu.nicosworld.rithmo.core.game.Game;
-import eu.nicosworld.rithmo.core.game.VictoryRuleOption;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.engine.model.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
+import eu.nicosworld.rithmo.engine.victory.VictoryType;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +37,7 @@ public class PreDefinedTestGame {
             .at(3, 3)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryRuleOption.BODY, 2));
+        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryType.BODY, 2));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -77,7 +77,7 @@ public class PreDefinedTestGame {
     GameOptions options =
         new GameOptions(
             Set.of(CaptureRuleOption.ASSAULT, CaptureRuleOption.ENCOUNTER),
-            Map.of(VictoryRuleOption.BODY, 2));
+            Map.of(VictoryType.BODY, 2));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -102,7 +102,7 @@ public class PreDefinedTestGame {
   public static Game switchPlayerTutorial() {
     Board board = new BoardBuilder(4, 4).blackCircle(4).at(0, 0).whiteCircle(4).at(3, 3).build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryRuleOption.BODY, 1));
+        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryType.BODY, 1));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -132,7 +132,7 @@ public class PreDefinedTestGame {
             .at(3, 3)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryRuleOption.BODY, 2));
+        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryType.BODY, 2));
 
     GameState gameState = GameState.initial(board, Player.WHITE);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -151,7 +151,7 @@ public class PreDefinedTestGame {
             .at(0, 3)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.AMBUSH), Map.of(VictoryRuleOption.BODY, 1));
+        new GameOptions(Set.of(CaptureRuleOption.AMBUSH), Map.of(VictoryType.BODY, 1));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -170,7 +170,7 @@ public class PreDefinedTestGame {
             .at(1, 2)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.AMBUSH), Map.of(VictoryRuleOption.BODY, 1));
+        new GameOptions(Set.of(CaptureRuleOption.AMBUSH), Map.of(VictoryType.BODY, 1));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -187,7 +187,7 @@ public class PreDefinedTestGame {
             .at(1, 2)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.AMBUSH), Map.of(VictoryRuleOption.BODY, 1));
+        new GameOptions(Set.of(CaptureRuleOption.AMBUSH), Map.of(VictoryType.BODY, 1));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -211,7 +211,7 @@ public class PreDefinedTestGame {
             .at(3, 1)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryRuleOption.BODY, 3));
+        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryType.BODY, 3));
     GameState gameState = GameState.initial(board, Player.WHITE);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
 
@@ -224,7 +224,7 @@ public class PreDefinedTestGame {
     GameOptions options =
         new GameOptions(
             Set.of(CaptureRuleOption.ENCOUNTER, CaptureRuleOption.POWER),
-            Map.of(VictoryRuleOption.BODY, 3));
+            Map.of(VictoryType.BODY, 3));
     GameState gameState = GameState.initial(board, Player.WHITE);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
 
@@ -245,7 +245,7 @@ public class PreDefinedTestGame {
     GameOptions options =
         new GameOptions(
             Set.of(CaptureRuleOption.ENCOUNTER, CaptureRuleOption.POWER),
-            Map.of(VictoryRuleOption.BODY, 3));
+            Map.of(VictoryType.BODY, 3));
     GameState gameState = GameState.initial(board, Player.WHITE);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
 
@@ -263,7 +263,7 @@ public class PreDefinedTestGame {
             .at(3, 3)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryRuleOption.BODY, 5));
+        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryType.BODY, 5));
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
     return new Game(options, turnState);
@@ -284,7 +284,7 @@ public class PreDefinedTestGame {
     GameOptions options =
         new GameOptions(
             Set.of(CaptureRuleOption.ENCOUNTER, CaptureRuleOption.POWER),
-            Map.of(VictoryRuleOption.BODY, 5));
+            Map.of(VictoryType.BODY, 5));
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
     return new Game(options, turnState);
@@ -309,7 +309,7 @@ public class PreDefinedTestGame {
                 CaptureRuleOption.POWER,
                 CaptureRuleOption.ASSAULT,
                 CaptureRuleOption.AMBUSH),
-            Map.of(VictoryRuleOption.BODY, 5));
+            Map.of(VictoryType.BODY, 5));
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
     return new Game(options, turnState);

@@ -4,6 +4,8 @@ import static eu.nicosworld.rithmo.core.turn.testutils.TurnHelper.setupProcessor
 
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
+import eu.nicosworld.rithmo.core.game.victory.VictoryCondition;
+import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
 import eu.nicosworld.rithmo.core.turn.action.MoveAction;
 import eu.nicosworld.rithmo.core.turn.action.PostCaptureAction;
 import eu.nicosworld.rithmo.core.turn.option.PostCaptureOption;
@@ -18,6 +20,7 @@ import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +37,10 @@ public class TurnProcessorIntegrationAfterMoveTest {
         new EncounterRule(regularMoveGenerator, freePathMovementValidator);
 
     BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(2);
+    VictoryConditionEvaluator victoryEvaluator =
+        new VictoryConditionEvaluator(Set.of(VictoryCondition.BODY));
 
-    processor = setupProcessor(List.of(encounterRule), List.of(bodyVictoryRule));
+    processor = setupProcessor(List.of(encounterRule), List.of(bodyVictoryRule), victoryEvaluator);
     builder = new BoardBuilder(4, 4);
   }
 
@@ -116,7 +121,6 @@ public class TurnProcessorIntegrationAfterMoveTest {
 
     Position startingPosition = new Position(1, 1);
     Position goalPosition = new Position(2, 2);
-    Piece blackCircle5 = board.getPieceAt(startingPosition);
     Position whiteCirclePos = new Position(3, 1);
 
     // On part d'un état où on doit bouger (déjà calculé par le processeur auparavant)
