@@ -3,6 +3,7 @@ package eu.nicosworld.rithmo.core.turn;
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.exception.logical.NoActionException;
+import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.AppliedResult;
@@ -11,6 +12,7 @@ import eu.nicosworld.rithmo.core.turn.resolver.PhaseResolver;
 import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Piece;
 import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
+import eu.nicosworld.rithmo.engine.model.victory.Victory;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import java.util.List;
 
@@ -25,12 +27,17 @@ public class TurnProcessor {
   private final ActionApplier actionApplier;
   private final PhaseResolver phaseResolver;
   private final VictoryEngine victoryEngine;
+  private final VictoryConditionEvaluator evaluator;
 
   public TurnProcessor(
-      ActionApplier actionApplier, PhaseResolver phaseResolver, VictoryEngine victoryEngine) {
+      ActionApplier actionApplier,
+      PhaseResolver phaseResolver,
+      VictoryEngine victoryEngine,
+      VictoryConditionEvaluator evaluator) {
     this.actionApplier = actionApplier;
     this.phaseResolver = phaseResolver;
     this.victoryEngine = victoryEngine;
+    this.evaluator = evaluator;
   }
 
   /** Overload for automatic phase transitions where no player action is required. */
@@ -60,7 +67,7 @@ public class TurnProcessor {
 
     switch (actualPhase) {
       case START -> {
-        checkVictory(turnState.state());
+        evaluateVictory(turnState.state());
         return process(TurnState.of(turnState.state(), TurnPhase.PRE_CAPTURE_COMPUTATION));
       }
 
@@ -76,7 +83,7 @@ public class TurnProcessor {
         boolean hasCaptured = action instanceof PreCaptureAction;
         AppliedResult result = actionApplier.apply(turnState.state(), action);
         GameState state = result.gameState();
-        checkVictory(state);
+        evaluateVictory(state);
         return process(
             new TurnState(
                 state,
@@ -107,7 +114,7 @@ public class TurnProcessor {
       case MOVE_APPLICATION -> {
         AppliedResult result = actionApplier.apply(turnState.state(), action);
         GameState state = result.gameState();
-        checkVictory(state);
+        evaluateVictory(state);
 
         if (result.wasMoveIrregular()) {
           return process(TurnState.of(state, TurnPhase.END));
@@ -129,7 +136,7 @@ public class TurnProcessor {
       case POST_CAPTURE_APPLICATION -> {
         AppliedResult result = actionApplier.apply(turnState.state(), action);
         GameState state = result.gameState();
-        checkVictory(state);
+        evaluateVictory(state);
         return process(TurnState.of(state, TurnPhase.END));
       }
 
@@ -147,7 +154,8 @@ public class TurnProcessor {
         || phase == TurnPhase.POST_CAPTURE_APPLICATION;
   }
 
-  private void checkVictory(GameState state) throws VictoryException {
-    if (victoryEngine.check(state)) throw new VictoryException(state.currentPlayer());
+  private void evaluateVictory(GameState state) throws VictoryException {
+    List<Victory> victories = victoryEngine.evaluate(state);
+    if (evaluator.isSatisfied(victories)) throw new VictoryException(state.currentPlayer());
   }
 }
