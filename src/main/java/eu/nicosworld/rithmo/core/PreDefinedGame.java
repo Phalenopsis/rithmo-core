@@ -2,7 +2,6 @@ package eu.nicosworld.rithmo.core;
 
 import eu.nicosworld.rithmo.core.game.CaptureRuleOption;
 import eu.nicosworld.rithmo.core.game.Game;
-import eu.nicosworld.rithmo.core.game.VictoryRuleOption;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.engine.model.Board;
@@ -10,6 +9,7 @@ import eu.nicosworld.rithmo.engine.model.GameState;
 import eu.nicosworld.rithmo.engine.model.Player;
 import eu.nicosworld.rithmo.engine.model.Position;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
+import eu.nicosworld.rithmo.engine.victory.VictoryType;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,7 +27,7 @@ public class PreDefinedGame {
             .at(3, 3)
             .build();
     GameOptions options =
-        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryRuleOption.BODY, 1));
+        new GameOptions(Set.of(CaptureRuleOption.ENCOUNTER), Map.of(VictoryType.BODY, 1));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
@@ -69,8 +69,8 @@ public class PreDefinedGame {
                 CaptureRuleOption.POWER,
                 CaptureRuleOption.AMBUSH),
             Map.of(
-                VictoryRuleOption.BODY, 3,
-                VictoryRuleOption.GOODS, 30));
+                VictoryType.BODY, 3,
+                VictoryType.GOODS, 30));
 
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
