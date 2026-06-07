@@ -3,6 +3,8 @@ package eu.nicosworld.rithmo.core.turn;
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.exception.logical.NoActionException;
+import eu.nicosworld.rithmo.core.game.dto.victory.VictoryMapper;
+import eu.nicosworld.rithmo.core.game.victory.VictoryCondition;
 import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
 import eu.nicosworld.rithmo.core.turn.action.*;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
@@ -15,6 +17,8 @@ import eu.nicosworld.rithmo.engine.model.PieceAtPosition;
 import eu.nicosworld.rithmo.engine.model.victory.Victory;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Orchestrates the game loop logic by transitioning between turn phases.
@@ -156,6 +160,8 @@ public class TurnProcessor {
 
   private void evaluateVictory(GameState state) throws VictoryException {
     List<Victory> victories = victoryEngine.evaluate(state);
-    if (evaluator.isSatisfied(victories)) throw new VictoryException(state.currentPlayer());
+    Optional<Set<VictoryCondition>> satisfiedConditions = evaluator.evaluate(victories);
+    if (satisfiedConditions.isPresent())
+      throw new VictoryException(VictoryMapper.toDTO(satisfiedConditions.get(), victories));
   }
 }

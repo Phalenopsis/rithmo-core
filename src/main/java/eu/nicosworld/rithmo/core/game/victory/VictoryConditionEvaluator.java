@@ -6,6 +6,7 @@ import eu.nicosworld.rithmo.engine.model.victory.LawsuitVictory;
 import eu.nicosworld.rithmo.engine.model.victory.Victory;
 import eu.nicosworld.rithmo.engine.victory.VictoryType;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,10 +17,18 @@ public final class VictoryConditionEvaluator {
     this.conditions = conditions;
   }
 
-  public boolean isSatisfied(List<Victory> victories) {
+  public Optional<Set<VictoryCondition>> evaluate(List<Victory> victories) {
     Set<VictoryType> mappedVictories = mapVictories(victories);
 
-    return conditions.stream().anyMatch(c -> c.matches(mappedVictories));
+    Set<VictoryCondition> satisfiedConditions =
+        conditions.stream()
+            .filter(condition -> condition.matches(mappedVictories))
+            .collect(Collectors.toSet());
+
+    if (satisfiedConditions.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(satisfiedConditions);
   }
 
   private Set<VictoryType> mapVictories(List<Victory> victories) {
