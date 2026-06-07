@@ -1,6 +1,9 @@
 package eu.nicosworld.rithmo.core.helper.assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
+import eu.nicosworld.rithmo.core.game.dto.board.PlayerAssetsDTO;
 import eu.nicosworld.rithmo.core.helper.PieceRepresentationHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
 import java.util.ArrayList;
@@ -66,6 +69,13 @@ public final class AssetAssertions extends NestedStatusAssertions {
     if (!unexpected.isEmpty()) {
       throw new AssertionError(StatusAssertionMessages.unexpectedReservePieces(unexpected));
     }
+
+    return this;
+  }
+
+  public AssetAssertions hasEmptyReserve() {
+    PlayerAssetsDTO actualPlayerAssets = actual.assets().get(actual.currentPlayer());
+    assertThat(actualPlayerAssets.reserve()).isEmpty();
 
     return this;
   }

@@ -5,7 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0-SNAPSHOT] - in progress
+## [0.3.1-SNAPSHOT] - In progress
+
+### Added
+* **Victory Conditions**:
+  * introduced `VictoryCondition` to support composite victory requirements
+  * added support for combined victory objectives:
+    * Body AND Goods
+    * Body AND Lawsuit
+    * Goods AND Lawsuit
+    * Body AND Goods AND Lawsuit
+  * introduced `VictoryConditionEvaluator` to evaluate victory outcomes against configured victory requirements
+* **Victory Evaluation Tests**:
+  * added comprehensive parameterized coverage for all victory condition combinations
+  * validated both simple and composite victory requirements
+* **Victory DTO Model**:
+  * introduced `VictoryDTO` as the canonical victory projection returned by the Core
+  * added dedicated victory justification DTOs for Body, Goods and Lawsuit victories
+  * introduced `VictoryConditionDTO` for client-facing victory condition reporting
+* **Victory Mapping**:
+  * added `VictoryMapper` to convert Engine victory results into Core DTO projections
+* **Victory Assertions**:
+  * introduced a fluent assertion DSL for validating victory outcomes and justifications
+
+
+### Changed
+* **Game Options**:
+  * added configurable victory conditions to `GameOptions`
+  * added convenience constructor preserving legacy behavior
+  * default victory configuration remains equivalent to historical Body victory evaluation
+* **Turn Processing**:
+  * integrated victory condition evaluation into the turn lifecycle
+  * refactored victory evaluation flow around DTO-based projections
+  * replaced direct victory rule evaluation with condition-based victory evaluation
+  * renamed internal victory handling to better reflect evaluation semantics
+* **TurnProcessorFactory**:
+  * now creates and injects a dedicated `VictoryConditionEvaluator`
+  * derives default victory conditions from configured victory types
+* **PreDefinedGame**:
+  * migrated predefined configurations from legacy victory rule identifiers to `VictoryType`
+* **Victory Configuration Model**:
+  * removed `VictoryRuleOption`
+  * unified victory rule configuration around `VictoryType`
+* **Victory Handling**:
+  * `VictoryException` now carries a `VictoryDTO` instead of raw Engine victory objects
+  * victory detection now evaluates configured victory conditions before ending the game
+  * victory processing now exposes detailed justification data for client consumption
+* **Predefined Games**:
+  * extended victory test scenarios to cover combined victory conditions
+
+### Tests
+
+* Updated all `TurnProcessor` tests to support victory condition evaluation
+* Migrated existing victory configuration tests from `VictoryRuleOption` to `VictoryType`
+* Added validation of AND-combination victory scenarios
+* Preserved historical OR-based victory behavior through dedicated test coverage
+* **FindDecisionHelper**: improved capture decision lookup diagnostics by reporting the expected landing position when a capture decision cannot be resolved
+* Added coverage for combined victory conditions (`BODY_AND_GOODS`, `BODY_AND_LAWSUIT`, `GOODS_AND_LAWSUIT`, `BODY_AND_GOODS_AND_LAWSUIT`)
+* Added validation of projected victory DTO data and justification payloads
+* Migrated existing victory tests from message-based assertions to the fluent victory DSL
+* Added end-to-end validation of multi-condition victory scenarios
+
+### Documentation
+
+* Documented composite victory condition support
+* Clarified distinction between:
+  * victory rule thresholds (`VictoryType`)
+  * victory completion requirements (`VictoryCondition`)
+
+
+## [0.3.0] - 2026-06-03
 
 ### Breaking Changes
 

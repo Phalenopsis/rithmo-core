@@ -183,7 +183,9 @@ public class FindDecisionHelper {
                     "No matching capture decision found for actor "
                         + actor
                         + " with targets "
-                        + java.util.Arrays.toString(targets)));
+                        + java.util.Arrays.toString(targets)
+                        + " with landing "
+                        + landing));
   }
 
   public static UUID findCaptureDecisionIdWithLanding(

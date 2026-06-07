@@ -2,7 +2,7 @@ package eu.nicosworld.rithmo.core.turn;
 
 import eu.nicosworld.rithmo.core.GameOptions;
 import eu.nicosworld.rithmo.core.game.CaptureRuleOption;
-import eu.nicosworld.rithmo.core.game.VictoryRuleOption;
+import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
 import eu.nicosworld.rithmo.core.turn.applier.ActionApplier;
 import eu.nicosworld.rithmo.core.turn.applier.CaptureApplier;
 import eu.nicosworld.rithmo.core.turn.applier.MoveApplier;
@@ -21,10 +21,7 @@ import eu.nicosworld.rithmo.engine.move.FreePathMovementValidator;
 import eu.nicosworld.rithmo.engine.move.MovementEngine;
 import eu.nicosworld.rithmo.engine.move.RegularMoveGenerator;
 import eu.nicosworld.rithmo.engine.reintroduction.ReintroductionEngine;
-import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
-import eu.nicosworld.rithmo.engine.victory.GoodsVictoryRule;
-import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
-import eu.nicosworld.rithmo.engine.victory.VictoryRule;
+import eu.nicosworld.rithmo.engine.victory.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -78,17 +75,21 @@ public class TurnProcessorFactory {
 
     VictoryEngine victoryEngine = new VictoryEngine(resolveVictoryRules(options.victoryRules()));
 
-    return new TurnProcessor(actionApplier, phaseResolver, victoryEngine);
+    VictoryConditionEvaluator evaluator =
+        new VictoryConditionEvaluator(options.victoryConditions());
+
+    return new TurnProcessor(actionApplier, phaseResolver, victoryEngine, evaluator);
   }
 
-  private List<VictoryRule> resolveVictoryRules(Map<VictoryRuleOption, Integer> options) {
-    return options.entrySet().stream()
-        .map(
-            entry ->
-                switch (entry.getKey()) {
-                  case GOODS -> new GoodsVictoryRule(entry.getValue());
-                  case BODY -> new BodyVictoryRule(entry.getValue());
-                })
-        .toList();
+  private VictoryRule createRule(Map.Entry<VictoryType, Integer> entry) {
+    return switch (entry.getKey()) {
+      case GOODS -> new GoodsVictoryRule(entry.getValue());
+      case BODY -> new BodyVictoryRule(entry.getValue());
+      case LAWSUIT -> new LawsuitVictoryRule(entry.getValue());
+    };
+  }
+
+  private List<VictoryRule> resolveVictoryRules(Map<VictoryType, Integer> options) {
+    return options.entrySet().stream().map(this::createRule).toList();
   }
 }

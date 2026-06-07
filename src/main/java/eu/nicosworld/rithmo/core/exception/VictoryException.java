@@ -1,9 +1,15 @@
 package eu.nicosworld.rithmo.core.exception;
 
-import eu.nicosworld.rithmo.engine.model.Player;
+import eu.nicosworld.rithmo.core.game.dto.victory.VictoryDTO;
 
 public class VictoryException extends Exception {
-  public VictoryException(Player player) {
-    super(player.getColor() + " is winner");
+  private final VictoryDTO dto;
+
+  public VictoryException(VictoryDTO dto) {
+    this.dto = dto;
+  }
+
+  public VictoryDTO getVictoryDto() {
+    return dto;
   }
 }

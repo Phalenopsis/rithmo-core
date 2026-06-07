@@ -9,6 +9,7 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.VictoryAssertion;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import java.util.UUID;
@@ -72,5 +73,12 @@ public class FourEightGameTest {
           .hasCaptureCiblesFor("WS64(4,0)", "BC4(2,0)")
           .hasCaptureCiblesFor("WT36(4,0)", "BS36(2,0)");
     // spotless:on
+    UUID captureId = FindDecisionHelper.findCaptureDecisionId(statusDTO5, "WT36(4,0)", "BS36(2,0)");
+
+    VictoryAssertion.from(() -> gameFacade.play(gameId, captureId))
+        .hasWinner(PlayerColorDTO.WHITE)
+        .isByGoods()
+        .hasCapturedValue(45)
+        .hasRequiredValue(30);
   }
 }

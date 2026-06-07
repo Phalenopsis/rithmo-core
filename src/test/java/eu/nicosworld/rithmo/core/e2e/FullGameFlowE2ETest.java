@@ -11,6 +11,7 @@ import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.VictoryAssertion;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import eu.nicosworld.rithmo.engine.model.Position;
@@ -185,7 +186,10 @@ class FullGameFlowE2ETest {
 
     UUID whiteCaptureId = FindDecisionHelper.findDecisionWithCaptures(status6, 2);
 
-    assertThatThrownBy(() -> gameFacade.play(gameId, whiteCaptureId))
-        .isInstanceOf(VictoryException.class);
+    VictoryAssertion.from(() -> gameFacade.play(gameId, whiteCaptureId))
+        .hasWinner(PlayerColorDTO.WHITE)
+        .isByBody()
+        .hasRequiredCount(2)
+        .hasCapturedCount(2);
   }
 }

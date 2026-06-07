@@ -1,5 +1,7 @@
 package eu.nicosworld.rithmo.core.turn.testutils;
 
+import eu.nicosworld.rithmo.core.game.victory.VictoryCondition;
+import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
 import eu.nicosworld.rithmo.core.turn.TurnProcessor;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
@@ -26,16 +28,21 @@ import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import eu.nicosworld.rithmo.engine.victory.VictoryEngine;
 import eu.nicosworld.rithmo.engine.victory.VictoryRule;
 import java.util.List;
+import java.util.Set;
 
 public class TurnHelper {
   public static TurnProcessor setupProcessor(List<CaptureRule> captureRules) {
     BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
+    VictoryConditionEvaluator bodyVictoryEvaluator =
+        new VictoryConditionEvaluator(Set.of(VictoryCondition.BODY));
 
-    return setupProcessor(captureRules, List.of(bodyVictoryRule));
+    return setupProcessor(captureRules, List.of(bodyVictoryRule), bodyVictoryEvaluator);
   }
 
   public static TurnProcessor setupProcessor(
-      List<CaptureRule> captureRules, List<VictoryRule> victoryRules) {
+      List<CaptureRule> captureRules,
+      List<VictoryRule> victoryRules,
+      VictoryConditionEvaluator victoryEvaluator) {
     CaptureApplier captureApplier = new CaptureApplier();
     MoveApplier moveApplier = new MoveApplier();
     ReintroductionApplier reintroductionApplier = new ReintroductionApplier();
@@ -46,7 +53,7 @@ public class TurnHelper {
 
     VictoryEngine victoryEngine = new VictoryEngine(victoryRules);
 
-    return new TurnProcessor(actionApplier, phaseResolver, victoryEngine);
+    return new TurnProcessor(actionApplier, phaseResolver, victoryEngine, victoryEvaluator);
   }
 
   private static PhaseResolver setupPhaseResolver(List<CaptureRule> captureRules) {

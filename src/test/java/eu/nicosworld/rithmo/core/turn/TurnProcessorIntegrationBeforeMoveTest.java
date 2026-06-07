@@ -6,10 +6,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
+import eu.nicosworld.rithmo.core.game.victory.VictoryCondition;
+import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
+import eu.nicosworld.rithmo.core.helper.VictoryAssertion;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.action.SkipPreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
-import eu.nicosworld.rithmo.core.turn.resolver.*;
 import eu.nicosworld.rithmo.core.turn.testutils.TurnAssertion;
 import eu.nicosworld.rithmo.engine.capture.CaptureType;
 import eu.nicosworld.rithmo.engine.capture.capturerule.AssaultRule;
@@ -19,6 +22,7 @@ import eu.nicosworld.rithmo.engine.move.*;
 import eu.nicosworld.rithmo.engine.setup.BoardBuilder;
 import eu.nicosworld.rithmo.engine.victory.BodyVictoryRule;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -185,9 +189,10 @@ class TurnProcessorIntegrationBeforeMoveTest {
         findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
     PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
-    assertThatThrownBy(() -> processor.process(turn1, chosenAction))
-        .isInstanceOf(VictoryException.class)
-        .hasMessage("BLACK is winner");
+    VictoryAssertion.from(() -> processor.process(turn1, chosenAction))
+        .hasWinner(PlayerColorDTO.BLACK)
+        .hasRequiredCount(1)
+        .hasCapturedCount(1);
   }
 
   @Nested
@@ -203,8 +208,12 @@ class TurnProcessorIntegrationBeforeMoveTest {
           new EncounterRule(regularMoveGenerator, freePathMovementValidator);
 
       BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(2);
+      VictoryConditionEvaluator victoryEvaluator =
+          new VictoryConditionEvaluator(Set.of(VictoryCondition.BODY));
 
-      processor = setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+      processor =
+          setupProcessor(
+              List.of(encounterRule, assaultRule), List.of(bodyVictoryRule), victoryEvaluator);
 
       // =========================
       // SIMPLE BOARD SETUP
@@ -299,8 +308,12 @@ class TurnProcessorIntegrationBeforeMoveTest {
           new EncounterRule(regularMoveGenerator, freePathMovementValidator);
 
       BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(1);
+      VictoryConditionEvaluator victoryEvaluator =
+          new VictoryConditionEvaluator(Set.of(VictoryCondition.BODY));
 
-      processor = setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+      processor =
+          setupProcessor(
+              List.of(encounterRule, assaultRule), List.of(bodyVictoryRule), victoryEvaluator);
 
       // =========================
       // SIMPLE BOARD SETUP
@@ -341,9 +354,10 @@ class TurnProcessorIntegrationBeforeMoveTest {
           findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
       PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
-      assertThatThrownBy(() -> processor.process(turn1, chosenAction))
-          .isInstanceOf(VictoryException.class)
-          .hasMessage("BLACK is winner");
+      VictoryAssertion.from(() -> processor.process(turn1, chosenAction))
+          .hasWinner(PlayerColorDTO.BLACK)
+          .hasRequiredCount(1)
+          .hasCapturedCount(1);
     }
   }
 
@@ -360,8 +374,12 @@ class TurnProcessorIntegrationBeforeMoveTest {
           new EncounterRule(regularMoveGenerator, freePathMovementValidator);
 
       BodyVictoryRule bodyVictoryRule = new BodyVictoryRule(3);
+      VictoryConditionEvaluator victoryEvaluator =
+          new VictoryConditionEvaluator(Set.of(VictoryCondition.BODY));
 
-      processor = setupProcessor(List.of(encounterRule, assaultRule), List.of(bodyVictoryRule));
+      processor =
+          setupProcessor(
+              List.of(encounterRule, assaultRule), List.of(bodyVictoryRule), victoryEvaluator);
 
       // =========================
       // SIMPLE BOARD SETUP
