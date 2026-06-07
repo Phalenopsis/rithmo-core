@@ -1,14 +1,13 @@
 package eu.nicosworld.rithmo.core.e2e;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import eu.nicosworld.rithmo.core.GameFacade;
-import eu.nicosworld.rithmo.core.exception.VictoryException;
 import eu.nicosworld.rithmo.core.game.Game;
 import eu.nicosworld.rithmo.core.game.GameStatusDTO;
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.PreDefinedTestGame;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.VictoryAssertion;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import java.util.UUID;
@@ -68,7 +67,10 @@ class AssaultTest {
 
     UUID captureId =
         FindDecisionHelper.findCaptureDecisionId(statusAfterMove, "BC4(2,2)", "WC4(3,3)");
-    assertThatThrownBy(() -> gameFacade.play(gameId, captureId))
-        .isInstanceOf(VictoryException.class);
+    VictoryAssertion.from(() -> gameFacade.play(gameId, captureId))
+        .hasWinner(PlayerColorDTO.BLACK)
+        .isByBody()
+        .hasRequiredCount(2)
+        .hasCapturedCount(2);
   }
 }

@@ -6,8 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import eu.nicosworld.rithmo.core.exception.PatException;
 import eu.nicosworld.rithmo.core.exception.VictoryException;
+import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.game.victory.VictoryCondition;
 import eu.nicosworld.rithmo.core.game.victory.VictoryConditionEvaluator;
+import eu.nicosworld.rithmo.core.helper.VictoryAssertion;
 import eu.nicosworld.rithmo.core.turn.action.PreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.action.SkipPreCaptureAction;
 import eu.nicosworld.rithmo.core.turn.option.PreCaptureOption;
@@ -187,9 +189,10 @@ class TurnProcessorIntegrationBeforeMoveTest {
         findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
     PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
-    assertThatThrownBy(() -> processor.process(turn1, chosenAction))
-        .isInstanceOf(VictoryException.class)
-        .hasMessage("BLACK is winner");
+    VictoryAssertion.from(() -> processor.process(turn1, chosenAction))
+        .hasWinner(PlayerColorDTO.BLACK)
+        .hasRequiredCount(1)
+        .hasCapturedCount(1);
   }
 
   @Nested
@@ -351,9 +354,10 @@ class TurnProcessorIntegrationBeforeMoveTest {
           findPreCaptureOption(turn1.options(), attackerPos, targetPos, targetPos);
       PreCaptureAction chosenAction = PreCaptureAction.from(choice).getFirst();
 
-      assertThatThrownBy(() -> processor.process(turn1, chosenAction))
-          .isInstanceOf(VictoryException.class)
-          .hasMessage("BLACK is winner");
+      VictoryAssertion.from(() -> processor.process(turn1, chosenAction))
+          .hasWinner(PlayerColorDTO.BLACK)
+          .hasRequiredCount(1)
+          .hasCapturedCount(1);
     }
   }
 

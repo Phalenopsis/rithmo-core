@@ -8,6 +8,7 @@ import eu.nicosworld.rithmo.engine.model.victory.GoodsVictory;
 import eu.nicosworld.rithmo.engine.model.victory.LawsuitVictory;
 import eu.nicosworld.rithmo.engine.model.victory.Victory;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,9 +21,9 @@ class VictoryConditionEvaluatorTest {
   void testEvaluate_multipleConditions(
       Set<VictoryCondition> conditions, List<Victory> victories, boolean expected) {
     VictoryConditionEvaluator evaluator = new VictoryConditionEvaluator(conditions);
-    boolean result = evaluator.isSatisfied(victories);
+    Optional<Set<VictoryCondition>> result = evaluator.evaluate(victories);
 
-    assertThat(result).isEqualTo(expected);
+    assertThat(result.isPresent()).isEqualTo(expected);
   }
 
   static Stream<Arguments> casesWithMultiplesConditions() {
@@ -75,9 +76,9 @@ class VictoryConditionEvaluatorTest {
   void testEvaluate_condition(
       VictoryCondition condition, List<Victory> victories, boolean expected) {
     VictoryConditionEvaluator evaluator = new VictoryConditionEvaluator(Set.of(condition));
-    boolean result = evaluator.isSatisfied(victories);
+    Optional<Set<VictoryCondition>> result = evaluator.evaluate(victories);
 
-    assertThat(result).isEqualTo(expected);
+    assertThat(result.isPresent()).isEqualTo(expected);
   }
 
   static Stream<Arguments> cases() {

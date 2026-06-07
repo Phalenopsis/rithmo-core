@@ -1,7 +1,5 @@
 package eu.nicosworld.rithmo.core.e2e;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import eu.nicosworld.rithmo.core.GameFacade;
 import eu.nicosworld.rithmo.core.PreDefinedGame;
 import eu.nicosworld.rithmo.core.exception.PatException;
@@ -11,6 +9,7 @@ import eu.nicosworld.rithmo.core.game.GameStatusDTO;
 import eu.nicosworld.rithmo.core.game.dto.status.PlayerColorDTO;
 import eu.nicosworld.rithmo.core.helper.FindDecisionHelper;
 import eu.nicosworld.rithmo.core.helper.StatusDTOAssertion;
+import eu.nicosworld.rithmo.core.helper.VictoryAssertion;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryGameRepository;
 import eu.nicosworld.rithmo.core.helper.persistence.InMemoryOptionRepository;
 import java.util.UUID;
@@ -76,8 +75,10 @@ public class FourEightGameTest {
     // spotless:on
     UUID captureId = FindDecisionHelper.findCaptureDecisionId(statusDTO5, "WT36(4,0)", "BS36(2,0)");
 
-    assertThatThrownBy(() -> gameFacade.play(gameId, captureId))
-        .isInstanceOf(VictoryException.class)
-        .hasMessage("WHITE is winner");
+    VictoryAssertion.from(() -> gameFacade.play(gameId, captureId))
+        .hasWinner(PlayerColorDTO.WHITE)
+        .isByGoods()
+        .hasCapturedValue(45)
+        .hasRequiredValue(30);
   }
 }
