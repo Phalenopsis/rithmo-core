@@ -3,6 +3,7 @@ package eu.nicosworld.rithmo.core.helper;
 import eu.nicosworld.rithmo.core.GameOptions;
 import eu.nicosworld.rithmo.core.game.CaptureRuleOption;
 import eu.nicosworld.rithmo.core.game.Game;
+import eu.nicosworld.rithmo.core.game.victory.VictoryCondition;
 import eu.nicosworld.rithmo.core.turn.TurnPhase;
 import eu.nicosworld.rithmo.core.turn.TurnState;
 import eu.nicosworld.rithmo.engine.model.*;
@@ -301,6 +302,8 @@ public class PreDefinedTestGame {
             .withComponent(PieceType.CIRCLE, 8)
             .withComponent(PieceType.TRIANGLE, 64)
             .at(0, 3)
+            .whiteCircle(64)
+            .at(3, 1)
             .build();
     GameOptions options =
         new GameOptions(
@@ -309,7 +312,8 @@ public class PreDefinedTestGame {
                 CaptureRuleOption.POWER,
                 CaptureRuleOption.ASSAULT,
                 CaptureRuleOption.AMBUSH),
-            Map.of(VictoryType.BODY, 5));
+            Map.of(VictoryType.BODY, 3, VictoryType.LAWSUIT, 3, VictoryType.GOODS, 70),
+            Set.of(VictoryCondition.BODY_AND_GOODS_AND_LAWSUIT));
     GameState gameState = GameState.initial(board, Player.BLACK);
     TurnState turnState = TurnState.of(gameState, TurnPhase.START);
     return new Game(options, turnState);
